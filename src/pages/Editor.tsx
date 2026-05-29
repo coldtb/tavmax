@@ -54,10 +54,10 @@ export const Editor: React.FC = () => {
   const [viewMode, setViewMode] = useState<'perspective' | 'front' | 'top' | 'side'>('perspective');
   const [isDragOver, setIsDragOver] = useState(false);
   const [showTemplatePanel, setShowTemplatePanel] = useState(true);
-  const [panelWidth, setPanelWidth] = useState(240);
+  const [panelWidth, setPanelWidth] = useState(320);
   const isResizing = useRef(false);
   const startX = useRef(0);
-  const startW = useRef(240);
+  const startW = useRef(320);
 
   const onResizeStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
