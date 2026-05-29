@@ -133,7 +133,8 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
     try {
       // 1. Scene setup
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color('#0c0d12'); // Rich deep grey
+      scene.background = new THREE.Color('#d4cfc9'); // Warm studio neutral
+      scene.fog = new THREE.FogExp2('#d4cfc9', 0.000035); // Soft depth fog
       sceneRef.current = scene;
 
       // Bounding groups (Initialized early to prevent ReferenceError)
@@ -145,10 +146,10 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
       scene.add(dimsGroup);
       dimsGroupRef.current = dimsGroup;
 
-      // Add elegant studio lighting grid
-      scene.add(new THREE.AmbientLight('#ffffff', 0.5));
+      // Add premium studio lighting
+      scene.add(new THREE.AmbientLight('#ffffff', 1.1));
 
-      const mainLight = new THREE.DirectionalLight('#ffffff', 0.85);
+      const mainLight = new THREE.DirectionalLight('#fff8f0', 1.2);
       mainLight.position.set(1500, 2500, 1500);
       mainLight.castShadow = true;
       mainLight.shadow.mapSize.width = 2048;
@@ -156,13 +157,13 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
       mainLight.shadow.bias = -0.0005;
       scene.add(mainLight);
 
-      const fillLight = new THREE.DirectionalLight('#bfdbfe', 0.3); // subtle blue soft fill
+      const fillLight = new THREE.DirectionalLight('#e8f4ff', 0.55); // sky blue soft fill
       fillLight.position.set(-1500, 1000, -1000);
       scene.add(fillLight);
 
-      const floorLight = new THREE.DirectionalLight('#fbbf24', 0.15); // gold wood highlights
-      floorLight.position.set(0, -1000, 0);
-      scene.add(floorLight);
+      const rimLight = new THREE.DirectionalLight('#ffe8cc', 0.4); // warm rim highlight
+      rimLight.position.set(0, -800, 1500);
+      scene.add(rimLight);
 
       // 2. Camera Setup
       const width = containerRef.current.clientWidth;
@@ -573,16 +574,16 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
       renderer.domElement.addEventListener('pointerleave', onPointerUp);
 
       // 5. Grid/Floor plane — 10m × 10m with 100mm cells
-      const gridHelper = new THREE.GridHelper(10000, 100, '#1f2937', '#111827');
+      const gridHelper = new THREE.GridHelper(10000, 100, '#b0a89e', '#c8c0b8');
       gridHelper.position.y = -2;
       scene.add(gridHelper);
 
-      // Shadows receiver floor
+      // Floor plane with a subtle light marble tone
       const floorGeo = new THREE.PlaneGeometry(12000, 12000);
-      const floorMat = new THREE.ShadowMaterial({ opacity: 0.4 });
+      const floorMat = new THREE.MeshLambertMaterial({ color: '#cec8c2', side: THREE.FrontSide });
       const floor = new THREE.Mesh(floorGeo, floorMat);
       floor.rotation.x = -Math.PI / 2;
-      floor.position.y = -1;
+      floor.position.y = -2;
       floor.receiveShadow = true;
       scene.add(floor);
 
