@@ -369,7 +369,7 @@ export const Pricing: React.FC = () => {
         {/* Pricing calculations total invoice and Parts list table (Col 8) */}
         <div className="lg:col-span-8 flex flex-col gap-6">
           {/* Main Price Indicator */}
-          <div className="bg-gradient-to-r from-amber-500/15 via-amber-600/5 to-transparent border border-amber-500/10 rounded-2xl p-6 flex justify-between items-center">
+          <div className="bg-gradient-to-r from-amber-500/15 via-amber-600/5 to-transparent border border-amber-500/10 rounded-2xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
                 <Coins size={22} />
@@ -382,7 +382,7 @@ export const Pricing: React.FC = () => {
               </div>
             </div>
             
-            <div className="text-right text-[10px] text-neutral-400 border-l border-white/10 pl-6 hidden sm:block">
+            <div className="text-left sm:text-right text-[10px] text-neutral-400 border-t sm:border-t-0 sm:border-l border-white/10 pt-3 sm:pt-0 sm:pl-6 w-full sm:w-auto flex flex-col gap-1">
               <div>Нийт зардал: {Math.round(calculations.subtotal).toLocaleString('mn-MN')} ₮</div>
               <div>Цэвэр ашиг: {Math.round(calculations.profit).toLocaleString('mn-MN')} ₮</div>
             </div>

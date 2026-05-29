@@ -46,20 +46,20 @@ export const CuttingCanvas: React.FC<CuttingCanvasProps> = ({ sheet, materialNam
   };
 
   return (
-    <div className="bg-[#12141c] rounded-2xl border border-white/5 p-6 flex flex-col gap-4">
+    <div className="bg-[#12141c] rounded-2xl border border-white/5 p-3 sm:p-6 flex flex-col gap-4">
       {/* Header controls */}
       <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
-          <h3 className="font-display font-bold text-lg text-white flex items-center gap-2">
-            Хавтан №{sheet.localSheetId !== undefined ? sheet.localSheetId : sheet.sheetId} {materialName && <span className="text-amber-400 font-semibold text-sm bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">{materialName}</span>} <span className="text-sm font-normal text-neutral-400">({sheet.width} x {sheet.height} мм)</span>
+          <h3 className="font-display font-bold text-base sm:text-lg text-white flex flex-wrap items-center gap-2">
+            Хавтан №{sheet.localSheetId !== undefined ? sheet.localSheetId : sheet.sheetId} {materialName && <span className="text-amber-400 font-semibold text-xs bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">{materialName}</span>} <span className="text-xs sm:text-sm font-normal text-neutral-400">({sheet.width} x {sheet.height} мм)</span>
           </h3>
-          <p className="text-xs text-neutral-400">
+          <p className="text-[11px] sm:text-xs text-neutral-400 mt-0.5">
             Ашигтай талбай: <span className="text-amber-500 font-semibold">{sheet.efficiency}%</span> | Хаягдал: {(100 - sheet.efficiency).toFixed(1)}%
           </p>
         </div>
         
         {/* Buttons HUD */}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setScale((prev) => Math.max(0.5, prev - 0.1))}
             className="p-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors"
@@ -92,7 +92,7 @@ export const CuttingCanvas: React.FC<CuttingCanvasProps> = ({ sheet, materialNam
       </div>
 
       {/* SVG Canvas Board */}
-      <div className="relative w-full overflow-auto bg-[#0a0b10] border border-white/5 rounded-xl flex items-center justify-center p-8 min-h-[350px]">
+      <div className="relative w-full overflow-auto bg-[#0a0b10] border border-white/5 rounded-xl flex items-center justify-center p-2 sm:p-8 min-h-[350px]">
         <div
           className="relative transition-transform duration-200"
           style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}

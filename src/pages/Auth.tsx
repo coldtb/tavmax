@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
-import { Key, Phone, User, Lock, ShieldCheck, CheckCircle2, AlertCircle, Coins, CreditCard, Sparkles, Check } from 'lucide-react';
+import { Key, Phone, User, Lock, ShieldCheck, CheckCircle2, AlertCircle, Coins, CreditCard, Sparkles, Check, RefreshCw } from 'lucide-react';
 
 export const Auth: React.FC = () => {
   const { validateCode, register, login } = useAuthStore();

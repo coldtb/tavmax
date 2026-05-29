@@ -78,6 +78,28 @@ export const Editor: React.FC = () => {
     document.addEventListener('mouseup', onUp);
   }, [panelWidth]);
 
+  // Mobile responsive & UX states
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileTab, setMobileTab] = useState<'3d' | 'settings' | 'templates'>('3d');
+  const [selectedTemplateCategory, setSelectedTemplateCategory] = useState<'all' | 'kitchen' | 'living' | 'bedroom' | 'other'>('all');
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const getCategoryByType = (type: string, id?: string) => {
+    if (id === 'tall_kitchen' || id === 'tall_kitchen_open') return 'kitchen';
+    if (['wardrobe'].includes(type)) return 'bedroom';
+    if (['kitchen_lower', 'kitchen_upper', 'sink', 'built_in_hood', 'fridge', 'cooktop', 'hood', 'microwave', 'oven', 'dishwasher'].includes(type)) return 'kitchen';
+    if (['bookshelf', 'cabinet', 'tv_unit', 'vitrine'].includes(type)) return 'living';
+    return 'other';
+  };
+
   // AI Prompt State
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
@@ -632,13 +654,58 @@ export const Editor: React.FC = () => {
     }, 1500);
   };
 
+  // Filter built-in and custom templates based on room categories
+  const filteredBuiltInTemplates = templates.filter((tpl) => {
+    if (selectedTemplateCategory === 'all') return true;
+    return getCategoryByType(tpl.type, tpl.id) === selectedTemplateCategory;
+  });
+
+  const filteredCustomTemplates = (customTemplates || []).filter((tpl) => {
+    if (selectedTemplateCategory === 'all') return true;
+    return getCategoryByType(tpl.type, tpl.id) === selectedTemplateCategory;
+  });
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-12">
+      {/* Mobile Tab Switcher */}
+      <div className="lg:hidden col-span-1 flex gap-1 bg-[#12141c] p-1 rounded-xl border border-white/5 shrink-0">
+        <button
+          onClick={() => setMobileTab('3d')}
+          className={`flex-1 py-2.5 text-[10px] uppercase tracking-wider font-bold rounded-lg transition-all cursor-pointer ${
+            mobileTab === '3d'
+              ? 'bg-amber-500 text-neutral-950 font-extrabold shadow'
+              : 'text-neutral-400 hover:text-white'
+          }`}
+        >
+          👁️ 3D Загвар
+        </button>
+        <button
+          onClick={() => setMobileTab('settings')}
+          className={`flex-1 py-2.5 text-[10px] uppercase tracking-wider font-bold rounded-lg transition-all cursor-pointer ${
+            mobileTab === 'settings'
+              ? 'bg-amber-500 text-neutral-950 font-extrabold shadow'
+              : 'text-neutral-400 hover:text-white'
+          }`}
+        >
+          ⚙️ Тохиргоо
+        </button>
+        <button
+          onClick={() => setMobileTab('templates')}
+          className={`flex-1 py-2.5 text-[10px] uppercase tracking-wider font-bold rounded-lg transition-all cursor-pointer ${
+            mobileTab === 'templates'
+              ? 'bg-amber-500 text-neutral-950 font-extrabold shadow'
+              : 'text-neutral-400 hover:text-white'
+          }`}
+        >
+          📦 Загварууд
+        </button>
+      </div>
+
       {/* MIDDLE COLUMN: 3D Visualizer Canvas — full width with floating template drawer */}
-      <div className="lg:col-span-9 flex flex-col gap-4 h-[780px] lg:h-[920px]">
+      <div className={`lg:col-span-9 flex flex-col gap-4 ${isMobile ? (mobileTab === '3d' || mobileTab === 'templates' ? 'flex h-[55vh]' : 'hidden') : 'flex h-[920px]'}`}>
         {/* Visualizer HUD controls */}
-        <div className="flex justify-between items-center gap-4 bg-[#12141c] border border-white/5 px-4 py-3 rounded-xl">
-          <div className="flex gap-2">
+        <div className="flex justify-between items-center gap-4 bg-[#12141c] border border-white/5 px-4 py-3 rounded-xl overflow-x-auto scrollbar-none whitespace-nowrap">
+          <div className="flex gap-2 shrink-0">
             <button
               onClick={() => setViewMode('perspective')}
               className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
@@ -672,7 +739,7 @@ export const Editor: React.FC = () => {
               Хажуугаас
             </button>
           </div>
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 shrink-0">
             <button
               onClick={() => setExplode(!explode)}
               className={`p-2 rounded-lg transition-all cursor-pointer ${
@@ -801,8 +868,8 @@ export const Editor: React.FC = () => {
           {/* Toggle button — moves with panel */}
           <button
             onClick={() => setShowTemplatePanel(p => !p)}
-            style={{ left: showTemplatePanel ? panelWidth : 0 }}
-            className="absolute top-1/2 -translate-y-1/2 z-30 w-6 h-16 bg-[#1a1c26] border border-white/10 rounded-r-xl flex items-center justify-center text-neutral-400 hover:text-amber-400 hover:border-amber-500/40 transition-[left] duration-200 cursor-pointer shadow-xl"
+            style={{ left: isMobile ? 0 : (showTemplatePanel ? panelWidth : 0) }}
+            className={`absolute top-1/2 -translate-y-1/2 z-30 w-6 h-16 bg-[#1a1c26] border border-white/10 rounded-r-xl items-center justify-center text-neutral-400 hover:text-amber-400 hover:border-amber-500/40 transition-[left] duration-200 cursor-pointer shadow-xl ${isMobile ? 'hidden' : 'flex'}`}
             title={showTemplatePanel ? 'Хаах' : 'Загвар нээх'}
           >
             <span className="text-[10px] font-bold">{showTemplatePanel ? '‹' : '›'}</span>
@@ -810,17 +877,38 @@ export const Editor: React.FC = () => {
 
           {/* Sliding panel */}
           <div
-            style={{ width: showTemplatePanel ? panelWidth : 0 }}
-            className={`absolute left-0 top-0 bottom-0 z-20 flex flex-col bg-[#12141c]/95 backdrop-blur-md border-r border-white/5 overflow-hidden shadow-2xl transition-[opacity] ${
-              showTemplatePanel ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            }`}
+            style={{ width: isMobile ? (mobileTab === 'templates' ? '100%' : '0') : (showTemplatePanel ? panelWidth : 0) }}
+            className={`absolute left-0 top-0 bottom-0 z-20 flex flex-col bg-[#12141c]/95 backdrop-blur-md border-r border-white/5 overflow-hidden shadow-2xl transition-[opacity] ${(isMobile ? mobileTab === 'templates' : showTemplatePanel) ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
           >
-            <div className="flex flex-col h-full overflow-y-auto" style={{minWidth: panelWidth}}>
+            <div className="flex flex-col h-full overflow-y-auto" style={{ minWidth: isMobile ? '100%' : panelWidth }}>
               {/* Header */}
               <div className="flex items-center gap-2 px-3 py-3 border-b border-white/5 sticky top-0 bg-[#12141c] z-10">
                 <Box size={13} className="text-amber-500 shrink-0" />
                 <span className="font-bold text-white text-xs">Бэлэн загварууд</span>
-                <span className="ml-auto text-[9px] text-neutral-500 font-semibold bg-neutral-800 px-1.5 py-0.5 rounded">{templates.length}</span>
+                <span className="ml-auto text-[9px] text-neutral-500 font-semibold bg-neutral-800 px-1.5 py-0.5 rounded">{filteredBuiltInTemplates.length}</span>
+              </div>
+
+              {/* Category Filters */}
+              <div className="px-2 py-2 border-b border-white/5 bg-[#12141c]/45 flex gap-1 overflow-x-auto scrollbar-none whitespace-nowrap sticky top-[38px] z-10 shrink-0">
+                {[
+                  { id: 'all', label: 'Бүгд' },
+                  { id: 'kitchen', label: 'Гал тогоо' },
+                  { id: 'living', label: 'Зочны өрөө' },
+                  { id: 'bedroom', label: 'Унтлага' },
+                  { id: 'other', label: 'Бусад' }
+                ].map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedTemplateCategory(cat.id as any)}
+                    className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                      selectedTemplateCategory === cat.id
+                        ? 'bg-amber-500 text-neutral-950 font-extrabold shadow'
+                        : 'bg-neutral-800/80 text-neutral-400 hover:text-white hover:bg-neutral-750'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
               </div>
 
               {/* Module list */}
@@ -855,18 +943,18 @@ export const Editor: React.FC = () => {
               <div className="px-2 py-2 border-b border-white/5 bg-amber-500/5">
                 <div className="text-[9px] text-amber-500 uppercase font-bold px-1 mb-2 flex items-center justify-between">
                   <span>💾 Миний хадгалсан загвар</span>
-                  {customTemplates && customTemplates.length > 0 && (
-                    <span className="text-[9px] text-amber-400 font-semibold bg-amber-500/15 px-1.5 py-0.5 rounded">{customTemplates.length}</span>
+                  {filteredCustomTemplates && filteredCustomTemplates.length > 0 && (
+                    <span className="text-[9px] text-amber-400 font-semibold bg-amber-500/15 px-1.5 py-0.5 rounded">{filteredCustomTemplates.length}</span>
                   )}
                 </div>
-                {(!customTemplates || customTemplates.length === 0) ? (
+                {(!filteredCustomTemplates || filteredCustomTemplates.length === 0) ? (
                   <div className="flex flex-col items-center justify-center py-4 gap-1.5 opacity-50">
                     <span className="text-xl">📭</span>
                     <span className="text-[9px] text-neutral-500 text-center leading-tight">Хадгалсан загвар алга байна.<br/>Хайрцаг сонгоод хадгалах боломжтой.</span>
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-1.5 max-h-[220px] overflow-y-auto pr-1">
-                    {customTemplates.map((tpl) => (
+                    {filteredCustomTemplates.map((tpl) => (
                       <div
                         key={tpl.id}
                         draggable
@@ -924,7 +1012,10 @@ export const Editor: React.FC = () => {
                           <div className="absolute inset-0 bg-amber-500/0 group-hover:bg-amber-500/5 transition-all pointer-events-none" />
                         </div>
                         <button
-                          onClick={() => addModuleToActive(tpl.type, tpl.config, tpl.name)}
+                          onClick={() => {
+                            addModuleToActive(tpl.type, tpl.config, tpl.name);
+                            if (isMobile) setMobileTab('3d');
+                          }}
                           className="w-full py-1 bg-neutral-800/80 hover:bg-amber-500 hover:text-neutral-950 text-neutral-300 font-bold text-[8px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-0.5"
                         >
                           <Plus size={8} /> Нэмэх
@@ -985,7 +1076,7 @@ export const Editor: React.FC = () => {
               <div className="px-2 py-2 flex-1">
                 <div className="text-[9px] text-neutral-500 uppercase font-bold px-1 mb-2">Чирж нэмэх</div>
                 <div className="grid grid-cols-2 gap-1.5">
-                  {templates.map((tpl) => {
+                  {filteredBuiltInTemplates.map((tpl) => {
                     return (
                       <div
                         key={tpl.id}
@@ -1033,7 +1124,10 @@ export const Editor: React.FC = () => {
                           <div className="absolute inset-0 bg-amber-500/0 group-hover:bg-amber-500/5 transition-all pointer-events-none" />
                         </div>
                         <button
-                          onClick={() => addModuleToActive(tpl.type, tpl.config, tpl.name)}
+                          onClick={() => {
+                            addModuleToActive(tpl.type, tpl.config, tpl.name);
+                            if (isMobile) setMobileTab('3d');
+                          }}
                           className="w-full py-1 bg-neutral-800/80 hover:bg-amber-500 hover:text-neutral-950 text-neutral-300 font-bold text-[8px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-0.5"
                         >
                           <Plus size={8} /> Нэмэх
@@ -1075,7 +1169,7 @@ export const Editor: React.FC = () => {
       </div>
 
       {/* RIGHT COLUMN: Configuration sliders side panel (col-span-2) */}
-      <div className="lg:col-span-3 flex flex-col gap-6 max-h-[920px] overflow-y-auto pr-2">
+      <div className={`lg:col-span-3 flex flex-col gap-6 max-h-[920px] overflow-y-auto pr-2 ${isMobile ? (mobileTab === 'settings' ? 'flex' : 'hidden') : 'flex'}`}>
         {/* Project info card */}
         <div className="bg-[#12141c] border border-white/5 rounded-2xl p-5 flex flex-col gap-1">
           <span className="text-[10px] text-amber-500 uppercase tracking-wider font-bold">Идэвхтэй төсөл</span>

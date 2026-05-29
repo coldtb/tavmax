@@ -179,7 +179,7 @@ export const App: React.FC = () => {
         )}
 
         {/* Content Pane */}
-        <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full overflow-y-auto">
+        <main className="flex-1 p-3 md:p-8 max-w-7xl mx-auto w-full overflow-y-auto">
           <ErrorBoundary>
             {activeTab === 'dashboard' && (
               <Dashboard onSelectProject={setActiveProject} onNavigate={handleTabChange} />
