@@ -1709,7 +1709,7 @@ export const Editor: React.FC = () => {
 
 
             {/* Doors config or count */}
-            {(selectedMod?.type === 'custom' || selectedMod?.type === 'kitchen_lower' || selectedMod?.type === 'kitchen_upper' || selectedMod?.type === 'built_in_hood' || selectedMod?.type === 'sink' || selectedMod?.type === 'cabinet' || selectedMod?.type === 'vitrine') ? (
+            {(selectedMod?.type === 'custom' || selectedMod?.type === 'kitchen_lower' || selectedMod?.type === 'kitchen_upper' || selectedMod?.type === 'built_in_hood' || selectedMod?.type === 'sink' || selectedMod?.type === 'cabinet' || selectedMod?.type === 'vitrine' || selectedMod?.type === 'cooktop') ? (
               <div className="flex flex-col gap-2 col-span-2">
                 <div className="flex justify-between items-center">
                   <label className="text-xs text-neutral-400 font-semibold">Хаалганы тохиргоо</label>
@@ -1940,23 +1940,37 @@ export const Editor: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Burner size — manual number input */}
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs text-neutral-400">Пластикийн хэмжээ (мм)</label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          min={5}
-                          step={1}
-                          value={config.burnerSize ?? 50}
-                          onChange={(e) => {
-                            const v = parseInt(e.target.value);
-                            if (!isNaN(v) && v >= 5) updateActiveConfig({ burnerSize: v });
-                          }}
-                          className="w-full px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-neutral-800/80 border border-white/10 focus:outline-none focus:border-amber-500/60 transition-all"
-                          placeholder="50"
-                        />
-                        <span className="text-xs text-amber-400 font-semibold shrink-0">мм</span>
+                    {/* Burner size — slider + manual input */}
+                    <div className="flex flex-col gap-2">
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs text-neutral-400">Пластикийн хэмжээ</label>
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            min={5}
+                            step={1}
+                            value={config.burnerSize ?? 50}
+                            onChange={(e) => {
+                              const v = parseInt(e.target.value);
+                              if (!isNaN(v) && v >= 5) updateActiveConfig({ burnerSize: v });
+                            }}
+                            className="w-16 px-2 py-1 rounded-lg text-xs font-bold text-white bg-neutral-800 border border-white/10 focus:outline-none focus:border-amber-500/60 transition-all text-center"
+                          />
+                          <span className="text-[10px] text-amber-400 font-semibold">мм</span>
+                        </div>
+                      </div>
+                      <input
+                        type="range"
+                        min={5}
+                        max={300}
+                        step={5}
+                        value={config.burnerSize ?? 50}
+                        onChange={(e) => updateActiveConfig({ burnerSize: parseInt(e.target.value) })}
+                        className="w-full h-1.5 rounded-full accent-amber-500 cursor-pointer"
+                      />
+                      <div className="flex justify-between text-[10px] text-neutral-500">
+                        <span>5мм</span>
+                        <span>300мм</span>
                       </div>
                     </div>
                   </div>
