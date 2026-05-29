@@ -56,26 +56,26 @@ function renderThumbnail(type: string, cfg: TemplateConfig): string {
   const scene = new THREE.Scene();
 
   // Lights
-  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-  const key = new THREE.DirectionalLight(0xfff8e8, 1.5);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+  const key = new THREE.DirectionalLight(0xfff8e8, 2.2);
   key.position.set(800, 1400, 1200);
   scene.add(key);
-  const fill = new THREE.DirectionalLight(0xc8d8ff, 0.45);
+  const fill = new THREE.DirectionalLight(0xc8d8ff, 0.7);
   fill.position.set(-600, 400, -800);
   scene.add(fill);
 
   // Floor grid
-  const grid = new THREE.GridHelper(8000, 20, 0x1e2035, 0x161826);
+  const grid = new THREE.GridHelper(8000, 20, 0x334155, 0x1e293b);
   scene.add(grid);
 
   // Materials
-  const bodyMat = new THREE.MeshStandardMaterial({ color: '#f0ede8', roughness: 0.55, metalness: 0.02 });
-  const doorMat = new THREE.MeshStandardMaterial({ color: '#fafaf8', roughness: 0.3, metalness: 0.03 });
-  const darkMat = new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.35, metalness: 0.5 });
-  const hdfMat  = new THREE.MeshStandardMaterial({ color: '#ddd8d0', roughness: 0.8 });
-  const chromeMat = new THREE.MeshStandardMaterial({ color: '#d0d0d0', roughness: 0.05, metalness: 0.95 });
-  const stoneMat  = new THREE.MeshStandardMaterial({ color: '#c8c8cc', roughness: 0.3, metalness: 0.05 });
-  const woodCtMat = new THREE.MeshStandardMaterial({ color: '#c08844', roughness: 0.55 });
+  const bodyMat = new THREE.MeshStandardMaterial({ color: '#faf9f6', roughness: 0.4, metalness: 0.02 });
+  const doorMat = new THREE.MeshStandardMaterial({ color: '#fcfbfa', roughness: 0.25, metalness: 0.02 });
+  const darkMat = new THREE.MeshStandardMaterial({ color: '#1e2026', roughness: 0.35, metalness: 0.2 });
+  const hdfMat  = new THREE.MeshStandardMaterial({ color: '#e5e1da', roughness: 0.8 });
+  const chromeMat = new THREE.MeshStandardMaterial({ color: '#e5e5e5', roughness: 0.05, metalness: 0.95 });
+  const stoneMat  = new THREE.MeshStandardMaterial({ color: '#d1d1d6', roughness: 0.25, metalness: 0.05 });
+  const woodCtMat = new THREE.MeshStandardMaterial({ color: '#d99a4e', roughness: 0.5 });
 
   const { width: W3, height, depth,
           doors = 0, drawers = 0, shelves = 0,
@@ -89,14 +89,22 @@ function renderThumbnail(type: string, cfg: TemplateConfig): string {
   const addBox = (w: number, h: number, d: number,
                   x: number, y: number, z: number,
                   mat: THREE.Material): THREE.Mesh => {
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    const geom = new THREE.BoxGeometry(w, h, d);
+    const mesh = new THREE.Mesh(geom, mat);
     mesh.position.set(x, y, z);
     scene.add(mesh);
+
+    // Add high-contrast distinct outlines for clear panel visibility
+    const edges = new THREE.EdgesGeometry(geom);
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x9ca3af });
+    const line = new THREE.LineSegments(edges, lineMat);
+    mesh.add(line);
+
     return mesh;
   };
 
   if (type === 'fridge') {
-    const fridgeMat = new THREE.MeshStandardMaterial({ color: '#8e939e', roughness: 0.25, metalness: 0.6 });
+    const fridgeMat = new THREE.MeshStandardMaterial({ color: '#d1d5db', roughness: 0.2, metalness: 0.45 });
     addBox(W3, height, depth, 0, height / 2, 0, fridgeMat);
     addBox(W3 - 10, height - 10, 20, 0, height / 2, halfD + 10, fridgeMat);
     const hnd = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, 200, 12), chromeMat);
