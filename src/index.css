@@ -64,12 +64,12 @@ html, body, #root {
 
 /* ─── Light Mode theme overrides ────────────────────────────────── */
 body.light {
-  background-color: #f1f5f9 !important;
+  background-color: #f8fafc !important;
   color: #0f172a !important;
 }
 
 body.light #root {
-  background-color: #f1f5f9 !important;
+  background-color: #f8fafc !important;
   color: #0f172a !important;
 }
 
@@ -84,6 +84,7 @@ body.light h6 {
 
 /* Background panel colors (sidebar, dashboards, panels, cards) */
 body.light .bg-\[\#08090d\],
+body.light .bg-\[\#0a0b10\]\/40,
 body.light .bg-\[\#0b0c10\],
 body.light .bg-\[\#0c0d12\],
 body.light .bg-\[\#0c0e18\],
@@ -93,8 +94,13 @@ body.light .bg-\[\#11131e\],
 body.light .bg-\[\#1a1c26\],
 body.light .bg-\[\#0c0d12\]\/80,
 body.light .bg-\[\#0c0d12\]\/50,
+body.light .bg-\[\#0c0d12\]\/60,
+body.light .bg-\[\#0c0d12\]\/30,
+body.light .bg-\[\#0c0d12\]\/20,
 body.light .bg-\[\#12141c\]\/95,
 body.light .bg-\[\#12141c\]\/45,
+body.light [class*="bg-neutral-900"],
+body.light [class*="bg-neutral-950"],
 body.light .bg-neutral-900,
 body.light .bg-neutral-950,
 body.light .bg-black\/40,
@@ -103,53 +109,99 @@ body.light aside,
 body.light header {
   background-color: #ffffff !important;
   color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Darker elements, buttons, and subpanels */
+body.light [class*="bg-neutral-800"],
+body.light .bg-neutral-800 {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
   border-color: #cbd5e1 !important;
 }
 
-/* Darker header/sidebar item styling */
+/* Hovers on tables, sidebar menus, and buttons */
+body.light [class*="hover:bg-white\/[0.02]"]:hover,
+body.light [class*="hover:bg-white\/3"]:hover,
+body.light [class*="hover:bg-white\/5"]:hover,
+body.light [class*="hover:bg-white"]:hover,
+body.light [class*="hover:bg-neutral-800"]:hover,
 body.light .hover\:bg-white\/\[0\.02\]:hover,
 body.light .hover\:bg-white\/3:hover,
 body.light .hover\:bg-white\/5:hover,
-body.light .bg-neutral-800\/60,
-body.light .bg-neutral-800\/80 {
+body.light .hover\:bg-neutral-800\/60:hover,
+body.light .hover\:bg-neutral-800\/80:hover {
   background-color: #f1f5f9 !important;
 }
 
 /* Active tab text and background */
 body.light .bg-amber-500 {
-  background-color: #f59e0b !important;
-  color: #0f172a !important;
+  background-color: #d97706 !important;
+  color: #ffffff !important;
 }
 
-/* Accent badges and grids */
+/* Accent badges, grids, and chips */
+body.light [class*="bg-amber-500/10"],
+body.light [class*="bg-amber-500\/10"],
 body.light .bg-amber-500\/10 {
-  background-color: rgba(245, 158, 11, 0.15) !important;
+  background-color: rgba(217, 119, 6, 0.12) !important;
+  color: #b45309 !important;
 }
 
+body.light [class*="bg-cyan-500/5"],
 body.light .bg-cyan-500\/5 {
   background-color: rgba(6, 182, 212, 0.08) !important;
 }
 
+/* Custom panels (Glassmorphism overrides) */
+body.light .glass {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05) !important;
+}
+
+body.light .glass-dark {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Borders overrides */
+body.light [class*="border-white"],
+body.light [class*="border-neutral-800"],
 body.light .border-white\/5,
 body.light .border-white\/8,
 body.light .border-white\/10,
 body.light .border-neutral-800 {
-  border-color: #cbd5e1 !important;
+  border-color: #e2e8f0 !important;
 }
 
+/* Texts overrides (ensuring readable contrast) */
+body.light [class*="text-white"],
+body.light [class*="text-neutral-50"],
+body.light [class*="text-neutral-100"],
+body.light [class*="text-neutral-200"],
 body.light .text-white,
 body.light .text-neutral-100,
 body.light .text-neutral-200 {
   color: #0f172a !important;
 }
 
+body.light [class*="text-neutral-300"],
+body.light [class*="text-neutral-400"],
 body.light .text-neutral-300,
 body.light .text-neutral-400 {
   color: #334155 !important;
 }
 
+body.light [class*="text-neutral-500"],
 body.light .text-neutral-500 {
   color: #64748b !important;
+}
+
+body.light [class*="text-amber-400"],
+body.light .text-amber-400 {
+  color: #b45309 !important;
 }
 
 /* Form fields & inputs */
@@ -177,6 +229,18 @@ body.light th {
 body.light td {
   border-color: #e2e8f0 !important;
 }
+
+/* Scrollbar styles in light mode */
+body.light ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+body.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+body.light ::-webkit-scrollbar-thumb:hover {
+  background: #d97706;
+}
+
 
 
 /* Scrollbar styles */

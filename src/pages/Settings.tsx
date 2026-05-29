@@ -9,7 +9,25 @@ export const Settings: React.FC = () => {
   const [quality, setQuality] = useState<'high' | 'medium' | 'low'>('high');
   const [defaultKerf, setDefaultKerf] = useState(4);
   const [defaultMargin, setDefaultMargin] = useState(10);
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    return (localStorage.getItem('tavmax_theme') as 'dark' | 'light') || 'dark';
+  });
+
+  // Sync state if theme is toggled elsewhere (e.g. in Header)
+  React.useEffect(() => {
+    const handleThemeChange = (e: any) => {
+      if (e.detail && (e.detail === 'dark' || e.detail === 'light') && e.detail !== theme) {
+        setTheme(e.detail);
+      }
+    };
+    window.addEventListener('tavmax-theme-change', handleThemeChange);
+    return () => window.removeEventListener('tavmax-theme-change', handleThemeChange);
+  }, [theme]);
+
+  const handleThemeToggle = (newTheme: 'dark' | 'light') => {
+    setTheme(newTheme);
+    window.dispatchEvent(new CustomEvent('tavmax-theme-change', { detail: newTheme }));
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,7 +161,7 @@ export const Settings: React.FC = () => {
               <div className="flex bg-[#0c0d12] border border-white/5 p-1 rounded-xl">
                 <button
                   type="button"
-                  onClick={() => setTheme('dark')}
+                  onClick={() => handleThemeToggle('dark')}
                   className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                     theme === 'dark' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white'
                   }`}
@@ -152,7 +170,7 @@ export const Settings: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setTheme('light')}
+                  onClick={() => handleThemeToggle('light')}
                   className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                     theme === 'light' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white'
                   }`}

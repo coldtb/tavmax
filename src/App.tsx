@@ -48,6 +48,19 @@ export const App: React.FC = () => {
       document.body.classList.remove('light');
     }
     localStorage.setItem('tavmax_theme', theme);
+    // Dispatch custom event to notify other components (e.g. Settings)
+    window.dispatchEvent(new CustomEvent('tavmax-theme-change', { detail: theme }));
+  }, [theme]);
+
+  // Sync state if theme is toggled elsewhere (e.g. in Settings)
+  useEffect(() => {
+    const handleThemeChange = (e: any) => {
+      if (e.detail && (e.detail === 'dark' || e.detail === 'light') && e.detail !== theme) {
+        setTheme(e.detail);
+      }
+    };
+    window.addEventListener('tavmax-theme-change', handleThemeChange);
+    return () => window.removeEventListener('tavmax-theme-change', handleThemeChange);
   }, [theme]);
 
   const [activeTab, setActiveTab] = useState<string>(() => {
