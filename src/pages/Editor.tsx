@@ -1885,17 +1885,35 @@ export const Editor: React.FC = () => {
 
             {/* Countertop status */}
             {(selectedMod && (selectedMod.type === 'custom' || selectedMod.type === 'kitchen_lower' || selectedMod.type === 'cooktop' || selectedMod.type === 'sink' || selectedMod.type === 'corner_lower')) && (
-              <div className="flex flex-col gap-1.5 col-span-2 border-t border-white/5 pt-4">
-                <label className="text-xs text-neutral-400 font-semibold">Тавцангийн төрөл</label>
-                <select
-                  value={config.countertopType || 'none'}
-                  onChange={(e) => updateActiveConfig({ countertopType: e.target.value as any })}
-                  className="w-full bg-[#0c0d12] border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-amber-500 cursor-pointer"
-                >
-                  <option value="none">Байхгүй</option>
-                  <option value="stone">Чулуун тавцан</option>
-                  <option value="wood">Модон тавцан</option>
-                </select>
+              <div className="flex flex-col gap-3 col-span-2 border-t border-white/5 pt-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs text-neutral-400 font-semibold">Тавцангийн төрөл</label>
+                  <select
+                    value={config.countertopType || 'none'}
+                    onChange={(e) => updateActiveConfig({ countertopType: e.target.value as any })}
+                    className="w-full bg-[#0c0d12] border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-amber-500 cursor-pointer"
+                  >
+                    <option value="none">Байхгүй</option>
+                    <option value="stone">Чулуун тавцан</option>
+                    <option value="wood">Модон тавцан</option>
+                  </select>
+                </div>
+
+                {/* Cooktop stove toggle (only if not already the cooktop module type itself) */}
+                {selectedMod.type !== 'cooktop' && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <input
+                      type="checkbox"
+                      id="hasCooktop"
+                      checked={!!config.hasCooktop}
+                      onChange={(e) => updateActiveConfig({ hasCooktop: e.target.checked })}
+                      className="w-4 h-4 bg-neutral-900 border border-white/10 rounded accent-amber-500 cursor-pointer"
+                    />
+                    <label htmlFor="hasCooktop" className="text-xs text-neutral-300 font-medium select-none cursor-pointer flex items-center gap-1">
+                      🔥 Плиткэн зуух суурилуулах
+                    </label>
+                  </div>
+                )}
               </div>
             )}
 

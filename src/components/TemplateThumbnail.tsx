@@ -14,6 +14,7 @@ interface TemplateConfig {
   glassLeft?: boolean;
   glassRight?: boolean;
   tvHasBase?: boolean;
+  hasCooktop?: boolean;
 }
 
 interface Props {
@@ -480,6 +481,24 @@ function renderThumbnail(type: string, cfg: TemplateConfig): string {
       const drH = (bodyH - 10) / drawers;
       for (let i = 0; i < drawers; i++)
         addBox(W3 - 10, drH - 6, 18, 0, legH + drH / 2 + 5 + i * drH, halfD + 9, doorMat);
+    }
+  }
+
+  // Render optional built-in Cooktop/Stove (Плиткэн зуух) on thumbnails
+  if (cfg.hasCooktop && type !== 'cooktop') {
+    const hasCountertop = countertopType && countertopType !== 'none';
+    const cooktopPlateY = hasCountertop ? (height + 30 + 5) : (height + 5);
+    const cooktopPlateZ = hasCountertop ? 12.5 : 0;
+    const ctMat = new THREE.MeshStandardMaterial({ color: '#171717', roughness: 0.1, metalness: 0.8 });
+    const cooktopPlate = addBox(W3 - 60, 10, depth - 40, 0, cooktopPlateY, cooktopPlateZ, ctMat);
+    
+    // Burners
+    const burnerMat = new THREE.MeshStandardMaterial({ color: '#1a1a1a', emissive: '#f97316', emissiveIntensity: 0.45, roughness: 0.2 });
+    for (const [bx, bz] of [[-W3*0.2, depth*0.2],[W3*0.2, depth*0.2],[-W3*0.2,-depth*0.2],[W3*0.2,-depth*0.2]] as [number,number][]) {
+      const b = new THREE.Mesh(new THREE.CylinderGeometry(Math.min(30, W3*0.08), Math.min(30, W3*0.08), 6, 16), burnerMat);
+      b.rotation.x = Math.PI / 2;
+      b.position.set(bx, 8, bz);
+      cooktopPlate.add(b);
     }
   }
 

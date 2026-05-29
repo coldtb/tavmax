@@ -37,7 +37,7 @@ export interface FurnitureConfig {
   dividerPositions?: number[];
   tvHasBase?: boolean;
   shelfPositions?: number[];
-
+  hasCooktop?: boolean;
 }
 
 export interface Part {

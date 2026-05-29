@@ -2309,6 +2309,39 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             }
           });
         }
+
+        // Render optional built-in Cooktop/Stove (Плиткэн зуух) on top
+        if (config.hasCooktop && mod.type !== 'cooktop') {
+          const hasCountertop = config.countertopType && config.countertopType !== 'none';
+          const cooktopPlateY = hasCountertop ? (height + 38 + 5) : (height + 5);
+          const cooktopPlateZ = hasCountertop ? 12.5 : 0;
+          const cooktopPlate = addBoard(
+            width - 60,
+            10,
+            depth - 40,
+            0,
+            cooktopPlateY,
+            cooktopPlateZ,
+            new THREE.MeshStandardMaterial({ color: '#171717', roughness: 0.1, metalness: 0.8 }),
+            'Шилэн плитк',
+            'Дээд тавиур'
+          );
+          
+          // Draw 4 circular glowing elements on the cooktop plate
+          const burnerGeo = new THREE.CylinderGeometry(Math.min(50, width * 0.1), Math.min(50, width * 0.1), 2, 16);
+          const burnerMat = new THREE.MeshStandardMaterial({ color: '#1a1a1a', emissive: '#f97316', emissiveIntensity: 0.45, roughness: 0.2 });
+          const burnerPositions = [
+            [-width * 0.2, 6, -depth * 0.2],
+            [width * 0.2, 6, -depth * 0.2],
+            [-width * 0.2, 6, depth * 0.2],
+            [width * 0.2, 6, depth * 0.2]
+          ];
+          burnerPositions.forEach((pos) => {
+            const burner = new THREE.Mesh(burnerGeo, burnerMat);
+            burner.position.set(pos[0], pos[1], pos[2]);
+            cooktopPlate.add(burner);
+          });
+        }
       });
 
       // 3. Add dimension overlay lines (Мэдээллийн шугам) for the selected module
