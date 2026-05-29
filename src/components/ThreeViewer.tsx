@@ -133,8 +133,8 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
     try {
       // 1. Scene setup
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color('#d4cfc9'); // Warm studio neutral
-      scene.fog = new THREE.FogExp2('#d4cfc9', 0.000035); // Soft depth fog
+      scene.background = new THREE.Color('#23272b'); // Dark studio neutral
+      scene.fog = new THREE.FogExp2('#23272b', 0.00003); // Soft depth fog
       sceneRef.current = scene;
 
       // Bounding groups (Initialized early to prevent ReferenceError)
@@ -146,10 +146,10 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
       scene.add(dimsGroup);
       dimsGroupRef.current = dimsGroup;
 
-      // Add premium studio lighting
-      scene.add(new THREE.AmbientLight('#ffffff', 1.1));
+      // Add balanced studio lighting
+      scene.add(new THREE.AmbientLight('#d0d8e0', 0.7));
 
-      const mainLight = new THREE.DirectionalLight('#fff8f0', 1.2);
+      const mainLight = new THREE.DirectionalLight('#fff4e8', 1.0);
       mainLight.position.set(1500, 2500, 1500);
       mainLight.castShadow = true;
       mainLight.shadow.mapSize.width = 2048;
@@ -157,11 +157,11 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
       mainLight.shadow.bias = -0.0005;
       scene.add(mainLight);
 
-      const fillLight = new THREE.DirectionalLight('#e8f4ff', 0.55); // sky blue soft fill
+      const fillLight = new THREE.DirectionalLight('#c8d8f0', 0.4); // cool blue fill
       fillLight.position.set(-1500, 1000, -1000);
       scene.add(fillLight);
 
-      const rimLight = new THREE.DirectionalLight('#ffe8cc', 0.4); // warm rim highlight
+      const rimLight = new THREE.DirectionalLight('#ffe0b0', 0.25); // warm rim
       rimLight.position.set(0, -800, 1500);
       scene.add(rimLight);
 
@@ -574,13 +574,13 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
       renderer.domElement.addEventListener('pointerleave', onPointerUp);
 
       // 5. Grid/Floor plane — 10m × 10m with 100mm cells
-      const gridHelper = new THREE.GridHelper(10000, 100, '#b0a89e', '#c8c0b8');
+      const gridHelper = new THREE.GridHelper(10000, 100, '#3a4040', '#2e3535');
       gridHelper.position.y = -2;
       scene.add(gridHelper);
 
-      // Floor plane with a subtle light marble tone
+      // Floor plane - dark concrete tone
       const floorGeo = new THREE.PlaneGeometry(12000, 12000);
-      const floorMat = new THREE.MeshLambertMaterial({ color: '#cec8c2', side: THREE.FrontSide });
+      const floorMat = new THREE.MeshLambertMaterial({ color: '#1e2424', side: THREE.FrontSide });
       const floor = new THREE.Mesh(floorGeo, floorMat);
       floor.rotation.x = -Math.PI / 2;
       floor.position.y = -2;
