@@ -1914,6 +1914,54 @@ export const Editor: React.FC = () => {
                     </label>
                   </div>
                 )}
+
+                {/* Burner controls — shown for cooktop type OR when hasCooktop is enabled */}
+                {(selectedMod.type === 'cooktop' || !!config.hasCooktop) && (
+                  <div className="flex flex-col gap-3 mt-2 bg-[#0c0d12]/50 border border-white/5 p-3 rounded-xl">
+                    <p className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wide">🔥 Давтан пластикийн тохиргоо</p>
+
+                    {/* Burner count */}
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs text-neutral-400">Пластикийн тоо</label>
+                      <div className="flex gap-2">
+                        {([2, 4] as const).map((n) => (
+                          <button
+                            key={n}
+                            onClick={() => updateActiveConfig({ burnerCount: n })}
+                            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                              (config.burnerCount ?? 4) === n
+                                ? 'bg-amber-500 border-amber-500 text-white'
+                                : 'bg-neutral-800/60 border-white/10 text-neutral-300 hover:bg-neutral-700'
+                            }`}
+                          >
+                            {n} ширхэг
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Burner size */}
+                    <div className="flex flex-col gap-1">
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs text-neutral-400">Пластикийн хэмжээ</label>
+                        <span className="text-xs font-semibold text-amber-400">{config.burnerSize ?? 50} мм</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={20}
+                        max={80}
+                        step={5}
+                        value={config.burnerSize ?? 50}
+                        onChange={(e) => updateActiveConfig({ burnerSize: parseInt(e.target.value) })}
+                        className="w-full h-1.5 rounded-full accent-amber-500 cursor-pointer"
+                      />
+                      <div className="flex justify-between text-[10px] text-neutral-500">
+                        <span>20мм</span>
+                        <span>80мм</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

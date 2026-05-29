@@ -1570,19 +1570,29 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             'Дээд тавиур'
           );
           
-          // Draw 4 circular glowing elements on the cooktop plate
-          const burnerGeo = new THREE.CylinderGeometry(50, 50, 2, 16);
-          const burnerMat = new THREE.MeshStandardMaterial({ color: '#1a1a1a', emissive: '#f97316', emissiveIntensity: 0.45, roughness: 0.2 });
-          const burnerPositions = [
+          // Draw configurable burners on the cooktop plate
+          const bSize = Math.max(20, Math.min(80, config.burnerSize ?? 50));
+          const bCount = config.burnerCount ?? 4;
+          const burnerGeo = new THREE.CylinderGeometry(bSize, bSize, 3, 24);
+          const burnerMat = new THREE.MeshStandardMaterial({ color: '#1a1a1a', emissive: '#f97316', emissiveIntensity: 0.5, roughness: 0.15 });
+          const burnerRingMat = new THREE.MeshStandardMaterial({ color: '#333', metalness: 0.7, roughness: 0.3 });
+          const allBurnerPos = [
             [-width * 0.22, 6, -depth * 0.22],
             [width * 0.22, 6, -depth * 0.22],
             [-width * 0.22, 6, depth * 0.22],
             [width * 0.22, 6, depth * 0.22]
           ];
-          burnerPositions.forEach((pos) => {
+          const activeBurners = bCount === 2 ? [allBurnerPos[2], allBurnerPos[3]] : allBurnerPos;
+          activeBurners.forEach((pos) => {
             const burner = new THREE.Mesh(burnerGeo, burnerMat);
             burner.position.set(pos[0], pos[1], pos[2]);
+            // Outer ring
+            const ringGeo = new THREE.TorusGeometry(bSize + 4, 3, 8, 24);
+            const ring = new THREE.Mesh(ringGeo, burnerRingMat);
+            ring.rotation.x = Math.PI / 2;
+            ring.position.set(pos[0], pos[1] + 3, pos[2]);
             cooktopPlate.add(burner);
+            cooktopPlate.add(ring);
           });
 
           // Built-in Oven Front
@@ -2328,19 +2338,29 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             'Дээд тавиур'
           );
           
-          // Draw 4 circular glowing elements on the cooktop plate
-          const burnerGeo = new THREE.CylinderGeometry(Math.min(50, width * 0.1), Math.min(50, width * 0.1), 2, 16);
-          const burnerMat = new THREE.MeshStandardMaterial({ color: '#1a1a1a', emissive: '#f97316', emissiveIntensity: 0.45, roughness: 0.2 });
-          const burnerPositions = [
+          // Draw configurable burners on the cooktop plate
+          const bSize2 = Math.max(20, Math.min(80, config.burnerSize ?? 50));
+          const bCount2 = config.burnerCount ?? 4;
+          const burnerGeo2 = new THREE.CylinderGeometry(Math.min(bSize2, width * 0.1), Math.min(bSize2, width * 0.1), 3, 24);
+          const burnerMat2 = new THREE.MeshStandardMaterial({ color: '#1a1a1a', emissive: '#f97316', emissiveIntensity: 0.5, roughness: 0.15 });
+          const burnerRingMat2 = new THREE.MeshStandardMaterial({ color: '#333', metalness: 0.7, roughness: 0.3 });
+          const allBurnerPos2 = [
             [-width * 0.2, 6, -depth * 0.2],
             [width * 0.2, 6, -depth * 0.2],
             [-width * 0.2, 6, depth * 0.2],
             [width * 0.2, 6, depth * 0.2]
           ];
-          burnerPositions.forEach((pos) => {
-            const burner = new THREE.Mesh(burnerGeo, burnerMat);
+          const activeBurners2 = bCount2 === 2 ? [allBurnerPos2[2], allBurnerPos2[3]] : allBurnerPos2;
+          activeBurners2.forEach((pos) => {
+            const bSize2Clamped = Math.min(bSize2, width * 0.1);
+            const burner = new THREE.Mesh(burnerGeo2, burnerMat2);
             burner.position.set(pos[0], pos[1], pos[2]);
+            const ringGeo2 = new THREE.TorusGeometry(bSize2Clamped + 4, 3, 8, 24);
+            const ring2 = new THREE.Mesh(ringGeo2, burnerRingMat2);
+            ring2.rotation.x = Math.PI / 2;
+            ring2.position.set(pos[0], pos[1] + 3, pos[2]);
             cooktopPlate.add(burner);
+            cooktopPlate.add(ring2);
           });
         }
       });

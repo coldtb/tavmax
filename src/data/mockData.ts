@@ -38,6 +38,8 @@ export interface FurnitureConfig {
   tvHasBase?: boolean;
   shelfPositions?: number[];
   hasCooktop?: boolean;
+  burnerCount?: 2 | 4;       // Давтан пластикийн тоо (2 эсвэл 4)
+  burnerSize?: number;       // Давтан пластикийн радиус мм-ээр (20–80)
 }
 
 export interface Part {
