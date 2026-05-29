@@ -1571,7 +1571,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           );
           
           // Draw configurable burners on the cooktop plate
-          const bSize = Math.max(20, Math.min(80, config.burnerSize ?? 50));
+          const bSize = Math.max(5, config.burnerSize ?? 50);
           const bCount = config.burnerCount ?? 4;
           const burnerGeo = new THREE.CylinderGeometry(bSize, bSize, 3, 24);
           const burnerMat = new THREE.MeshStandardMaterial({ color: '#1a1a1a', emissive: '#f97316', emissiveIntensity: 0.5, roughness: 0.15 });
@@ -2339,9 +2339,9 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           );
           
           // Draw configurable burners on the cooktop plate
-          const bSize2 = Math.max(20, Math.min(80, config.burnerSize ?? 50));
+          const bSize2 = Math.max(5, config.burnerSize ?? 50);
           const bCount2 = config.burnerCount ?? 4;
-          const burnerGeo2 = new THREE.CylinderGeometry(Math.min(bSize2, width * 0.1), Math.min(bSize2, width * 0.1), 3, 24);
+          const burnerGeo2 = new THREE.CylinderGeometry(Math.min(bSize2, width * 0.15), Math.min(bSize2, width * 0.15), 3, 24);
           const burnerMat2 = new THREE.MeshStandardMaterial({ color: '#1a1a1a', emissive: '#f97316', emissiveIntensity: 0.5, roughness: 0.15 });
           const burnerRingMat2 = new THREE.MeshStandardMaterial({ color: '#333', metalness: 0.7, roughness: 0.3 });
           const allBurnerPos2 = [

@@ -1940,24 +1940,23 @@ export const Editor: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Burner size */}
+                    {/* Burner size — manual number input */}
                     <div className="flex flex-col gap-1">
-                      <div className="flex justify-between items-center">
-                        <label className="text-xs text-neutral-400">Пластикийн хэмжээ</label>
-                        <span className="text-xs font-semibold text-amber-400">{config.burnerSize ?? 50} мм</span>
-                      </div>
-                      <input
-                        type="range"
-                        min={20}
-                        max={80}
-                        step={5}
-                        value={config.burnerSize ?? 50}
-                        onChange={(e) => updateActiveConfig({ burnerSize: parseInt(e.target.value) })}
-                        className="w-full h-1.5 rounded-full accent-amber-500 cursor-pointer"
-                      />
-                      <div className="flex justify-between text-[10px] text-neutral-500">
-                        <span>20мм</span>
-                        <span>80мм</span>
+                      <label className="text-xs text-neutral-400">Пластикийн хэмжээ (мм)</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min={5}
+                          step={1}
+                          value={config.burnerSize ?? 50}
+                          onChange={(e) => {
+                            const v = parseInt(e.target.value);
+                            if (!isNaN(v) && v >= 5) updateActiveConfig({ burnerSize: v });
+                          }}
+                          className="w-full px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-neutral-800/80 border border-white/10 focus:outline-none focus:border-amber-500/60 transition-all"
+                          placeholder="50"
+                        />
+                        <span className="text-xs text-amber-400 font-semibold shrink-0">мм</span>
                       </div>
                     </div>
                   </div>
