@@ -148,7 +148,11 @@ function renderThumbnail(type: string, cfg: TemplateConfig): string {
       const dw = (W3 - 10) / doors;
       for (let i = 0; i < doors; i++) {
         const dx = -halfW + 5 + dw / 2 + i * dw;
-        addBox(dw - 4, doorH, 18, dx, doorY, halfD + 9, doorMat);
+        const dr = addBox(dw - 4, doorH, 18, dx, doorY, halfD + 9, doorMat);
+        const hnd = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 30, 8), chromeMat);
+        hnd.rotation.x = Math.PI / 2;
+        hnd.position.set(i % 2 === 0 ? dw / 2 - 25 : -(dw / 2 - 25), -doorH / 2 + 30, 12);
+        dr.add(hnd);
       }
     }
     addBox(W3 - 2, 20, halfD, 0, 30, -halfD / 2, darkMat);
@@ -203,10 +207,39 @@ function renderThumbnail(type: string, cfg: TemplateConfig): string {
     addBox(18, height, depth,  halfW - 9, height / 2, 0, bodyMat);
     addBox(W3 - 36, 18, depth, 0, height - 9, 0, bodyMat);
     addBox(W3 - 36, 18, depth, 0, 9, 0, bodyMat);
+    addBox(W3, height, 3, 0, height / 2, -halfD + 1.5, hdfMat); // Back HDF panel
+
+    // Built-in Microwave parameters
+    const mwMaxH = 360;
+    const hasUpperCompartment = height > mwMaxH + 100;
+    const mwH = hasUpperCompartment ? mwMaxH : height - 54;
+    const mwW = W3 - 50;
+    const mwD = depth - 20;
+
+    // Render microwave appliance
     const mwMat = new THREE.MeshStandardMaterial({ color: '#1f1f1f', metalness: 0.4, roughness: 0.6 });
-    addBox(W3 - 50, height * 0.45, depth - 20, 0, height * 0.27, 5, mwMat);
-    addBox(W3 - 60, height * 0.43, 18, 0, height * 0.27, halfD + 11, mwMat);
-    addBox(40, 16, 3, -W3 * 0.2, height * 0.27, halfD + 21, new THREE.MeshBasicMaterial({ color: '#22c55e' }));
+    addBox(mwW, mwH, mwD, 0, 18 + mwH / 2, 5, mwMat); // Microwave body
+    addBox(mwW - 10, mwH - 10, 18, 0, 18 + mwH / 2, halfD + 11, mwMat); // Microwave front
+    addBox(40, 16, 3, -mwW * 0.2, 18 + mwH / 2, halfD + 21, new THREE.MeshBasicMaterial({ color: '#22c55e' })); // Green display LED
+
+    if (hasUpperCompartment) {
+      const shelfY = 18 + mwMaxH + 9;
+      addBox(W3 - 36, 18, depth - 20, 0, shelfY, 10, bodyMat);
+
+      if (doors > 0) {
+        const doorH = height - shelfY - 27;
+        const dw = (W3 - 10) / doors;
+        const doorY = shelfY + 9 + doorH / 2;
+        for (let i = 0; i < doors; i++) {
+          const dx = -halfW + 5 + dw / 2 + i * dw;
+          const dr = addBox(dw - 4, doorH, 18, dx, doorY, halfD + 9, doorMat);
+          const hnd = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 30, 8), chromeMat);
+          hnd.rotation.x = Math.PI / 2;
+          hnd.position.set(i % 2 === 0 ? dw / 2 - 25 : -(dw / 2 - 25), -doorH / 2 + 25, 12);
+          dr.add(hnd);
+        }
+      }
+    }
   } else if (type === 'oven') {
     addBox(18, height, depth, -halfW + 9, height / 2, 0, bodyMat);
     addBox(18, height, depth,  halfW - 9, height / 2, 0, bodyMat);
@@ -248,7 +281,9 @@ function renderThumbnail(type: string, cfg: TemplateConfig): string {
       const fc = new THREE.Mesh(new THREE.CylinderGeometry(10, 10, 160, 12),
         new THREE.MeshStandardMaterial({ color: '#c8c8c8', roughness: 0.05, metalness: 0.95 }));
       fc.position.set(0, height + 100, -depth * 0.15); scene.add(fc);
-    } else if (drawers > 0 && doors === 0) {
+    }
+
+    if (drawers > 0 && doors === 0) {
       const drH = (bodyH - 10) / drawers;
       for (let i = 0; i < drawers; i++)
         addBox(W3 - 10, drH - 6, 18, 0, legH + drH / 2 + 5 + i * drH, halfD + 9, doorMat);
