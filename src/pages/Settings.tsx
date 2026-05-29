@@ -10,7 +10,7 @@ export const Settings: React.FC = () => {
   const [defaultKerf, setDefaultKerf] = useState(4);
   const [defaultMargin, setDefaultMargin] = useState(10);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    return (localStorage.getItem('tavmax_theme') as 'dark' | 'light') || 'dark';
+    return (localStorage.getItem('tavmax_theme') as 'dark' | 'light') || 'light';
   });
 
   // Sync state if theme is toggled elsewhere (e.g. in Header)

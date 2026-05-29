@@ -5,13 +5,14 @@
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-display: 'Outfit', system-ui, -apple-system, sans-serif;
   
-  /* Amber-Gold Wood accent theme */
-  --color-amber-50: #fdfaf2;
-  --color-amber-100: #fbf3db;
-  --color-amber-500: #d97706;
-  --color-amber-600: #b45309;
-  --color-amber-700: #92400e;
-  --color-amber-950: #451a03;
+  /* Nordic Minimalist theme colors (remapping Amber-Gold to Sage & Cedar Wood) */
+  --color-amber-50: #f6f7f5;
+  --color-amber-100: #ebede8;
+  --color-amber-400: #d99b6c;   /* Cedar wood light accent */
+  --color-amber-500: #4a5e51;   /* Forest Sage Green */
+  --color-amber-600: #3b4c41;   /* Dark Sage */
+  --color-amber-700: #2d3b32;   /* Deep Sage */
+  --color-amber-950: #141c17;   /* Obsidian Sage */
   
   --animate-fade-in: fade-in 0.3s ease-out;
   --animate-slide-up: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -28,49 +29,78 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* Glassmorphism custom classes */
+/* Glassmorphism custom classes - Nordic style */
 .glass {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(25, 28, 26, 0.35);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .glass-light {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .glass-dark {
-  background: rgba(15, 17, 23, 0.75);
+  background: rgba(24, 28, 26, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.03);
 }
 
-/* Base custom resets */
+/* Base custom resets - Nordic Charcoal Dark (Default) */
 html, body, #root {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
   overflow-x: hidden;
-  background-color: #0b0c10;
-  color: #f3f4f6;
+  background-color: #151816; /* Deep forest charcoal */
+  color: #ebede9;            /* Bone white */
   font-family: var(--font-sans);
 }
 
-/* ─── Light Mode theme overrides ────────────────────────────────── */
+/* Dark theme overrides for panels */
+.bg-\[\#08090d\],
+.bg-\[\#0b0c10\],
+.bg-\[\#0c0d12\],
+.bg-\[\#0c0e18\],
+.bg-\[\#12141c\],
+.bg-\[\#161822\],
+.bg-\[\#11131e\],
+.bg-\[\#1a1c26\],
+.bg-\[\#0c0d12\]\/80,
+.bg-\[\#0c0d12\]\/50,
+.bg-\[\#12141c\]\/95,
+.bg-\[\#12141c\]\/45,
+.bg-neutral-900,
+.bg-neutral-950,
+aside,
+header {
+  background-color: #1c201d !important; /* Soft graphite dark */
+  border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.bg-neutral-800\/60,
+.bg-neutral-800\/80,
+.bg-neutral-800,
+[class*="bg-neutral-800"] {
+  background-color: #262c28 !important; /* Charcoal subpanel */
+  border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* ─── Light Mode theme overrides - Nordic Minimalist Light ────────── */
 body.light {
-  background-color: #f8fafc !important;
-  color: #0f172a !important;
+  background-color: #f3f4f1 !important; /* Soft slate-ash */
+  color: #222524 !important;            /* Dark charcoal */
 }
 
 body.light #root {
-  background-color: #f8fafc !important;
-  color: #0f172a !important;
+  background-color: #f3f4f1 !important;
+  color: #222524 !important;
 }
 
 body.light h1,
@@ -79,7 +109,7 @@ body.light h3,
 body.light h4,
 body.light h5,
 body.light h6 {
-  color: #0f172a !important;
+  color: #1a1c1b !important;
 }
 
 /* Background panel colors (sidebar, dashboards, panels, cards) */
@@ -107,17 +137,17 @@ body.light .bg-black\/40,
 body.light .bg-black\/60,
 body.light aside,
 body.light header {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #e2e8f0 !important;
+  background-color: #ffffff !important; /* Pure white */
+  color: #222524 !important;
+  border-color: #d8dad4 !important;    /* Soft graphite border */
 }
 
 /* Darker elements, buttons, and subpanels */
 body.light [class*="bg-neutral-800"],
 body.light .bg-neutral-800 {
-  background-color: #f1f5f9 !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
+  background-color: #eaebe6 !important; /* Soft sand gray */
+  color: #222524 !important;
+  border-color: #c5c7c0 !important;
 }
 
 /* Hovers on tables, sidebar menus, and buttons */
@@ -131,12 +161,12 @@ body.light .hover\:bg-white\/3:hover,
 body.light .hover\:bg-white\/5:hover,
 body.light .hover\:bg-neutral-800\/60:hover,
 body.light .hover\:bg-neutral-800\/80:hover {
-  background-color: #f1f5f9 !important;
+  background-color: #eaebe6 !important;
 }
 
 /* Active tab text and background */
 body.light .bg-amber-500 {
-  background-color: #d97706 !important;
+  background-color: #4a5e51 !important; /* Sage Green */
   color: #ffffff !important;
 }
 
@@ -144,26 +174,27 @@ body.light .bg-amber-500 {
 body.light [class*="bg-amber-500/10"],
 body.light [class*="bg-amber-500\/10"],
 body.light .bg-amber-500\/10 {
-  background-color: rgba(217, 119, 6, 0.12) !important;
-  color: #b45309 !important;
+  background-color: rgba(74, 94, 81, 0.08) !important;
+  color: #4a5e51 !important;
+  border-color: rgba(74, 94, 81, 0.15) !important;
 }
 
 body.light [class*="bg-cyan-500/5"],
 body.light .bg-cyan-500\/5 {
-  background-color: rgba(6, 182, 212, 0.08) !important;
+  background-color: rgba(74, 94, 81, 0.04) !important;
 }
 
 /* Custom panels (Glassmorphism overrides) */
 body.light .glass {
   background: rgba(255, 255, 255, 0.8) !important;
-  border-color: #cbd5e1 !important;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05) !important;
+  border-color: #c5c7c0 !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02) !important;
 }
 
 body.light .glass-dark {
   background: rgba(255, 255, 255, 0.9) !important;
-  border-color: #cbd5e1 !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+  border-color: #c5c7c0 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
 }
 
 /* Borders overrides */
@@ -173,7 +204,7 @@ body.light .border-white\/5,
 body.light .border-white\/8,
 body.light .border-white\/10,
 body.light .border-neutral-800 {
-  border-color: #e2e8f0 !important;
+  border-color: #d8dad4 !important;
 }
 
 /* Texts overrides (ensuring readable contrast) */
@@ -184,24 +215,24 @@ body.light [class*="text-neutral-200"],
 body.light .text-white,
 body.light .text-neutral-100,
 body.light .text-neutral-200 {
-  color: #0f172a !important;
+  color: #222524 !important;
 }
 
 body.light [class*="text-neutral-300"],
 body.light [class*="text-neutral-400"],
 body.light .text-neutral-300,
 body.light .text-neutral-400 {
-  color: #334155 !important;
+  color: #555855 !important;
 }
 
 body.light [class*="text-neutral-500"],
 body.light .text-neutral-500 {
-  color: #64748b !important;
+  color: #7c7f7b !important;
 }
 
 body.light [class*="text-amber-400"],
 body.light .text-amber-400 {
-  color: #b45309 !important;
+  color: #b45309 !important; /* Cedar Wood */
 }
 
 /* Form fields & inputs */
@@ -209,57 +240,55 @@ body.light input[type="text"],
 body.light input[type="number"],
 body.light select,
 body.light textarea {
-  background-color: #f8fafc !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
+  background-color: #fafafa !important;
+  color: #222524 !important;
+  border-color: #c5c7c0 !important;
 }
 
 body.light input::placeholder {
-  color: #94a3b8 !important;
+  color: #a0a29d !important;
 }
 
 /* Fix specific table & pricing colors */
 body.light tr:hover {
-  background-color: #f8fafc !important;
+  background-color: #fafafa !important;
 }
 body.light th {
-  background-color: #f1f5f9 !important;
-  color: #334155 !important;
+  background-color: #eaebe6 !important;
+  color: #555855 !important;
 }
 body.light td {
-  border-color: #e2e8f0 !important;
+  border-color: #d8dad4 !important;
 }
 
 /* Scrollbar styles in light mode */
 body.light ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #eaebe6;
 }
 body.light ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #c5c7c0;
 }
 body.light ::-webkit-scrollbar-thumb:hover {
-  background: #d97706;
+  background: #4a5e51;
 }
 
-
-
-/* Scrollbar styles */
+/* Scrollbar styles - dark mode */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f1115;
+  background: #131614;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #272a30;
+  background: #2c322f;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #d97706;
+  background: #4a5e51;
 }
 
 /* Explode view 3D transition */

@@ -38,7 +38,7 @@ export const App: React.FC = () => {
   const { activeProject, setActiveProject } = useProjectStore();
 
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    return (localStorage.getItem('tavmax_theme') as 'dark' | 'light') || 'dark';
+    return (localStorage.getItem('tavmax_theme') as 'dark' | 'light') || 'light';
   });
 
   useEffect(() => {
