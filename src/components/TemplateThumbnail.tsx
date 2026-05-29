@@ -122,11 +122,26 @@ function renderThumbnail(type: string, cfg: TemplateConfig): string {
       addBox(80, 120, 40, 0, 60, -10, tvStandMat);
       addBox(450, 15, 250, 0, 7.5, -10, tvStandMat);
     }
+  } else if (type === 'hood') {
+    // Range Hood (T-shape stainless steel hood matching ThreeViewer)
+    const hoodMat = new THREE.MeshStandardMaterial({ color: '#6b7280', metalness: 0.85, roughness: 0.15 });
+    const blackGlass = new THREE.MeshStandardMaterial({ color: '#171717', transparent: true, opacity: 0.85, roughness: 0.05 });
+    
+    // Chimney flue
+    addBox(160, height - 120, 160, 0, height / 2 + 60, 0, hoodMat);
+    
+    // Slanted Glass Canopy (Inclined design hood)
+    const canopyPlate = addBox(W3, 20, depth + 50, 0, 60, 60, blackGlass);
+    canopyPlate.rotation.x = Math.PI / 6;
+
+    // Metal filter box at bottom
+    addBox(W3 * 0.7, 40, depth * 0.8, 0, 20, 0, hoodMat);
   } else if (type === 'built_in_hood') {
     addBox(18, height, depth, -halfW + 9, height / 2, 0, bodyMat);
     addBox(18, height, depth,  halfW - 9, height / 2, 0, bodyMat);
     addBox(W3 - 36, 18, depth, 0, height - 9, 0, bodyMat);
     addBox(W3 - 36, 18, depth - 20, 0, 141, 10, bodyMat);
+    addBox(W3, height, 3, 0, height / 2, -halfD + 1.5, hdfMat); // Back HDF panel
     const doorH = height - 150 - 10;
     const doorY = 150 + 5 + doorH / 2;
     if (doors > 0) {
@@ -139,16 +154,50 @@ function renderThumbnail(type: string, cfg: TemplateConfig): string {
     addBox(W3 - 2, 20, halfD, 0, 30, -halfD / 2, darkMat);
     addBox(W3 - 10, 20, halfD, 0, 20, halfD / 2 - 10, darkMat);
   } else if (type === 'cooktop') {
+    // Left & Right carcass side walls
     addBox(18, bodyH, depth, -halfW + 9, legH + bodyH / 2, 0, bodyMat);
     addBox(18, bodyH, depth,  halfW - 9, legH + bodyH / 2, 0, bodyMat);
+    // Bottom panel
     addBox(W3 - 36, 18, depth, 0, legH + 9, 0, bodyMat);
-    const ctMat = new THREE.MeshStandardMaterial({ color: '#111', roughness: 0.1, metalness: 0.8 });
-    addBox(W3 - 10, 20, depth - 20, 0, height + 10, 0, ctMat);
-    const bMat = new THREE.MeshStandardMaterial({ color: '#333', roughness: 0.4, metalness: 0.9 });
-    for (const [bx, bz] of [[-W3*0.2, depth*0.15],[W3*0.2, depth*0.15],[-W3*0.2,-depth*0.15],[W3*0.2,-depth*0.15]] as [number,number][]) {
-      const b = new THREE.Mesh(new THREE.CylinderGeometry(60, 60, 12, 16), bMat);
-      b.rotation.x = Math.PI / 2; b.position.set(bx, height + 22, bz); scene.add(b);
+    // Top rails
+    addBox(W3 - 36, 18, 100, 0, height - 9, halfD - 50, bodyMat);
+    addBox(W3 - 36, 18, 100, 0, height - 9, -halfD + 50, bodyMat);
+    // Back HDF panel
+    addBox(W3, bodyH, 3, 0, legH + bodyH / 2, -halfD + 1.5, hdfMat);
+
+    // Countertop
+    if (countertopType && countertopType !== 'none') {
+      addBox(W3, 30, depth + 25, 0, height + 15, 12.5, countertopType === 'stone' ? stoneMat : woodCtMat);
     }
+
+    // Cooktop plate
+    const ctMat = new THREE.MeshStandardMaterial({ color: '#171717', roughness: 0.1, metalness: 0.8 });
+    const ctPlateY = (countertopType && countertopType !== 'none') ? height + 35 : height + 10;
+    const ctPlate = addBox(W3 - 10, 15, depth - 10, 0, ctPlateY, (countertopType && countertopType !== 'none') ? 12.5 : 0, ctMat);
+
+    // Burners
+    const burnerMat = new THREE.MeshStandardMaterial({ color: '#1a1a1a', emissive: '#f97316', emissiveIntensity: 0.45, roughness: 0.2 });
+    for (const [bx, bz] of [[-W3*0.2, depth*0.2],[W3*0.2, depth*0.2],[-W3*0.2,-depth*0.2],[W3*0.2,-depth*0.2]] as [number,number][]) {
+      const b = new THREE.Mesh(new THREE.CylinderGeometry(40, 40, 6, 16), burnerMat);
+      b.rotation.x = Math.PI / 2;
+      b.position.set(bx, 8, bz);
+      ctPlate.add(b);
+    }
+
+    // Built-in Oven Unit Front
+    const ovenOvenDoorMat = new THREE.MeshStandardMaterial({ color: '#0f0f12', roughness: 0.1, metalness: 0.9 });
+    const ovenDoor = addBox(W3 - 40, bodyH - 120, 20, 0, legH + bodyH / 2 - 20, halfD + 10, ovenOvenDoorMat);
+
+    // Tinted oven glass window
+    const ovenWinMat = new THREE.MeshStandardMaterial({ color: '#ca8a04', transparent: true, opacity: 0.35, roughness: 0.1, emissive: '#ca8a04', emissiveIntensity: 0.2 });
+    const ovenWindow = addBox(W3 - 120, bodyH - 200, 5, 0, 0, 11, ovenWinMat);
+    ovenDoor.add(ovenWindow);
+
+    // Oven handle
+    const hnd = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, W3 - 180, 16), chromeMat);
+    hnd.rotation.z = Math.PI / 2;
+    hnd.position.set(0, (bodyH - 120) / 2 - 25, 12);
+    ovenDoor.add(hnd);
   } else if (type === 'microwave') {
     addBox(18, height, depth, -halfW + 9, height / 2, 0, bodyMat);
     addBox(18, height, depth,  halfW - 9, height / 2, 0, bodyMat);
