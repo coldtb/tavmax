@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useProjectStore, getCabinetSections } from '../store/projectStore';
 import { ThreeViewer } from '../components/ThreeViewer';
 import { TemplateThumbnail } from '../components/TemplateThumbnail';
