@@ -35,7 +35,9 @@ export const App: React.FC = () => {
   const { isLoggedIn, user, logout } = useAuthStore();
   const { activeProject, setActiveProject } = useProjectStore();
 
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    return localStorage.getItem('tavmax_active_tab') || 'dashboard';
+  });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
@@ -72,6 +74,7 @@ export const App: React.FC = () => {
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
+    localStorage.setItem('tavmax_active_tab', tabId);
     setMobileMenuOpen(false);
   };
 
