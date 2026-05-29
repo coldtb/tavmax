@@ -20,7 +20,9 @@ import {
   Settings as SettingsIcon,
   LogOut,
   Menu,
-  X
+  X,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 // Attach global log helper
@@ -34,6 +36,19 @@ if (typeof window !== 'undefined') {
 export const App: React.FC = () => {
   const { isLoggedIn, user, logout } = useAuthStore();
   const { activeProject, setActiveProject } = useProjectStore();
+
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    return (localStorage.getItem('tavmax_theme') as 'dark' | 'light') || 'dark';
+  });
+
+  useEffect(() => {
+    if (theme === 'light') {
+      document.body.classList.add('light');
+    } else {
+      document.body.classList.remove('light');
+    }
+    localStorage.setItem('tavmax_theme', theme);
+  }, [theme]);
 
   const [activeTab, setActiveTab] = useState<string>(() => {
     return localStorage.getItem('tavmax_active_tab') || 'dashboard';
@@ -100,11 +115,21 @@ export const App: React.FC = () => {
         </div>
 
         {/* User Session status widget */}
-        <div className="flex items-center gap-4 text-xs font-semibold text-neutral-300">
+        <div className="flex items-center gap-3.5 text-xs font-semibold text-neutral-300">
           <div className="hidden md:flex flex-col text-right">
             <span className="text-white font-bold">{user?.name}</span>
             <span className="text-[9px] text-neutral-500 uppercase">{user?.role === 'factory' ? 'Техникч' : 'Карпентер'}</span>
           </div>
+          
+          {/* Light/Dark Mode Switcher */}
+          <button
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="p-2.5 rounded-xl bg-neutral-800/60 border border-white/5 text-neutral-400 hover:text-amber-500 hover:bg-amber-500/10 transition-all cursor-pointer flex items-center justify-center"
+            title={theme === 'dark' ? 'Цагаан горимд шилжих' : 'Харанхуй горимд шилжих'}
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+
           <button
             onClick={logout}
             className="p-2.5 rounded-xl bg-neutral-800/60 border border-white/5 text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
