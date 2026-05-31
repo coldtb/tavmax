@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useProjectStore, getCabinetSections } from '../store/projectStore';
 import { ThreeViewer } from '../components/ThreeViewer';
 import { TemplateThumbnail } from '../components/TemplateThumbnail';
-import { Sparkles, Eye, Ruler, Grid, Layers, Move, RefreshCw, Send, Check, Plus, Trash2, Box, Copy, Magnet, Printer, X, FileText } from 'lucide-react';
+import { Sparkles, Eye, Ruler, Grid, Layers, Move, RefreshCw, Send, Check, Plus, Trash2, Box, Copy, Magnet, Printer, X, FileText, HelpCircle, Info, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const COLOR_PALETTE = [
   // Pastel / Warm
@@ -82,6 +82,8 @@ export const Editor: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [mobileTab, setMobileTab] = useState<'3d' | 'settings' | 'templates'>('3d');
   const [selectedTemplateCategory, setSelectedTemplateCategory] = useState<'all' | 'kitchen' | 'living' | 'bedroom' | 'other'>('all');
+  const [activeStep, setActiveStep] = useState<number>(1);
+  const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -977,18 +979,29 @@ export const Editor: React.FC = () => {
         <div className="flex justify-between items-center gap-4 bg-[#12141c] border border-white/5 px-4 py-3 rounded-xl overflow-x-auto scrollbar-none whitespace-nowrap">
           <div className="flex gap-2 shrink-0">
             <button
+              onClick={() => setShowHelpModal(true)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-neutral-950 font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-amber-500/15"
+              title="Ашиглах зааварчилгаа нээх"
+            >
+              <HelpCircle size={11} className="shrink-0" />
+              <span>💡 Тусламж</span>
+            </button>
+            <div className="w-px h-5 bg-white/10 mx-0.5 self-center" />
+            <button
               onClick={() => setViewMode('perspective')}
               className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
                 viewMode === 'perspective' ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-800 text-neutral-400 hover:text-white'
               }`}
+              title="3D орон зайд чөлөөтэй эргүүлж харах"
             >
-              Космос
+              3D Харагдац
             </button>
             <button
               onClick={() => setViewMode('front')}
               className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
                 viewMode === 'front' ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-800 text-neutral-400 hover:text-white'
               }`}
+              title="Тавилгыг яг урдаас нь тэгш харах"
             >
               Урдаас
             </button>
@@ -997,6 +1010,7 @@ export const Editor: React.FC = () => {
               className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
                 viewMode === 'top' ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-800 text-neutral-400 hover:text-white'
               }`}
+              title="Тавилгыг дээрээс нь тэгш харах"
             >
               Дээрээс
             </button>
@@ -1005,6 +1019,7 @@ export const Editor: React.FC = () => {
               className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
                 viewMode === 'side' ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-800 text-neutral-400 hover:text-white'
               }`}
+              title="Тавилгыг хажуу талаас нь тэгш харах"
             >
               Хажуугаас
             </button>
@@ -1015,7 +1030,7 @@ export const Editor: React.FC = () => {
               className={`p-2 rounded-lg transition-all cursor-pointer ${
                 explode ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-neutral-800 text-neutral-400 border border-transparent'
               }`}
-              title="Задрах зураг"
+              title="Задрах харагдац: Хавтангуудыг салгаж бүтцийг нь харах"
             >
               <Layers size={16} />
             </button>
@@ -1024,7 +1039,7 @@ export const Editor: React.FC = () => {
               className={`p-2 rounded-lg transition-all cursor-pointer ${
                 openDoors ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-neutral-800 text-neutral-400 border border-transparent'
               }`}
-              title="Шургуулга / Хаалга нээх"
+              title="Хаалга болон шургуулгуудыг онгойлгох / хаах"
             >
               <Eye size={16} />
             </button>
@@ -1033,7 +1048,7 @@ export const Editor: React.FC = () => {
               className={`p-2 rounded-lg transition-all cursor-pointer ${
                 showDimensions ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-neutral-800 text-neutral-400 border border-transparent'
               }`}
-              title="Хэмжээс шугам"
+              title="Тавилгын гаднах хэмжээсийг харуулах / нуух"
             >
               <Grid size={16} />
             </button>
@@ -1042,7 +1057,7 @@ export const Editor: React.FC = () => {
               className={`p-2 rounded-lg transition-all cursor-pointer ${
                 measureMode ? 'bg-amber-500 text-neutral-950 border border-amber-600' : 'bg-neutral-800 text-neutral-400 border border-transparent hover:text-white'
               }`}
-              title="Метр (A-B хэмжилт)"
+              title="Зай хэмжигч метр: 3D дээр хоёр цэг сонгож зайг хэмжих"
             >
               <Ruler size={16} />
             </button>
@@ -1051,11 +1066,11 @@ export const Editor: React.FC = () => {
               className={`p-2 rounded-lg transition-all cursor-pointer ${
                 snapping ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-neutral-800 text-neutral-400 border border-transparent'
               }`}
-              title="Соронзон наалдац (Соронзон мэт татах)"
+              title="Соронзон наалдац: Шүүгээнүүдийг автомат зэрэгцүүлэн нааж тэгшлэх"
             >
               <Magnet size={16} />
             </button>
-            <div className="w-px h-5 bg-white/10 mx-0.5" />
+            <div className="w-px h-5 bg-white/10 mx-0.5 self-center" />
             <button
               onClick={() => {
                 if ((activeProject.modules || []).length === 0) return;
@@ -1064,7 +1079,7 @@ export const Editor: React.FC = () => {
                 }
               }}
               className="p-2 rounded-lg transition-all cursor-pointer bg-neutral-800 text-neutral-400 border border-transparent hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30"
-              title="Бүгдийг устгах"
+              title="Бүх хайрцгуудыг дэлгэцээс арилгах"
             >
               <Trash2 size={16} />
             </button>
@@ -1193,488 +1208,654 @@ export const Editor: React.FC = () => {
           )}
         </div>
 
-        {/* Dimension parameters sliders panel */}
-        <div className="bg-[#12141c] border border-white/5 rounded-2xl p-6 flex flex-col gap-6">
-          <div className="flex justify-between items-center">
-            <h3 className="font-display font-bold text-white text-base">Хэмжээ болон Дэд хэсгүүд</h3>
-            <button
-              onClick={() => setShowPrintModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 hover:border-amber-500/40 rounded-lg text-amber-400 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
-              title="Тохиргооны хэвлэмэл хэлбэр"
-            >
-              <Printer size={12} />
-              <span>Хэвлэх</span>
-            </button>
+        {/* Dimension parameters sliders panel - RESTRUCTURED AS WIZARD */}
+        {!selectedMod ? (
+          <div className="flex flex-col items-center justify-center p-6 text-center bg-[#12141c] border border-white/5 rounded-2xl min-h-[350px]">
+            <Box size={36} className="text-neutral-500 mb-3 animate-pulse" />
+            <span className="text-xs font-bold text-white">Шүүгээ сонгоогүй байна</span>
+            <p className="text-[10px] text-neutral-500 mt-1 leading-normal max-w-[200px]">
+              Зүүн талын цэснээс бэлэн загварыг 3D дэлгэц рүү чирж оруулах эсвэл "Нэмэх" товчлуурыг дарж ажиллана уу.
+            </p>
           </div>
-
-          {/* Width */}
-          <div className="flex flex-col gap-2">
-            <div className="flex justify-between items-center text-xs font-semibold text-neutral-300">
-              <span>Өргөн (Width)</span>
-              <div className="flex items-center gap-1">
-                <input
-                  type="number"
-                  value={config.width}
-                  onChange={(e) => updateActiveConfig({ width: parseInt(e.target.value) || 0 })}
-                  onBlur={(e) => {
-                    const val = Math.max(200, Math.min(3000, parseInt(e.target.value) || 200));
-                    updateActiveConfig({ width: val });
-                  }}
-                  className="w-16 bg-[#0c0d12] border border-white/10 rounded px-1.5 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <span>мм</span>
+        ) : (
+          <div className="bg-[#12141c] border border-white/5 rounded-2xl p-5 flex flex-col gap-5">
+            {/* Wizard Header */}
+            <div className="flex justify-between items-center border-b border-white/5 pb-3">
+              <div className="flex flex-col">
+                <h3 className="font-display font-bold text-white text-xs flex items-center gap-1.5">
+                  <span>🛠️ Шүүгээний Тохиргоо</span>
+                  <span className="text-[9px] text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded-full truncate max-w-[100px]" title={selectedMod.name}>
+                    {selectedMod.name}
+                  </span>
+                </h3>
               </div>
-            </div>
-            <input
-              type="range"
-              min={200}
-              max={3000}
-              step={50}
-              value={config.width}
-              onChange={(e) => updateActiveConfig({ width: parseInt(e.target.value) })}
-              className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-            />
-          </div>
-
-          {/* Height */}
-          <div className="flex flex-col gap-2">
-            <div className="flex justify-between items-center text-xs font-semibold text-neutral-300">
-              <span>Өндөр (Height)</span>
-              <div className="flex items-center gap-1">
-                <input
-                  type="number"
-                  value={config.height}
-                  onChange={(e) => updateActiveConfig({ height: parseInt(e.target.value) || 0 })}
-                  onBlur={(e) => {
-                    const val = Math.max(200, Math.min(2800, parseInt(e.target.value) || 200));
-                    updateActiveConfig({ height: val });
-                  }}
-                  className="w-16 bg-[#0c0d12] border border-white/10 rounded px-1.5 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <span>мм</span>
-              </div>
-            </div>
-            <input
-              type="range"
-              min={200}
-              max={2800}
-              step={50}
-              value={config.height}
-              onChange={(e) => updateActiveConfig({ height: parseInt(e.target.value) })}
-              className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-            />
-          </div>
-
-          {/* Depth */}
-          <div className="flex flex-col gap-2">
-            <div className="flex justify-between items-center text-xs font-semibold text-neutral-300">
-              <span>Гүн (Depth)</span>
-              <div className="flex items-center gap-1">
-                <input
-                  type="number"
-                  value={config.depth}
-                  onChange={(e) => updateActiveConfig({ depth: parseInt(e.target.value) || 0 })}
-                  onBlur={(e) => {
-                    const val = Math.max(200, Math.min(1000, parseInt(e.target.value) || 200));
-                    updateActiveConfig({ depth: val });
-                  }}
-                  className="w-16 bg-[#0c0d12] border border-white/10 rounded px-1.5 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <span>мм</span>
-              </div>
-            </div>
-            <input
-              type="range"
-              min={200}
-              max={1000}
-              step={50}
-              value={config.depth}
-              onChange={(e) => updateActiveConfig({ depth: parseInt(e.target.value) })}
-              className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-5">
-            {/* Shelves count */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-neutral-400 font-semibold">Тавиур хавтан</label>
-              <input
-                type="number"
-                min={0}
-                max={15}
-                value={config.shelves}
-                onChange={(e) => updateActiveConfig({ shelves: Math.max(0, parseInt(e.target.value) || 0) })}
-                className="w-full bg-[#0c0d12] border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-amber-500"
-              />
+              <button
+                onClick={() => setShowPrintModal(true)}
+                className="flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500 hover:text-neutral-950 border border-amber-500/20 rounded-lg text-amber-400 text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                title="Тохиргооны хэвлэмэл хуудас"
+                type="button"
+              >
+                <Printer size={10} />
+                <span>Хэвлэх</span>
+              </button>
             </div>
 
-            {/* Drawers count */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-neutral-400 font-semibold">Шургуулга</label>
-              <input
-                type="number"
-                min={0}
-                max={10}
-                value={config.drawers}
-                onChange={(e) => updateActiveConfig({ drawers: Math.max(0, parseInt(e.target.value) || 0) })}
-                className="w-full bg-[#0c0d12] border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-amber-500"
-              />
-            </div>
-
-            {/* Shelves spacing/height sliders */}
-            {config.shelves >= 0 && (() => {
-              const shelvesCount = Number(config.shelves) || 0;
-              const legHeight = config.hasLegs ? 100 : 0;
-              const insideHeight = Number(config.height) - legHeight - 36;
-              let sPositions = config.shelfPositions || [];
-              
-              const isMultiSection = selectedMod?.type === 'wardrobe' || selectedMod?.type === 'bookshelf';
-
-              // Only rebuild positions when truly needed (and don't override stored per-section data)
-              const storedCountsRaw: number[] | undefined = (config as any).sectionShelfCounts;
-              const hasValidStoredCounts = isMultiSection && storedCountsRaw &&
-                storedCountsRaw.length > 0 &&
-                storedCountsRaw.reduce((a, b) => a + b, 0) === shelvesCount;
-
-              if (sPositions.length !== shelvesCount) {
-                // If we have valid stored per-section counts, rebuild positions respecting those counts
-                if (hasValidStoredCounts && isMultiSection) {
-                  const sections = getCabinetSections(Number(config.width), config, selectedMod!.type);
-                  sPositions = [];
-                  storedCountsRaw!.forEach((cnt, sIdx) => {
-                    const step = insideHeight / (cnt + 1);
-                    for (let i = 0; i < cnt; i++) {
-                      sPositions.push(Math.round((i + 1) * step));
-                    }
-                  });
-                } else if (isMultiSection) {
-                  const sections = getCabinetSections(Number(config.width), config, selectedMod!.type);
-                  sPositions = [];
-                  sections.forEach((_sec, sIdx) => {
-                    const shelvesInSec = Math.floor(shelvesCount / sections.length) + (sIdx < shelvesCount % sections.length ? 1 : 0);
-                    const step = insideHeight / (shelvesInSec + 1);
-                    for (let i = 0; i < shelvesInSec; i++) {
-                      sPositions.push(Math.round((i + 1) * step));
-                    }
-                  });
-                } else {
-                  sPositions = [];
-                  const step = insideHeight / (shelvesCount + 1);
-                  for (let i = 0; i < shelvesCount; i++) {
-                    sPositions.push(Math.round((i + 1) * step));
-                  }
-                }
-              }
-
-              if (isMultiSection) {
-                const sections = getCabinetSections(Number(config.width), config, selectedMod!.type);
-                // Default even distribution counts
-                const secCounts: number[] = sections.map((_, sIdx) =>
-                  Math.floor(shelvesCount / sections.length) + (sIdx < shelvesCount % sections.length ? 1 : 0)
-                );
-                // Prefer stored counts if valid
-                const storedCounts: number[] | undefined = (config as any).sectionShelfCounts;
-                const finalSecCounts: number[] = storedCounts && storedCounts.length === sections.length && storedCounts.reduce((a,b)=>a+b,0) === shelvesCount
-                  ? storedCounts
-                  : secCounts;
-                
-                let currentGlobalIdx = 0;
-                
+            {/* Stepper Progress Bar */}
+            <div className="grid grid-cols-5 gap-0.5 text-center border-b border-white/5 pb-3 shrink-0 select-none">
+              {[
+                { step: 1, label: 'Их бие', title: 'Их биеийн хэмжээсүүд' },
+                { step: 2, label: 'Дотор', title: 'Тавиур, Шургуулга' },
+                { step: 3, label: 'Нүүр/Өнгө', title: 'Хаалга, Өнгө материал' },
+                { step: 4, label: 'Байршил', title: '3D орон зайн байршил' },
+                { step: 5, label: 'Деталь', title: 'Гар аргаар нэмэх деталь' },
+              ].map((s) => {
+                const isAct = activeStep === s.step;
+                const isDone = activeStep > s.step;
                 return (
-                  <div className="flex flex-col gap-3 mt-1 bg-[#0c0d12]/30 border border-white/5 p-3 rounded-xl col-span-2">
-                    <span className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">Тавиурын өндөр (секцээр)</span>
-                    {sections.map((sec, sIdx) => {
-                      const shelvesInSec = finalSecCounts[sIdx] ?? 0;
-                      const secStartIdx = currentGlobalIdx;
-                      currentGlobalIdx += shelvesInSec;
-                      const secStart = secStartIdx; // capture for closures
-
-                      // Add shelf to this section — recompute all sections evenly
-                      const addShelfToSection = () => {
-                        const newCounts = [...finalSecCounts];
-                        newCounts[sIdx] = shelvesInSec + 1;
-                        // Recompute ALL sections evenly (clean, no index tracking bugs)
-                        const rebuiltPos: number[] = [];
-                        newCounts.forEach((cnt) => {
-                          const step = insideHeight / (cnt + 1);
-                          for (let i = 0; i < cnt; i++) {
-                            rebuiltPos.push(Math.round((i + 1) * step));
-                          }
-                        });
-                        updateActiveConfig({ shelves: shelvesCount + 1, shelfPositions: rebuiltPos, sectionShelfCounts: newCounts } as any);
-                      };
-
-                      // Remove last shelf from this section — recompute all sections evenly
-                      const removeShelfFromSection = () => {
-                        if (shelvesInSec === 0) return;
-                        const newCounts = [...finalSecCounts];
-                        newCounts[sIdx] = shelvesInSec - 1;
-                        // Recompute ALL sections evenly (clean, no index tracking bugs)
-                        const rebuiltPos: number[] = [];
-                        newCounts.forEach((cnt) => {
-                          if (cnt > 0) {
-                            const step = insideHeight / (cnt + 1);
-                            for (let i = 0; i < cnt; i++) {
-                              rebuiltPos.push(Math.round((i + 1) * step));
-                            }
-                          }
-                        });
-                        updateActiveConfig({ shelves: shelvesCount - 1, shelfPositions: rebuiltPos, sectionShelfCounts: newCounts } as any);
-                      };
-
-                      
-                      return (
-                        <div key={sIdx} className="flex flex-col gap-2 border-b border-white/5 pb-2 last:border-0 last:pb-0">
-                          {/* Section header with +/- buttons */}
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[9px] text-neutral-400 font-bold uppercase">Секц {sIdx + 1}</span>
-                              <span className="text-[9px] text-amber-500 font-bold bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded-full">
-                                {shelvesInSec} тавиур
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <button
-                                onClick={removeShelfFromSection}
-                                disabled={shelvesInSec === 0}
-                                className="w-6 h-6 flex items-center justify-center rounded-md bg-neutral-800 hover:bg-red-500/20 hover:text-red-400 disabled:opacity-30 disabled:cursor-not-allowed text-neutral-400 font-bold text-sm transition-all cursor-pointer border border-white/5 hover:border-red-500/30"
-                                title="Тавиур хасах"
-                              >
-                                −
-                              </button>
-                              <button
-                                onClick={addShelfToSection}
-                                disabled={shelvesInSec >= 12}
-                                className="w-6 h-6 flex items-center justify-center rounded-md bg-neutral-800 hover:bg-emerald-500/20 hover:text-emerald-400 disabled:opacity-30 disabled:cursor-not-allowed text-neutral-400 font-bold text-sm transition-all cursor-pointer border border-white/5 hover:border-emerald-500/30"
-                                title="Тавиур нэмэх"
-                              >
-                                +
-                              </button>
-                            </div>
-                          </div>
-
-                          {shelvesInSec === 0 ? (
-                            <div className="text-[9px] text-neutral-600 text-center py-1 italic">Тавиур байхгүй — + дарж нэмэх</div>
-                          ) : (
-                            Array.from({ length: shelvesInSec }).map((_, localIdx) => {
-                              const globalIdx = secStart + localIdx;
-                              const pos = sPositions[globalIdx];
-                              const prevInSec = localIdx === 0 ? undefined : sPositions[secStart + localIdx - 1];
-                              const nextInSec = localIdx === shelvesInSec - 1 ? undefined : sPositions[secStart + localIdx + 1];
-                              const minVal = prevInSec !== undefined ? prevInSec + 50 : 50;
-                              const maxVal = nextInSec !== undefined ? nextInSec - 50 : insideHeight - 50;
-                              
-                              return (
-                                <div key={localIdx} className="flex flex-col gap-1 pl-2">
-                                  <div className="flex justify-between items-center text-[10px] text-neutral-400">
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500/60" />
-                                      <span>Тавиур {localIdx + 1}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                      <input
-                                        type="number"
-                                        value={pos || 50}
-                                        onChange={(e) => {
-                                          const val = parseInt(e.target.value) || 0;
-                                          const newPos = [...sPositions];
-                                          newPos[globalIdx] = val;
-                                          updateActiveConfig({ shelfPositions: newPos });
-                                        }}
-                                        onBlur={(e) => {
-                                          const val = Math.max(minVal, Math.min(maxVal, parseInt(e.target.value) || minVal));
-                                          const newPos = [...sPositions];
-                                          newPos[globalIdx] = val;
-                                          updateActiveConfig({ shelfPositions: newPos });
-                                        }}
-                                        className="w-14 bg-[#0c0d12] border border-white/10 rounded px-1 py-0.5 text-right text-white font-semibold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                      />
-                                      <span>мм</span>
-                                    </div>
-                                  </div>
-                                  <input
-                                    type="range"
-                                    min={minVal}
-                                    max={Math.max(minVal, maxVal)}
-                                    step={5}
-                                    value={pos || 50}
-                                    onChange={(e) => {
-                                      const val = parseInt(e.target.value);
-                                      const newPos = [...sPositions];
-                                      newPos[globalIdx] = val;
-                                      updateActiveConfig({ shelfPositions: newPos });
-                                    }}
-                                    className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                                  />
-                                </div>
-                              );
-                            })
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <button
+                    key={s.step}
+                    onClick={() => setActiveStep(s.step)}
+                    className={`flex flex-col items-center gap-1 py-1 rounded-lg transition-all cursor-pointer ${
+                      isAct
+                        ? 'bg-amber-500/10 border border-amber-500/25 text-amber-400 font-extrabold'
+                        : isDone
+                        ? 'text-neutral-405 hover:text-white'
+                        : 'text-neutral-600 hover:text-neutral-400'
+                    }`}
+                    title={s.title}
+                    type="button"
+                  >
+                    <span className={`w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center ${
+                      isAct ? 'bg-amber-500 text-neutral-950' : isDone ? 'bg-neutral-800 text-amber-400 border border-amber-500/30' : 'bg-neutral-900 text-neutral-500 border border-white/5'
+                    }`}>
+                      {s.step}
+                    </span>
+                    <span className="text-[8px] font-bold uppercase tracking-tight truncate w-full max-w-[48px]">{s.label}</span>
+                  </button>
                 );
-              }
+              })}
+            </div>
 
-              // Standard single section behavior
-              return (
-                <div className="flex flex-col gap-3 mt-1 bg-[#0c0d12]/30 border border-white/5 p-3 rounded-xl col-span-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">Тавиурын өндөр (мм, доороос)</span>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => {
-                          if (shelvesCount === 0) {
-                            // First shelf: middle of cabinet
-                            updateActiveConfig({ shelves: 1, shelfPositions: [Math.round(insideHeight / 2)] });
-                          } else {
-                            const lastPos = sPositions[shelvesCount - 1];
-                            const newShelfPos = Math.round((lastPos + insideHeight) / 2);
-                            updateActiveConfig({ shelves: shelvesCount + 1, shelfPositions: [...sPositions, newShelfPos] });
-                          }
-                        }}
-                        disabled={shelvesCount >= 15}
-                        className="w-6 h-6 flex items-center justify-center rounded-md bg-neutral-800 hover:bg-emerald-500/20 hover:text-emerald-400 disabled:opacity-30 disabled:cursor-not-allowed text-neutral-400 font-bold text-sm transition-all cursor-pointer border border-white/5 hover:border-emerald-500/30"
-                        title="Тавиур нэмэх"
+            {/* Step Contents Container */}
+            <div className="flex flex-col gap-4 overflow-y-auto max-h-[520px] pr-1" style={{ scrollbarWidth: 'thin' }}>
+              {activeStep === 1 && (
+                <>
+                  <div className="text-[9px] text-neutral-500 font-bold uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                    <Info size={11} className="text-amber-500 shrink-0" />
+                    <span>Алхам 1: Их биеийн үндсэн хэмжээсүүд</span>
+                  </div>
+
+                  {/* Width */}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between items-center text-xs font-semibold text-neutral-300">
+                      <span className="flex items-center gap-1">
+                        Өргөн (Width)
+                        <span className="group relative cursor-pointer text-neutral-500 hover:text-amber-500">
+                          <HelpCircle size={11} />
+                          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-40 bg-neutral-900 border border-white/10 text-[9px] text-neutral-300 p-2 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-20 font-normal leading-normal shadow-xl">
+                            Шүүгээний зүүн хажуугаас баруун хажуу хүртэлх нийт хэмжээ (мм-ээр)
+                          </span>
+                        </span>
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          value={config.width}
+                          onChange={(e) => updateActiveConfig({ width: parseInt(e.target.value) || 0 })}
+                          onBlur={(e) => {
+                            const val = Math.max(200, Math.min(3000, parseInt(e.target.value) || 200));
+                            updateActiveConfig({ width: val });
+                          }}
+                          className="w-16 bg-[#0c0d12] border border-white/10 rounded px-1.5 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        <span className="text-[10px] text-neutral-500 font-semibold">мм</span>
+                      </div>
+                    </div>
+                    <input
+                      type="range"
+                      min={200}
+                      max={3000}
+                      step={50}
+                      value={config.width}
+                      onChange={(e) => updateActiveConfig({ width: parseInt(e.target.value) })}
+                      className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                    />
+                  </div>
+
+                  {/* Height */}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between items-center text-xs font-semibold text-neutral-300">
+                      <span className="flex items-center gap-1">
+                        Өндөр (Height)
+                        <span className="group relative cursor-pointer text-neutral-500 hover:text-amber-500">
+                          <HelpCircle size={11} />
+                          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-40 bg-neutral-900 border border-white/10 text-[9px] text-neutral-300 p-2 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-20 font-normal leading-normal shadow-xl">
+                            Шүүгээний доод ирмэгээс дээд таг хүртэлх нийт өндөр (мм-ээр, хөлийн өндөр багтсан)
+                          </span>
+                        </span>
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          value={config.height}
+                          onChange={(e) => updateActiveConfig({ height: parseInt(e.target.value) || 0 })}
+                          onBlur={(e) => {
+                            const val = Math.max(200, Math.min(2800, parseInt(e.target.value) || 200));
+                            updateActiveConfig({ height: val });
+                          }}
+                          className="w-16 bg-[#0c0d12] border border-white/10 rounded px-1.5 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        <span className="text-[10px] text-neutral-500 font-semibold">мм</span>
+                      </div>
+                    </div>
+                    <input
+                      type="range"
+                      min={200}
+                      max={2800}
+                      step={50}
+                      value={config.height}
+                      onChange={(e) => updateActiveConfig({ height: parseInt(e.target.value) })}
+                      className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                    />
+                  </div>
+
+                  {/* Depth */}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between items-center text-xs font-semibold text-neutral-300">
+                      <span className="flex items-center gap-1">
+                        Гүн (Depth)
+                        <span className="group relative cursor-pointer text-neutral-500 hover:text-amber-500">
+                          <HelpCircle size={11} />
+                          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-40 bg-neutral-900 border border-white/10 text-[9px] text-neutral-300 p-2 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-20 font-normal leading-normal shadow-xl">
+                            Шүүгээний урд хаалганы гадна талын нүүрнээс арын хавтан хүртэлх гүн (мм-ээр)
+                          </span>
+                        </span>
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          value={config.depth}
+                          onChange={(e) => updateActiveConfig({ depth: parseInt(e.target.value) || 0 })}
+                          onBlur={(e) => {
+                            const val = Math.max(200, Math.min(1000, parseInt(e.target.value) || 200));
+                            updateActiveConfig({ depth: val });
+                          }}
+                          className="w-16 bg-[#0c0d12] border border-white/10 rounded px-1.5 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        <span className="text-[10px] text-neutral-500 font-semibold">мм</span>
+                      </div>
+                    </div>
+                    <input
+                      type="range"
+                      min={200}
+                      max={1000}
+                      step={50}
+                      value={config.depth}
+                      onChange={(e) => updateActiveConfig({ depth: parseInt(e.target.value) })}
+                      className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                    />
+                  </div>
+
+                  {/* Leg status */}
+                  <div className="flex items-center gap-3 border-t border-white/5 pt-3">
+                    <input
+                      type="checkbox"
+                      id="hasLegs"
+                      checked={config.hasLegs}
+                      onChange={(e) => updateActiveConfig({ hasLegs: e.target.checked })}
+                      className="w-4 h-4 bg-[#0c0d12] border border-white/10 rounded accent-amber-500 cursor-pointer"
+                    />
+                    <label htmlFor="hasLegs" className="text-xs text-neutral-300 font-medium select-none cursor-pointer flex items-center gap-1.5">
+                      <span>Шүүгээнд хөл суурилуулах (100мм өндөртэй хөл)</span>
+                    </label>
+                  </div>
+
+                  {/* Countertop status */}
+                  {(selectedMod.type === 'custom' || selectedMod.type === 'kitchen_lower' || selectedMod.type === 'cooktop' || selectedMod.type === 'sink' || selectedMod.type === 'corner_lower') && (
+                    <div className="flex flex-col gap-1.5 border-t border-white/5 pt-3">
+                      <label className="text-xs text-neutral-400 font-semibold">Тавцангийн төрөл (Countertop)</label>
+                      <select
+                        value={config.countertopType || 'none'}
+                        onChange={(e) => updateActiveConfig({ countertopType: e.target.value as any })}
+                        className="w-full bg-[#0c0d12] border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-amber-500 cursor-pointer"
                       >
-                        +
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (shelvesCount === 0) return;
-                          const newPos = sPositions.slice(0, -1);
-                          updateActiveConfig({ shelves: shelvesCount - 1, shelfPositions: newPos });
-                        }}
-                        disabled={shelvesCount === 0}
-                        className="w-6 h-6 flex items-center justify-center rounded-md bg-neutral-800 hover:bg-red-500/20 hover:text-red-400 disabled:opacity-30 disabled:cursor-not-allowed text-neutral-400 font-bold text-sm transition-all cursor-pointer border border-white/5 hover:border-red-500/30"
-                        title="Тавиур хасах"
-                      >
-                        −
-                      </button>
+                        <option value="none">Байхгүй</option>
+                        <option value="stone">Чулуун тавцан (Stone)</option>
+                        <option value="wood">Модон тавцан (Wood)</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Glass Left/Right options for Vitrine */}
+                  {selectedMod.type === 'vitrine' && (
+                    <div className="flex flex-col gap-2.5 border-t border-white/5 pt-3">
+                      <label className="text-xs text-neutral-400 font-semibold">
+                        Хажуу талуудын шил
+                      </label>
+                      <div className="flex flex-col gap-2 bg-[#0c0d12]/50 border border-white/5 p-3 rounded-xl">
+                        <label className="flex items-center gap-2 cursor-pointer text-xs text-neutral-300 font-medium select-none">
+                          <input
+                            type="checkbox"
+                            checked={!!config.glassLeft}
+                            onChange={(e) => updateActiveConfig({ glassLeft: e.target.checked })}
+                            className="w-4 h-4 bg-[#0c0d12] border border-white/10 rounded accent-amber-500 cursor-pointer"
+                          />
+                          <span>Зүүн хажуу шилэн (Glass Left)</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer text-xs text-neutral-300 font-medium select-none">
+                          <input
+                            type="checkbox"
+                            checked={!!config.glassRight}
+                            onChange={(e) => updateActiveConfig({ glassRight: e.target.checked })}
+                            className="w-4 h-4 bg-[#0c0d12] border border-white/10 rounded accent-amber-500 cursor-pointer"
+                          />
+                          <span>Баруун хажуу шилэн (Glass Right)</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TV Unit options */}
+                  {selectedMod.type === 'tv_unit' && (
+                    <div className="flex flex-col gap-2.5 border-t border-white/5 pt-3">
+                      <label className="text-xs text-neutral-400 font-semibold">
+                        Зурагтын суурь
+                      </label>
+                      <div className="flex flex-col gap-2 bg-[#0c0d12]/50 border border-white/5 p-3 rounded-xl">
+                        <label className="flex items-center gap-2 cursor-pointer text-xs text-neutral-300 font-medium select-none">
+                          <input
+                            type="checkbox"
+                            checked={config.tvHasBase !== false}
+                            onChange={(e) => updateActiveConfig({ tvHasBase: e.target.checked })}
+                            className="w-4 h-4 bg-[#0c0d12] border border-white/10 rounded accent-amber-500 cursor-pointer"
+                          />
+                          <span>ТВ суурь хөлтэй байх</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {activeStep === 2 && (
+                <>
+                  <div className="text-[9px] text-neutral-500 font-bold uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                    <Info size={11} className="text-amber-500 shrink-0" />
+                    <span>Алхам 2: Дотор тавиур, шургуулга болон хуваалт</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Shelves count */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs text-neutral-400 font-semibold">Тавиурын тоо</label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={15}
+                        value={config.shelves}
+                        onChange={(e) => updateActiveConfig({ shelves: Math.max(0, parseInt(e.target.value) || 0) })}
+                        className="w-full bg-[#0c0d12] border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-amber-500"
+                      />
+                    </div>
+
+                    {/* Drawers count */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs text-neutral-400 font-semibold">Шургуулганы тоо</label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={10}
+                        value={config.drawers}
+                        onChange={(e) => updateActiveConfig({ drawers: Math.max(0, parseInt(e.target.value) || 0) })}
+                        className="w-full bg-[#0c0d12] border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-amber-500"
+                      />
                     </div>
                   </div>
-                  {shelvesCount === 0 ? (
-                    <div className="text-[9px] text-neutral-600 text-center py-2 italic">Тавиур байхгүй — + дарж нэмэх</div>
-                  ) : (
-                    sPositions.map((pos, i) => {
-                      const minVal = i === 0 ? 50 : sPositions[i - 1] + 50;
-                      const maxVal = i === shelvesCount - 1 ? insideHeight - 50 : sPositions[i + 1] - 50;
+
+                  {/* Cabinet Partitions / Dividers Config */}
+                  {(selectedMod.type === 'cabinet' || selectedMod.type === 'wardrobe' || selectedMod.type === 'bookshelf') && (
+                    <div className="flex flex-col gap-2 border-t border-white/5 pt-3">
+                      {(() => {
+                        const getDefaultPartitions = (type: string, cfg: any) => {
+                          if (type === 'wardrobe') return cfg.doors > 1 ? cfg.doors - 1 : 0;
+                          if (type === 'cabinet') return cfg.doors > 0 ? (cfg.drawers > 0 ? cfg.doors : cfg.doors - 1) : 0;
+                          return 0;
+                        };
+                        const defaultPartitions = getDefaultPartitions(selectedMod.type, config);
+                        const partitions = config.partitions !== undefined ? Number(config.partitions) : defaultPartitions;
+                        const totalW = Number(config.width);
+
+                        let dPositions = config.dividerPositions || [];
+                        if (dPositions.length !== partitions) {
+                          dPositions = [];
+                          for (let i = 0; i < partitions; i++) {
+                            dPositions.push(Math.round((i + 1) * totalW / (partitions + 1)));
+                          }
+                        }
+
+                        return (
+                          <>
+                            <div className="flex justify-between items-center text-xs">
+                              <label className="text-neutral-400 font-semibold">Босоо хуваалтын тоо</label>
+                              <span className="text-amber-500 font-bold">{partitions}</span>
+                            </div>
+                            <input
+                              type="range"
+                              min={0}
+                              max={6}
+                              step={1}
+                              value={partitions}
+                              onChange={(e) => updateActiveConfig({ partitions: parseInt(e.target.value) })}
+                              className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                            />
+
+                            {partitions > 0 && (
+                              <div className="flex flex-col gap-3 mt-2 bg-[#0c0d12]/30 border border-white/5 p-3 rounded-xl">
+                                <span className="text-[9px] text-amber-500 font-bold uppercase tracking-wider">Хуваалтуудын байрлал (мм)</span>
+                                {dPositions.map((pos, i) => {
+                                  const minVal = i === 0 ? 100 : dPositions[i - 1] + 100;
+                                  const maxVal = i === partitions - 1 ? totalW - 100 : dPositions[i + 1] - 100;
+
+                                  return (
+                                    <div key={i} className="flex flex-col gap-1">
+                                      <div className="flex justify-between items-center text-[10px] text-neutral-400">
+                                        <span>Босоо Хуваалт {i + 1}</span>
+                                        <div className="flex items-center gap-1">
+                                          <input
+                                            type="number"
+                                            value={pos}
+                                            onChange={(e) => {
+                                              const val = parseInt(e.target.value) || 0;
+                                              const newPos = [...dPositions];
+                                              newPos[i] = val;
+                                              updateActiveConfig({ dividerPositions: newPos });
+                                            }}
+                                            onBlur={(e) => {
+                                              const val = Math.max(minVal, Math.min(maxVal, parseInt(e.target.value) || minVal));
+                                              const newPos = [...dPositions];
+                                              newPos[i] = val;
+                                              updateActiveConfig({ dividerPositions: newPos });
+                                            }}
+                                            className="w-14 bg-[#0c0d12] border border-white/10 rounded px-1 py-0.5 text-right text-white font-semibold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                          />
+                                          <span>мм</span>
+                                        </div>
+                                      </div>
+                                      <input
+                                        type="range"
+                                        min={minVal}
+                                        max={Math.max(minVal, maxVal)}
+                                        step={5}
+                                        value={pos}
+                                        onChange={(e) => {
+                                          const val = parseInt(e.target.value);
+                                          const newPos = [...dPositions];
+                                          newPos[i] = val;
+                                          updateActiveConfig({ dividerPositions: newPos });
+                                        }}
+                                        className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                      />
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
+
+                  {/* Shelves spacing/height sliders */}
+                  {config.shelves >= 0 && (() => {
+                    const shelvesCount = Number(config.shelves) || 0;
+                    const legHeight = config.hasLegs ? 100 : 0;
+                    const insideHeight = Number(config.height) - legHeight - 36;
+                    let sPositions = config.shelfPositions || [];
+                    const isMultiSection = selectedMod.type === 'wardrobe' || selectedMod.type === 'bookshelf';
+
+                    const storedCountsRaw: number[] | undefined = (config as any).sectionShelfCounts;
+                    const hasValidStoredCounts = isMultiSection && storedCountsRaw &&
+                      storedCountsRaw.length > 0 &&
+                      storedCountsRaw.reduce((a, b) => a + b, 0) === shelvesCount;
+
+                    if (sPositions.length !== shelvesCount) {
+                      if (hasValidStoredCounts && isMultiSection) {
+                        sPositions = [];
+                        storedCountsRaw!.forEach((cnt) => {
+                          const step = insideHeight / (cnt + 1);
+                          for (let i = 0; i < cnt; i++) {
+                            sPositions.push(Math.round((i + 1) * step));
+                          }
+                        });
+                      } else if (isMultiSection) {
+                        const sections = getCabinetSections(Number(config.width), config, selectedMod.type);
+                        sPositions = [];
+                        sections.forEach((_sec, sIdx) => {
+                          const shelvesInSec = Math.floor(shelvesCount / sections.length) + (sIdx < shelvesCount % sections.length ? 1 : 0);
+                          const step = insideHeight / (shelvesInSec + 1);
+                          for (let i = 0; i < shelvesInSec; i++) {
+                            sPositions.push(Math.round((i + 1) * step));
+                          }
+                        });
+                      } else {
+                        sPositions = [];
+                        const step = insideHeight / (shelvesCount + 1);
+                        for (let i = 0; i < shelvesCount; i++) {
+                          sPositions.push(Math.round((i + 1) * step));
+                        }
+                      }
+                    }
+
+                    if (isMultiSection) {
+                      const sections = getCabinetSections(Number(config.width), config, selectedMod.type);
+                      const secCounts: number[] = sections.map((_, sIdx) =>
+                        Math.floor(shelvesCount / sections.length) + (sIdx < shelvesCount % sections.length ? 1 : 0)
+                      );
+                      const finalSecCounts: number[] = storedCountsRaw && storedCountsRaw.length === sections.length && storedCountsRaw.reduce((a,b)=>a+b,0) === shelvesCount
+                        ? storedCountsRaw
+                        : secCounts;
+
+                      let currentGlobalIdx = 0;
+
                       return (
-                        <div key={i} className="flex flex-col gap-1">
-                          <div className="flex justify-between items-center text-[10px] text-neutral-400">
-                            <div className="flex items-center gap-1.5">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500/60" />
-                              <span>Тавиур {i + 1}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <input
-                                type="number"
-                                value={pos}
-                                onChange={(e) => {
-                                  const val = parseInt(e.target.value) || 0;
-                                  const newPos = [...sPositions];
-                                  newPos[i] = val;
-                                  updateActiveConfig({ shelfPositions: newPos });
-                                }}
-                                onBlur={(e) => {
-                                  const val = Math.max(minVal, Math.min(maxVal, parseInt(e.target.value) || minVal));
-                                  const newPos = [...sPositions];
-                                  newPos[i] = val;
-                                  updateActiveConfig({ shelfPositions: newPos });
-                                }}
-                                className="w-14 bg-[#0c0d12] border border-white/10 rounded px-1 py-0.5 text-right text-white font-semibold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                              />
-                              <span>мм</span>
-                            </div>
-                          </div>
-                          <input
-                            type="range"
-                            min={minVal}
-                            max={Math.max(minVal, maxVal)}
-                            step={5}
-                            value={pos}
-                            onChange={(e) => {
-                              const val = parseInt(e.target.value);
-                              const newPos = [...sPositions];
-                              newPos[i] = val;
-                              updateActiveConfig({ shelfPositions: newPos });
-                            }}
-                            className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                          />
+                        <div className="flex flex-col gap-3 mt-1 bg-[#0c0d12]/30 border border-white/5 p-3 rounded-xl col-span-2">
+                          <span className="text-[9px] text-amber-500 font-bold uppercase tracking-wider">Тавиурын өндөр (секцээр)</span>
+                          {sections.map((sec, sIdx) => {
+                            const shelvesInSec = finalSecCounts[sIdx] ?? 0;
+                            const secStartIdx = currentGlobalIdx;
+                            currentGlobalIdx += shelvesInSec;
+                            const secStart = secStartIdx;
+
+                            const addShelfToSection = () => {
+                              const newCounts = [...finalSecCounts];
+                              newCounts[sIdx] = shelvesInSec + 1;
+                              const rebuiltPos: number[] = [];
+                              newCounts.forEach((cnt) => {
+                                const step = insideHeight / (cnt + 1);
+                                for (let i = 0; i < cnt; i++) {
+                                  rebuiltPos.push(Math.round((i + 1) * step));
+                                }
+                              });
+                              updateActiveConfig({ shelves: shelvesCount + 1, shelfPositions: rebuiltPos, sectionShelfCounts: newCounts } as any);
+                            };
+
+                            const removeShelfFromSection = () => {
+                              if (shelvesInSec === 0) return;
+                              const newCounts = [...finalSecCounts];
+                              newCounts[sIdx] = shelvesInSec - 1;
+                              const rebuiltPos: number[] = [];
+                              newCounts.forEach((cnt) => {
+                                if (cnt > 0) {
+                                  const step = insideHeight / (cnt + 1);
+                                  for (let i = 0; i < cnt; i++) {
+                                    rebuiltPos.push(Math.round((i + 1) * step));
+                                  }
+                                }
+                              });
+                              updateActiveConfig({ shelves: shelvesCount - 1, shelfPositions: rebuiltPos, sectionShelfCounts: newCounts } as any);
+                            };
+
+                            return (
+                              <div key={sIdx} className="flex flex-col gap-2 border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-[9px] text-neutral-400 font-bold uppercase">Секц {sIdx + 1}</span>
+                                    <span className="text-[9px] text-amber-500 font-bold bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded-full">
+                                      {shelvesInSec} тавиур
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      onClick={removeShelfFromSection}
+                                      disabled={shelvesInSec === 0}
+                                      className="w-6 h-6 flex items-center justify-center rounded-md bg-neutral-800 hover:bg-red-500/20 hover:text-red-400 disabled:opacity-30 disabled:cursor-not-allowed text-neutral-400 font-bold text-sm transition-all cursor-pointer border border-white/5 hover:border-red-500/30"
+                                      title="Тавиур хасах"
+                                      type="button"
+                                    >
+                                      −
+                                    </button>
+                                    <button
+                                      onClick={addShelfToSection}
+                                      disabled={shelvesInSec >= 12}
+                                      className="w-6 h-6 flex items-center justify-center rounded-md bg-neutral-800 hover:bg-emerald-500/20 hover:text-emerald-400 disabled:opacity-30 disabled:cursor-not-allowed text-neutral-400 font-bold text-sm transition-all cursor-pointer border border-white/5 hover:border-emerald-500/30"
+                                      title="Тавиур нэмэх"
+                                      type="button"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {shelvesInSec === 0 ? (
+                                  <div className="text-[9px] text-neutral-600 text-center py-1 italic">Тавиур байхгүй — + дарж нэмэх</div>
+                                ) : (
+                                  Array.from({ length: shelvesInSec }).map((_, localIdx) => {
+                                    const globalIdx = secStart + localIdx;
+                                    const pos = sPositions[globalIdx];
+                                    const prevInSec = localIdx === 0 ? undefined : sPositions[secStart + localIdx - 1];
+                                    const nextInSec = localIdx === shelvesInSec - 1 ? undefined : sPositions[secStart + localIdx + 1];
+                                    const minVal = prevInSec !== undefined ? prevInSec + 50 : 50;
+                                    const maxVal = nextInSec !== undefined ? nextInSec - 50 : insideHeight - 50;
+
+                                    return (
+                                      <div key={localIdx} className="flex flex-col gap-1 pl-2">
+                                        <div className="flex justify-between items-center text-[10px] text-neutral-400">
+                                          <div className="flex items-center gap-1.5">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500/60" />
+                                            <span>Тавиур {localIdx + 1}</span>
+                                          </div>
+                                          <div className="flex items-center gap-1">
+                                            <input
+                                              type="number"
+                                              value={pos || 50}
+                                              onChange={(e) => {
+                                                const val = parseInt(e.target.value) || 0;
+                                                const newPos = [...sPositions];
+                                                newPos[globalIdx] = val;
+                                                updateActiveConfig({ shelfPositions: newPos });
+                                              }}
+                                              onBlur={(e) => {
+                                                const val = Math.max(minVal, Math.min(maxVal, parseInt(e.target.value) || minVal));
+                                                const newPos = [...sPositions];
+                                                newPos[globalIdx] = val;
+                                                updateActiveConfig({ shelfPositions: newPos });
+                                              }}
+                                              className="w-14 bg-[#0c0d12] border border-white/10 rounded px-1 py-0.5 text-right text-white font-semibold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                            />
+                                            <span>мм</span>
+                                          </div>
+                                        </div>
+                                        <input
+                                          type="range"
+                                          min={minVal}
+                                          max={Math.max(minVal, maxVal)}
+                                          step={5}
+                                          value={pos || 50}
+                                          onChange={(e) => {
+                                            const val = parseInt(e.target.value);
+                                            const newPos = [...sPositions];
+                                            newPos[globalIdx] = val;
+                                            updateActiveConfig({ shelfPositions: newPos });
+                                          }}
+                                          className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                        />
+                                      </div>
+                                    );
+                                  })
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       );
-                    })
-                  )}
-                </div>
-              );
-            })()}
-
-
-            {/* Cabinet Partitions / Dividers Config */}
-            {(selectedMod?.type === 'cabinet' || selectedMod?.type === 'wardrobe' || selectedMod?.type === 'bookshelf') && (
-              <div className="flex flex-col gap-2 col-span-2 border-t border-white/5 pt-4">
-                {(() => {
-                  const getDefaultPartitions = (type: string, cfg: any) => {
-                    if (type === 'wardrobe') return cfg.doors > 1 ? cfg.doors - 1 : 0;
-                    if (type === 'cabinet') return cfg.doors > 0 ? (cfg.drawers > 0 ? cfg.doors : cfg.doors - 1) : 0;
-                    return 0;
-                  };
-                  const defaultPartitions = getDefaultPartitions(selectedMod.type, config);
-                  const partitions = config.partitions !== undefined ? Number(config.partitions) : defaultPartitions;
-                  const totalW = Number(config.width);
-
-                  // Retrieve or calculate positions (measured from left outer edge)
-                  let dPositions = config.dividerPositions || [];
-                  if (dPositions.length !== partitions) {
-                    dPositions = [];
-                    for (let i = 0; i < partitions; i++) {
-                      dPositions.push(Math.round((i + 1) * totalW / (partitions + 1)));
                     }
-                  }
 
-                  return (
-                    <>
-                      <div className="flex justify-between items-center">
-                        <label className="text-xs text-neutral-400 font-semibold">Босоо хуваалтын тоо</label>
-                        <span className="text-xs text-amber-500 font-bold">{partitions}</span>
-                      </div>
-                      <input
-                        type="range"
-                        min={0}
-                        max={6}
-                        step={1}
-                        value={partitions}
-                        onChange={(e) => updateActiveConfig({ partitions: parseInt(e.target.value) })}
-                        className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                      />
-
-                      {partitions > 0 && (
-                        <div className="flex flex-col gap-3 mt-2 bg-[#0c0d12]/30 border border-white/5 p-3 rounded-xl">
-                          <span className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">Хуваалтуудын байрлал (мм)</span>
-                          {dPositions.map((pos, i) => {
-                            const minVal = i === 0 ? 100 : dPositions[i - 1] + 100;
-                            const maxVal = i === partitions - 1 ? totalW - 100 : dPositions[i + 1] - 100;
-
+                    return (
+                      <div className="flex flex-col gap-3 bg-[#0c0d12]/30 border border-white/5 p-3 rounded-xl col-span-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">Тавиурын өндөр (мм, доороос)</span>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => {
+                                if (shelvesCount === 0) {
+                                  updateActiveConfig({ shelves: 1, shelfPositions: [Math.round(insideHeight / 2)] });
+                                } else {
+                                  const lastPos = sPositions[shelvesCount - 1];
+                                  const newShelfPos = Math.round((lastPos + insideHeight) / 2);
+                                  updateActiveConfig({ shelves: shelvesCount + 1, shelfPositions: [...sPositions, newShelfPos] });
+                                }
+                              }}
+                              disabled={shelvesCount >= 15}
+                              className="w-6 h-6 flex items-center justify-center rounded-md bg-neutral-800 hover:bg-emerald-500/20 hover:text-emerald-400 disabled:opacity-30 disabled:cursor-not-allowed text-neutral-400 font-bold text-sm transition-all cursor-pointer border border-white/5 hover:border-emerald-500/30"
+                              title="Тавиур нэмэх"
+                              type="button"
+                            >
+                              +
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (shelvesCount === 0) return;
+                                const newPos = sPositions.slice(0, -1);
+                                updateActiveConfig({ shelves: shelvesCount - 1, shelfPositions: newPos });
+                              }}
+                              disabled={shelvesCount === 0}
+                              className="w-6 h-6 flex items-center justify-center rounded-md bg-neutral-800 hover:bg-red-500/20 hover:text-red-400 disabled:opacity-30 disabled:cursor-not-allowed text-neutral-400 font-bold text-sm transition-all cursor-pointer border border-white/5 hover:border-red-500/30"
+                              title="Тавиур хасах"
+                              type="button"
+                            >
+                              −
+                            </button>
+                          </div>
+                        </div>
+                        {shelvesCount === 0 ? (
+                          <div className="text-[9px] text-neutral-600 text-center py-2 italic">Тавиур байхгүй — + дарж нэмэх</div>
+                        ) : (
+                          sPositions.map((pos, i) => {
+                            const minVal = i === 0 ? 50 : sPositions[i - 1] + 50;
+                            const maxVal = i === shelvesCount - 1 ? insideHeight - 50 : sPositions[i + 1] - 50;
                             return (
                               <div key={i} className="flex flex-col gap-1">
                                 <div className="flex justify-between items-center text-[10px] text-neutral-400">
-                                  <span>Хуваалт {i + 1}</span>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500/60" />
+                                    <span>Тавиур {i + 1}</span>
+                                  </div>
                                   <div className="flex items-center gap-1">
                                     <input
                                       type="number"
                                       value={pos}
                                       onChange={(e) => {
                                         const val = parseInt(e.target.value) || 0;
-                                        const newPos = [...dPositions];
+                                        const newPos = [...sPositions];
                                         newPos[i] = val;
-                                        updateActiveConfig({ dividerPositions: newPos });
+                                        updateActiveConfig({ shelfPositions: newPos });
                                       }}
                                       onBlur={(e) => {
                                         const val = Math.max(minVal, Math.min(maxVal, parseInt(e.target.value) || minVal));
-                                        const newPos = [...dPositions];
+                                        const newPos = [...sPositions];
                                         newPos[i] = val;
-                                        updateActiveConfig({ dividerPositions: newPos });
+                                        updateActiveConfig({ shelfPositions: newPos });
                                       }}
                                       className="w-14 bg-[#0c0d12] border border-white/10 rounded px-1 py-0.5 text-right text-white font-semibold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                     />
@@ -1689,1002 +1870,912 @@ export const Editor: React.FC = () => {
                                   value={pos}
                                   onChange={(e) => {
                                     const val = parseInt(e.target.value);
-                                    const newPos = [...dPositions];
+                                    const newPos = [...sPositions];
                                     newPos[i] = val;
-                                    updateActiveConfig({ dividerPositions: newPos });
+                                    updateActiveConfig({ shelfPositions: newPos });
                                   }}
                                   className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
                                 />
                               </div>
                             );
-                          })}
+                          })
+                        )}
+                      </div>
+                    );
+                  })()}
+                </>
+              )}
+
+              {activeStep === 3 && (
+                <>
+                  <div className="text-[9px] text-neutral-500 font-bold uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                    <Info size={11} className="text-amber-500 shrink-0" />
+                    <span>Алхам 3: Хаалга, сорогч, өнгө материал</span>
+                  </div>
+
+                  {/* Doors config or count */}
+                  {(selectedMod.type === 'custom' || selectedMod.type === 'kitchen_lower' || selectedMod.type === 'kitchen_upper' || selectedMod.type === 'built_in_hood' || selectedMod.type === 'sink' || selectedMod.type === 'cabinet' || selectedMod.type === 'vitrine' || selectedMod.type === 'cooktop') && (
+                    <div className="flex flex-col gap-2">
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs text-neutral-400 font-semibold">Хаалганы тохиргоо</label>
+                        {selectedMod.type !== 'cabinet' && (
+                          <label className="flex items-center gap-1.5 cursor-pointer text-[10px] text-neutral-400 select-none hover:text-white transition-all">
+                            <input
+                              type="checkbox"
+                              checked={config.customDoors !== undefined ? !!config.customDoors : (selectedMod.type === 'custom')}
+                              onChange={(e) => {
+                                const isCustom = e.target.checked;
+                                updateActiveConfig({
+                                  customDoors: isCustom,
+                                  doors: isCustom ? ((config.leftDoor !== false ? 1 : 0) + (config.rightDoor !== false ? 1 : 0)) : 2
+                                });
+                              }}
+                              className="w-3.5 h-3.5 bg-[#0c0d12] border border-white/10 rounded accent-amber-500 cursor-pointer"
+                            />
+                            <span>Тус бүрээр тохируулах</span>
+                          </label>
+                        )}
+                      </div>
+
+                      {((config.customDoors !== undefined ? config.customDoors : (selectedMod.type === 'custom')) && selectedMod.type !== 'cabinet') ? (
+                        <div className="flex flex-col gap-1.5 w-full">
+                          <div className="flex gap-6 mt-1 bg-[#0c0d12]/50 border border-white/5 p-3 rounded-xl">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                id="leftDoor"
+                                checked={config.leftDoor !== undefined ? !!config.leftDoor : (Number(config.doors) === 1 || Number(config.doors) >= 2)}
+                                onChange={(e) => {
+                                  const hasLeft = e.target.checked;
+                                  const hasRight = config.rightDoor !== undefined ? !!config.rightDoor : (Number(config.doors) >= 2);
+                                  updateActiveConfig({
+                                    leftDoor: hasLeft,
+                                    rightDoor: hasRight,
+                                    doors: (hasLeft ? 1 : 0) + (hasRight ? 1 : 0)
+                                  });
+                                }}
+                                className="w-4 h-4 bg-[#0c0d12] border border-white/10 rounded accent-amber-500 cursor-pointer"
+                              />
+                              <label htmlFor="leftDoor" className="text-xs text-neutral-300 font-medium select-none cursor-pointer">Зүүн хаалга</label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                id="rightDoor"
+                                checked={config.rightDoor !== undefined ? !!config.rightDoor : (Number(config.doors) >= 2)}
+                                onChange={(e) => {
+                                  const hasRight = e.target.checked;
+                                  const hasLeft = config.leftDoor !== undefined ? !!config.leftDoor : (Number(config.doors) === 1 || Number(config.doors) >= 2);
+                                  updateActiveConfig({
+                                    leftDoor: hasLeft,
+                                    rightDoor: hasRight,
+                                    doors: (hasLeft ? 1 : 0) + (hasRight ? 1 : 0)
+                                  });
+                                }}
+                                className="w-4 h-4 bg-[#0c0d12] border border-white/10 rounded accent-amber-500 cursor-pointer"
+                              />
+                              <label htmlFor="rightDoor" className="text-xs text-neutral-300 font-medium select-none cursor-pointer">Баруун хаалга</label>
+                            </div>
+                          </div>
+
+                          {(() => {
+                            const hasLeft = config.leftDoor !== undefined ? !!config.leftDoor : (Number(config.doors) === 1 || Number(config.doors) >= 2);
+                            const hasRight = config.rightDoor !== undefined ? !!config.rightDoor : (Number(config.doors) >= 2);
+                            const baseH = config.hasLegs ? Number(config.height) - 100 : Number(config.height);
+                            const defaultDWidth = Number(config.width) >= 800 ? (Number(config.width) - 10) / 2 : (Number(config.width) - 10);
+
+                            if (!hasLeft && !hasRight) return null;
+
+                            return (
+                              <div className="grid grid-cols-2 gap-4 mt-2 bg-[#0c0d12]/30 border border-white/5 p-3 rounded-xl">
+                                <div className="flex flex-col gap-1.5">
+                                  <div className="flex justify-between items-center text-[11px] text-neutral-400">
+                                    <span>Хаалганы өргөн</span>
+                                    <div className="flex items-center gap-0.5">
+                                      <input
+                                        type="number"
+                                        value={config.doorWidth || Math.round(defaultDWidth)}
+                                        onChange={(e) => updateActiveConfig({ doorWidth: parseInt(e.target.value) || 0 })}
+                                        onBlur={(e) => {
+                                          const val = Math.max(100, Math.min(Number(config.width), parseInt(e.target.value) || 100));
+                                          updateActiveConfig({ doorWidth: val });
+                                        }}
+                                        className="w-12 bg-[#0c0d12] border border-white/10 rounded px-1 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                      />
+                                      <span>мм</span>
+                                    </div>
+                                  </div>
+                                  <input
+                                    type="range"
+                                    min={100}
+                                    max={Number(config.width)}
+                                    step={10}
+                                    value={config.doorWidth || Math.round(defaultDWidth)}
+                                    onChange={(e) => updateActiveConfig({ doorWidth: parseInt(e.target.value) })}
+                                    className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                  />
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                  <div className="flex justify-between items-center text-[11px] text-neutral-400">
+                                    <span>Хаалганы өндөр</span>
+                                    <div className="flex items-center gap-0.5">
+                                      <input
+                                        type="number"
+                                        value={config.doorHeight || Math.round(baseH - 10)}
+                                        onChange={(e) => updateActiveConfig({ doorHeight: parseInt(e.target.value) || 0 })}
+                                        onBlur={(e) => {
+                                          const val = Math.max(100, Math.min(baseH, parseInt(e.target.value) || 100));
+                                          updateActiveConfig({ doorHeight: val });
+                                        }}
+                                        className="w-12 bg-[#0c0d12] border border-white/10 rounded px-1 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                      />
+                                      <span>мм</span>
+                                    </div>
+                                  </div>
+                                  <input
+                                    type="range"
+                                    min={100}
+                                    max={baseH}
+                                    step={10}
+                                    value={config.doorHeight || Math.round(baseH - 10)}
+                                    onChange={(e) => updateActiveConfig({ doorHeight: parseInt(e.target.value) })}
+                                    className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-1.5 mt-1 bg-[#0c0d12]/30 border border-white/5 p-3 rounded-xl">
+                          <label className="text-[11px] text-neutral-400 font-semibold">Хаалганы тоо</label>
+                          <input
+                            type="number"
+                            min={0}
+                            max={6}
+                            value={config.doors}
+                            onChange={(e) => updateActiveConfig({ doors: Math.max(0, parseInt(e.target.value) || 0) })}
+                            className="w-full bg-[#0c0d12] border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-amber-500"
+                          />
                         </div>
                       )}
-                    </>
-                  );
-                })()}
-              </div>
-            )}
-
-
-
-            {/* Doors config or count */}
-            {(selectedMod?.type === 'custom' || selectedMod?.type === 'kitchen_lower' || selectedMod?.type === 'kitchen_upper' || selectedMod?.type === 'built_in_hood' || selectedMod?.type === 'sink' || selectedMod?.type === 'cabinet' || selectedMod?.type === 'vitrine' || selectedMod?.type === 'cooktop') ? (
-              <div className="flex flex-col gap-2 col-span-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs text-neutral-400 font-semibold">Хаалганы тохиргоо</label>
-                  {selectedMod?.type !== 'cabinet' && (
-                    <label className="flex items-center gap-1.5 cursor-pointer text-[10px] text-neutral-400 select-none hover:text-white transition-all">
-                      <input
-                        type="checkbox"
-                        checked={config.customDoors !== undefined ? !!config.customDoors : (selectedMod?.type === 'custom')}
-                        onChange={(e) => {
-                          const isCustom = e.target.checked;
-                          updateActiveConfig({
-                            customDoors: isCustom,
-                            doors: isCustom ? ((config.leftDoor !== false ? 1 : 0) + (config.rightDoor !== false ? 1 : 0)) : 2
-                          });
-                        }}
-                        className="w-3.5 h-3.5 bg-neutral-900 border border-white/10 rounded accent-amber-500 cursor-pointer"
-                      />
-                      <span>Тус бүрээр тохируулах</span>
-                    </label>
-                  )}
-                </div>
-
-                {((config.customDoors !== undefined ? config.customDoors : (selectedMod?.type === 'custom')) && selectedMod?.type !== 'cabinet') ? (
-                  <div className="flex flex-col gap-1.5 w-full">
-                    <div className="flex gap-6 mt-1 bg-[#0c0d12]/50 border border-white/5 p-3 rounded-xl">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          id="leftDoor"
-                          checked={config.leftDoor !== undefined ? !!config.leftDoor : (Number(config.doors) === 1 || Number(config.doors) >= 2)}
-                          onChange={(e) => {
-                            const hasLeft = e.target.checked;
-                            const hasRight = config.rightDoor !== undefined ? !!config.rightDoor : (Number(config.doors) >= 2);
-                            updateActiveConfig({
-                              leftDoor: hasLeft,
-                              rightDoor: hasRight,
-                              doors: (hasLeft ? 1 : 0) + (hasRight ? 1 : 0)
-                            });
-                          }}
-                          className="w-4 h-4 bg-neutral-900 border border-white/10 rounded accent-amber-500 cursor-pointer"
-                        />
-                        <label htmlFor="leftDoor" className="text-xs text-neutral-300 font-medium select-none cursor-pointer">Зүүн хаалга</label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          id="rightDoor"
-                          checked={config.rightDoor !== undefined ? !!config.rightDoor : (Number(config.doors) >= 2)}
-                          onChange={(e) => {
-                            const hasRight = e.target.checked;
-                            const hasLeft = config.leftDoor !== undefined ? !!config.leftDoor : (Number(config.doors) === 1 || Number(config.doors) >= 2);
-                            updateActiveConfig({
-                              leftDoor: hasLeft,
-                              rightDoor: hasRight,
-                              doors: (hasLeft ? 1 : 0) + (hasRight ? 1 : 0)
-                            });
-                          }}
-                          className="w-4 h-4 bg-neutral-900 border border-white/10 rounded accent-amber-500 cursor-pointer"
-                        />
-                        <label htmlFor="rightDoor" className="text-xs text-neutral-300 font-medium select-none cursor-pointer">Баруун хаалга</label>
-                      </div>
                     </div>
+                  )}
 
-                    {(() => {
-                      const hasLeft = config.leftDoor !== undefined ? !!config.leftDoor : (Number(config.doors) === 1 || Number(config.doors) >= 2);
-                      const hasRight = config.rightDoor !== undefined ? !!config.rightDoor : (Number(config.doors) >= 2);
-                      const baseH = config.hasLegs ? Number(config.height) - 100 : Number(config.height);
-                      const defaultDWidth = Number(config.width) >= 800 ? (Number(config.width) - 10) / 2 : (Number(config.width) - 10);
-                      
-                      if (!hasLeft && !hasRight) return null;
-                      
-                      return (
-                        <div className="grid grid-cols-2 gap-4 mt-2 bg-[#0c0d12]/30 border border-white/5 p-3 rounded-xl">
-                          <div className="flex flex-col gap-1.5">
-                            <div className="flex justify-between items-center text-[11px] text-neutral-400">
-                              <span>Хаалганы өргөн</span>
-                              <div className="flex items-center gap-0.5">
-                                <input
-                                  type="number"
-                                  value={config.doorWidth || Math.round(defaultDWidth)}
-                                  onChange={(e) => updateActiveConfig({ doorWidth: parseInt(e.target.value) || 0 })}
-                                  onBlur={(e) => {
-                                    const val = Math.max(100, Math.min(Number(config.width), parseInt(e.target.value) || 100));
-                                    updateActiveConfig({ doorWidth: val });
-                                  }}
-                                  className="w-12 bg-[#0c0d12] border border-white/10 rounded px-1 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                />
-                                <span>мм</span>
-                              </div>
-                            </div>
-                            <input
-                              type="range"
-                              min={100}
-                              max={Number(config.width)}
-                              step={10}
-                              value={config.doorWidth || Math.round(defaultDWidth)}
-                              onChange={(e) => updateActiveConfig({ doorWidth: parseInt(e.target.value) })}
-                              className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                            />
-                          </div>
-                          <div className="flex flex-col gap-1.5">
-                            <div className="flex justify-between items-center text-[11px] text-neutral-400">
-                              <span>Хаалганы өндөр</span>
-                              <div className="flex items-center gap-0.5">
-                                <input
-                                  type="number"
-                                  value={config.doorHeight || Math.round(baseH - 10)}
-                                  onChange={(e) => updateActiveConfig({ doorHeight: parseInt(e.target.value) || 0 })}
-                                  onBlur={(e) => {
-                                    const val = Math.max(100, Math.min(baseH, parseInt(e.target.value) || 100));
-                                    updateActiveConfig({ doorHeight: val });
-                                  }}
-                                  className="w-12 bg-[#0c0d12] border border-white/10 rounded px-1 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                />
-                                <span>мм</span>
-                              </div>
-                            </div>
-                            <input
-                              type="range"
-                              min={100}
-                              max={baseH}
-                              step={10}
-                              value={config.doorHeight || Math.round(baseH - 10)}
-                              onChange={(e) => updateActiveConfig({ doorHeight: parseInt(e.target.value) })}
-                              className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                            />
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-1.5 mt-1 bg-[#0c0d12]/30 border border-white/5 p-3 rounded-xl">
-                    <label className="text-[11px] text-neutral-400 font-semibold">Хаалганы тоо</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={6}
-                      value={config.doors}
-                      onChange={(e) => updateActiveConfig({ doors: Math.max(0, parseInt(e.target.value) || 0) })}
-                      className="w-full bg-[#0c0d12] border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-amber-500"
-                    />
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs text-neutral-400 font-semibold">Хаалганы тоо</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={6}
-                  value={config.doors}
-                  onChange={(e) => updateActiveConfig({ doors: Math.max(0, parseInt(e.target.value) || 0) })}
-                  className="w-full bg-[#0c0d12] border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-amber-500"
-                />
-              </div>
-            )}
-
-            {/* Leg status */}
-            <div className="flex items-center gap-3 mt-5">
-              <input
-                type="checkbox"
-                id="hasLegs"
-                checked={config.hasLegs}
-                onChange={(e) => updateActiveConfig({ hasLegs: e.target.checked })}
-                className="w-4 h-4 bg-neutral-900 border border-white/10 rounded accent-amber-500"
-              />
-              <label htmlFor="hasLegs" className="text-xs text-neutral-300 font-medium select-none cursor-pointer">
-                Хөлтэй эсэх
-              </label>
-            </div>
-
-            {/* Countertop status */}
-            {(selectedMod && (selectedMod.type === 'custom' || selectedMod.type === 'kitchen_lower' || selectedMod.type === 'cooktop' || selectedMod.type === 'sink' || selectedMod.type === 'corner_lower')) && (
-              <div className="flex flex-col gap-3 col-span-2 border-t border-white/5 pt-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs text-neutral-400 font-semibold">Тавцангийн төрөл</label>
-                  <select
-                    value={config.countertopType || 'none'}
-                    onChange={(e) => updateActiveConfig({ countertopType: e.target.value as any })}
-                    className="w-full bg-[#0c0d12] border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-amber-500 cursor-pointer"
-                  >
-                    <option value="none">Байхгүй</option>
-                    <option value="stone">Чулуун тавцан</option>
-                    <option value="wood">Модон тавцан</option>
-                  </select>
-                </div>
-
-                {/* Cooktop stove toggle (only if not already the cooktop module type itself) */}
-                {selectedMod.type !== 'cooktop' && (
-                  <div className="flex items-center gap-2 mt-1">
-                    <input
-                      type="checkbox"
-                      id="hasCooktop"
-                      checked={!!config.hasCooktop}
-                      onChange={(e) => updateActiveConfig({ hasCooktop: e.target.checked })}
-                      className="w-4 h-4 bg-neutral-900 border border-white/10 rounded accent-amber-500 cursor-pointer"
-                    />
-                    <label htmlFor="hasCooktop" className="text-xs text-neutral-300 font-medium select-none cursor-pointer flex items-center gap-1">
-                      🔥 Плиткэн зуух суурилуулах
-                    </label>
-                  </div>
-                )}
-
-                {/* Burner controls — shown for cooktop type OR when hasCooktop is enabled */}
-                {(selectedMod.type === 'cooktop' || !!config.hasCooktop) && (
-                  <div className="flex flex-col gap-3 mt-2 bg-[#0c0d12]/50 border border-white/5 p-3 rounded-xl">
-                    <p className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wide">🔥 Давтан пластикийн тохиргоо</p>
-
-                    {/* Burner count */}
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs text-neutral-400">Пластикийн тоо</label>
-                      <div className="flex gap-2">
-                        {([2, 4] as const).map((n) => (
+                  {/* Glass door options for upper cabinets */}
+                  {(selectedMod.type === 'kitchen_upper' || selectedMod.type === 'built_in_hood' || selectedMod.type === 'corner_upper') && (
+                    <div className="flex flex-col gap-1.5 border-t border-white/5 pt-3">
+                      <label className="text-xs text-neutral-400 font-semibold flex items-center gap-1.5">
+                        🪟 Шилэн хаалганы төрөл
+                      </label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {(['none', 'clear', 'frosted'] as const).map((gt) => (
                           <button
-                            key={n}
-                            onClick={() => updateActiveConfig({ burnerCount: n })}
-                            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                              (config.burnerCount ?? 4) === n
-                                ? 'bg-amber-500 border-amber-500 text-white'
-                                : 'bg-neutral-800/60 border-white/10 text-neutral-300 hover:bg-neutral-700'
+                            key={gt}
+                            onClick={() => updateActiveConfig({ glassType: gt })}
+                            className={`py-2 px-2 rounded-lg text-[10px] font-semibold border transition-all cursor-pointer ${
+                              (config.glassType || 'none') === gt
+                                ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400'
+                                : 'bg-[#0c0d12] border-white/10 text-neutral-400 hover:border-white/20'
                             }`}
+                            type="button"
                           >
-                            {n} ширхэг
+                            {gt === 'none' ? 'Модон' : gt === 'clear' ? '🔷 Шилэн' : '❄️ Матт шил'}
                           </button>
                         ))}
                       </div>
                     </div>
+                  )}
 
-                    {/* Burner size — slider + manual input */}
-                    <div className="flex flex-col gap-2">
-                      <div className="flex justify-between items-center">
-                        <label className="text-xs text-neutral-400">Пластикийн хэмжээ</label>
-                        <div className="flex items-center gap-1">
-                          <input
-                            type="number"
-                            min={5}
-                            step={1}
-                            value={config.burnerSize ?? 50}
-                            onChange={(e) => {
-                              const v = parseInt(e.target.value);
-                              if (!isNaN(v) && v >= 5) updateActiveConfig({ burnerSize: v });
-                            }}
-                            className="w-16 px-2 py-1 rounded-lg text-xs font-bold text-white bg-neutral-800 border border-white/10 focus:outline-none focus:border-amber-500/60 transition-all text-center"
-                          />
-                          <span className="text-[10px] text-amber-400 font-semibold">мм</span>
+                  {/* Cooktop stove toggle & burner size/count controls */}
+                  {selectedMod.type !== 'cooktop' && (
+                    <div className="flex items-center gap-2 border-t border-white/5 pt-3">
+                      <input
+                        type="checkbox"
+                        id="hasCooktop"
+                        checked={!!config.hasCooktop}
+                        onChange={(e) => updateActiveConfig({ hasCooktop: e.target.checked })}
+                        className="w-4 h-4 bg-[#0c0d12] border border-white/10 rounded accent-amber-500 cursor-pointer"
+                      />
+                      <label htmlFor="hasCooktop" className="text-xs text-neutral-300 font-medium select-none cursor-pointer flex items-center gap-1">
+                        🔥 Плиткэн зуух суурилуулах
+                      </label>
+                    </div>
+                  )}
+
+                  {(selectedMod.type === 'cooktop' || !!config.hasCooktop) && (
+                    <div className="flex flex-col gap-3 border-t border-white/5 pt-3 bg-[#0c0d12]/50 p-3 rounded-xl">
+                      <p className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wide">🔥 Плиткэн зуухны тохиргоо</p>
+
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs text-neutral-400">Пластикийн тоо</label>
+                        <div className="flex gap-2">
+                          {([2, 4] as const).map((n) => (
+                            <button
+                              key={n}
+                              onClick={() => updateActiveConfig({ burnerCount: n })}
+                              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                                (config.burnerCount ?? 4) === n
+                                  ? 'bg-amber-500 border-amber-500 text-white'
+                                  : 'bg-neutral-800/60 border-white/10 text-neutral-300 hover:bg-neutral-700'
+                              }`}
+                              type="button"
+                            >
+                              {n} ширхэг
+                            </button>
+                          ))}
                         </div>
                       </div>
-                      <input
-                        type="range"
-                        min={5}
-                        max={300}
-                        step={5}
-                        value={config.burnerSize ?? 50}
-                        onChange={(e) => updateActiveConfig({ burnerSize: parseInt(e.target.value) })}
-                        className="w-full h-1.5 rounded-full accent-amber-500 cursor-pointer"
-                      />
-                      <div className="flex justify-between text-[10px] text-neutral-500">
-                        <span>5мм</span>
-                        <span>300мм</span>
+
+                      <div className="flex flex-col gap-2">
+                        <div className="flex justify-between items-center">
+                          <label className="text-xs text-neutral-400">Пластикийн хэмжээ</label>
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              min={5}
+                              step={1}
+                              value={config.burnerSize ?? 50}
+                              onChange={(e) => {
+                                const v = parseInt(e.target.value);
+                                if (!isNaN(v) && v >= 5) updateActiveConfig({ burnerSize: v });
+                              }}
+                              className="w-16 px-2 py-1 rounded-lg text-xs font-bold text-white bg-[#0c0d12] border border-white/10 focus:outline-none focus:border-amber-500/60 transition-all text-center"
+                            />
+                            <span className="text-[10px] text-amber-400 font-semibold">мм</span>
+                          </div>
+                        </div>
+                        <input
+                          type="range"
+                          min={5}
+                          max={300}
+                          step={5}
+                          value={config.burnerSize ?? 50}
+                          onChange={(e) => updateActiveConfig({ burnerSize: parseInt(e.target.value) })}
+                          className="w-full h-1.5 rounded-full accent-amber-500 cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Outer body material */}
+                  <div className="flex flex-col gap-3 border-t border-white/5 pt-3">
+                    <span className="text-xs text-neutral-400 font-semibold">Их биеийн материал:</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      {materials.map((mat) => (
+                        <button
+                          key={mat.id}
+                          onClick={() => updateActiveConfig({ materialId: mat.id })}
+                          className={`flex items-center gap-2 p-2 rounded-xl border text-[11px] font-medium transition-all text-left cursor-pointer ${
+                            config.materialId === mat.id
+                              ? 'border-amber-500 bg-amber-500/5 text-white'
+                              : 'border-white/5 bg-[#0c0d12] text-neutral-400 hover:text-white'
+                          }`}
+                          type="button"
+                        >
+                          <span className="w-3 h-3 rounded-full border border-white/10 shrink-0" style={{ backgroundColor: mat.color }} />
+                          <span className="truncate">{mat.name}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Body color palette */}
+                    <div className="flex flex-col gap-2 pt-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] text-neutral-500 font-semibold">Их биеийн өнгө:</span>
+                        <div className="flex items-center gap-1.5">
+                          {config.bodyColor && (
+                            <button
+                              onClick={() => updateActiveConfig({ bodyColor: undefined })}
+                              className="text-[8px] text-neutral-500 hover:text-red-400 transition-all cursor-pointer px-1.5 py-0.5 bg-neutral-800 rounded"
+                              title="Өнгө арилгах"
+                              type="button"
+                            >
+                              ✕ Арилгах
+                            </button>
+                          )}
+                          <div className="relative flex items-center gap-1 bg-[#0c0d12] border border-white/10 px-2 py-0.5 rounded-lg">
+                            <span className="text-[8px] text-neutral-400 font-bold uppercase">Сонгох</span>
+                            <input
+                              type="color"
+                              value={config.bodyColor || (materials.find(m => m.id === config.materialId)?.color || '#ffffff')}
+                              onChange={(e) => updateActiveConfig({ bodyColor: e.target.value })}
+                              className="w-3.5 h-3.5 border-0 p-0 bg-transparent cursor-pointer rounded outline-none"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-6 gap-1.5">
+                        {COLOR_PALETTE.map((color) => {
+                          const isActive = config.bodyColor === color;
+                          return (
+                            <button
+                              key={color}
+                              onClick={() => updateActiveConfig({ bodyColor: color })}
+                              className={`aspect-square rounded-full border transition-all cursor-pointer hover:scale-110 active:scale-95 ${
+                                isActive ? 'border-white ring-1 ring-amber-500 scale-105 shadow' : 'border-transparent hover:border-white/20'
+                              }`}
+                              style={{ backgroundColor: color }}
+                              title={color}
+                              type="button"
+                            />
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
-            )}
 
-            {/* Glass Left/Right options for Vitrine */}
-            {selectedMod?.type === 'vitrine' && (
-              <div className="flex flex-col gap-3 col-span-2 border-t border-white/5 pt-4">
-                <label className="text-xs text-neutral-400 font-semibold">
-                  Хажуу талуудын шил
-                </label>
-                <div className="flex flex-col gap-2 bg-[#0c0d12]/50 border border-white/5 p-3 rounded-xl">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs text-neutral-300 font-medium select-none">
+                  {/* Door panels material */}
+                  <div className="flex flex-col gap-3 border-t border-white/5 pt-3">
+                    <span className="text-xs text-neutral-400 font-semibold">Хаалга / Нүүрний материал:</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      {materials.map((mat) => (
+                        <button
+                          key={mat.id}
+                          onClick={() => updateActiveConfig({ doorMaterialId: mat.id })}
+                          className={`flex items-center gap-2 p-2 rounded-xl border text-[11px] font-medium transition-all text-left cursor-pointer ${
+                            config.doorMaterialId === mat.id
+                              ? 'border-amber-500 bg-amber-500/5 text-white'
+                              : 'border-white/5 bg-[#0c0d12] text-neutral-400 hover:text-white'
+                          }`}
+                          type="button"
+                        >
+                          <span className="w-3 h-3 rounded-full border border-white/10 shrink-0" style={{ backgroundColor: mat.color }} />
+                          <span className="truncate">{mat.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Custom Door Color Picker */}
+                  <div className="flex flex-col gap-3 border-t border-white/5 pt-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-neutral-400 font-semibold">Хаалга / Нүүрний өнгө:</span>
+                      <div className="relative flex items-center gap-1 bg-[#0c0d12] border border-white/10 px-2 py-0.5 rounded-lg">
+                        <span className="text-[8px] text-neutral-400 font-bold uppercase">Сонгох</span>
+                        <input
+                          type="color"
+                          value={config.color || '#ffffff'}
+                          onChange={(e) => updateActiveConfig({ color: e.target.value })}
+                          className="w-3.5 h-3.5 border-0 p-0 bg-transparent cursor-pointer rounded outline-none"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-6 gap-1.5">
+                      {COLOR_PALETTE.map((color) => {
+                        const isActive = config.color === color;
+                        return (
+                          <button
+                            key={color}
+                            onClick={() => updateActiveConfig({ color })}
+                            className={`aspect-square rounded-full border transition-all cursor-pointer hover:scale-110 active:scale-95 ${
+                              isActive ? 'border-white ring-1 ring-amber-500 scale-105 shadow' : 'border-transparent hover:border-white/20'
+                            }`}
+                            style={{ backgroundColor: color }}
+                            title={color}
+                            type="button"
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {activeStep === 4 && (
+                <>
+                  <div className="text-[9px] text-neutral-500 font-bold uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                    <Info size={11} className="text-amber-500 shrink-0" />
+                    <span>Алхам 4: 3D орон зай дахь байрлал болон хадгалалт</span>
+                  </div>
+
+                  {/* X coordinate */}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between text-xs font-semibold text-neutral-300">
+                      <span>Зүүн - Баруун байршил (X тэнхлэг)</span>
+                      <span className="text-amber-500 font-bold">{selectedMod.xOffset} мм</span>
+                    </div>
                     <input
-                      type="checkbox"
-                      checked={!!config.glassLeft}
-                      onChange={(e) => updateActiveConfig({ glassLeft: e.target.checked })}
-                      className="w-4 h-4 bg-neutral-900 border border-white/10 rounded accent-amber-500 cursor-pointer"
+                      type="range"
+                      min={-5000}
+                      max={5000}
+                      step={50}
+                      value={selectedMod.xOffset}
+                      onChange={(e) => updateModulePosition(selectedMod.id, parseInt(e.target.value), selectedMod.yOffset, selectedMod.zOffset)}
+                      className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
                     />
-                    <span>Зүүн хажуу шилэн (Glass Left)</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer text-xs text-neutral-300 font-medium select-none">
+                  </div>
+
+                  {/* Y coordinate */}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between text-xs font-semibold text-neutral-300">
+                      <span>Өндөр / Давхарлах (Y тэнхлэг)</span>
+                      <span className="text-amber-500 font-bold">{selectedMod.yOffset} мм</span>
+                    </div>
                     <input
-                      type="checkbox"
-                      checked={!!config.glassRight}
-                      onChange={(e) => updateActiveConfig({ glassRight: e.target.checked })}
-                      className="w-4 h-4 bg-neutral-900 border border-white/10 rounded accent-amber-500 cursor-pointer"
+                      type="range"
+                      min={0}
+                      max={2500}
+                      step={50}
+                      value={selectedMod.yOffset}
+                      onChange={(e) => updateModulePosition(selectedMod.id, selectedMod.xOffset, parseInt(e.target.value), selectedMod.zOffset)}
+                      className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
                     />
-                    <span>Баруун хажуу шилэн (Glass Right)</span>
-                  </label>
-                </div>
-              </div>
-            )}
+                  </div>
 
-            {/* TV Unit options (base stand / wall mount) */}
-            {selectedMod?.type === 'tv_unit' && (
-              <div className="flex flex-col gap-3 col-span-2 border-t border-white/5 pt-4">
-                <label className="text-xs text-neutral-400 font-semibold">
-                  Зурагтын суурь
-                </label>
-                <div className="flex flex-col gap-2 bg-[#0c0d12]/50 border border-white/5 p-3 rounded-xl">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs text-neutral-300 font-medium select-none">
+                  {/* Z coordinate */}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between text-xs font-semibold text-neutral-300">
+                      <span>Урагш - Хойш байршил (Z тэнхлэг)</span>
+                      <span className="text-amber-500 font-bold">{selectedMod.zOffset} мм</span>
+                    </div>
                     <input
-                      type="checkbox"
-                      checked={config.tvHasBase !== false}
-                      onChange={(e) => updateActiveConfig({ tvHasBase: e.target.checked })}
-                      className="w-4 h-4 bg-neutral-900 border border-white/10 rounded accent-amber-500 cursor-pointer"
+                      type="range"
+                      min={-4000}
+                      max={4000}
+                      step={50}
+                      value={selectedMod.zOffset}
+                      onChange={(e) => updateModulePosition(selectedMod.id, selectedMod.xOffset, selectedMod.yOffset, parseInt(e.target.value))}
+                      className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
                     />
-                    <span>ТВ суурь хөлтэй байх (Идэвхгүй бол суурьгүй)</span>
-                  </label>
-                </div>
-              </div>
-            )}
+                  </div>
 
-            {/* Glass door option for upper cabinets */}
-            {(selectedMod && (selectedMod.type === 'kitchen_upper' || selectedMod.type === 'built_in_hood' || selectedMod.type === 'corner_upper')) && (
-              <div className="flex flex-col gap-1.5 col-span-2 border-t border-white/5 pt-4">
-                <label className="text-xs text-neutral-400 font-semibold flex items-center gap-1.5">
-                  🪟 Шилэн хаалга
-                </label>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {(['none', 'clear', 'frosted'] as const).map((gt) => (
-                    <button
-                      key={gt}
-                      onClick={() => updateActiveConfig({ glassType: gt })}
-                      className={`py-2 px-2 rounded-lg text-[10px] font-semibold border transition-all cursor-pointer ${
-                        (config.glassType || 'none') === gt
-                          ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400'
-                          : 'bg-[#0c0d12] border-white/10 text-neutral-400 hover:border-white/20'
-                      }`}
-                    >
-                      {gt === 'none' ? 'Байхгүй' : gt === 'clear' ? '🔷 Тунгалаг' : '❄️ Матт'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+                  {/* Rotation (Y-axis) */}
+                  <div className="flex flex-col gap-2 border-t border-white/5 pt-3">
+                    <div className="flex justify-between text-xs font-semibold text-neutral-300">
+                      <span>Эргэлт ⟳ (Y тэнхлэг)</span>
+                      <span className="text-amber-500 font-bold">
+                        {Math.round(((selectedMod.rotation ?? 0) * 180) / Math.PI)}°
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={360}
+                      step={1}
+                      value={Math.round(((selectedMod.rotation ?? 0) * 180) / Math.PI)}
+                      onChange={(e) => updateModuleRotation(selectedMod.id, parseInt(e.target.value))}
+                      className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                    />
+                    <div className="flex gap-1 mt-0.5">
+                      {[0, 90, 180, 270].map((deg) => (
+                        <button
+                          key={deg}
+                          type="button"
+                          onClick={() => updateModuleRotation(selectedMod.id, deg)}
+                          className={`flex-1 py-1 rounded-lg text-[9px] font-bold transition-all cursor-pointer ${
+                            Math.round(((selectedMod.rotation ?? 0) * 180) / Math.PI) === deg
+                              ? 'bg-amber-500 text-neutral-950'
+                              : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700'
+                          }`}
+                        >
+                          {deg}°
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-        {/* Хайрцагны байршил (3D) */}
-        {selectedMod && (
-          <div className="bg-[#12141c] border border-white/5 rounded-2xl p-6 flex flex-col gap-6">
-            <div className="flex justify-between items-center border-b border-white/5 pb-2">
-              <h3 className="font-display font-bold text-white text-base">Байршил (3D)</h3>
-              <span className="text-[10px] text-neutral-500 font-bold uppercase truncate max-w-[120px]" title={selectedMod.name}>
-                {selectedMod.name}
-              </span>
+                  <div className="flex flex-col gap-3 border-t border-white/5 pt-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => updateModulePosition(selectedMod.id, selectedMod.xOffset, 0, selectedMod.zOffset)}
+                        className="py-2.5 bg-neutral-850 hover:bg-neutral-800 text-white font-bold rounded-xl transition-all cursor-pointer text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 border border-white/5"
+                      >
+                        Шал руу буулгах
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => duplicateModule(selectedMod.id)}
+                        className="py-2.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl transition-all cursor-pointer text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5"
+                      >
+                        Шүүгээ хувилах
+                      </button>
+                    </div>
+
+                    {/* Save as box template */}
+                    <div className="flex flex-col gap-2 bg-[#0c0d12]/50 border border-amber-500/10 rounded-xl p-3">
+                      <div className="text-[9px] text-amber-400 font-bold uppercase tracking-wider">
+                        📦 Шүүгээг загвар болгон хадгалах
+                      </div>
+                      <div className="flex gap-1.5">
+                        <input
+                          type="text"
+                          value={saveName}
+                          onChange={(e) => setSaveName(e.target.value)}
+                          placeholder="Загварын нэр бичих..."
+                          className="flex-1 bg-[#0c0d12] border border-white/10 focus:border-amber-500/60 rounded-lg px-2.5 py-1 text-white text-xs outline-none transition-all"
+                        />
+                        <button
+                          type="button"
+                          disabled={saveSuccess}
+                          onClick={() => {
+                            const name = saveName.trim() || selectedMod.name;
+                            addCustomTemplate(name, selectedMod.type, selectedMod.config);
+                            setSaveName('');
+                            setSaveSuccess(true);
+                            setTimeout(() => setSaveSuccess(false), 2000);
+                          }}
+                          className={`px-3 py-1 font-bold rounded-lg transition-all cursor-pointer text-[9px] uppercase tracking-wider ${
+                            saveSuccess
+                              ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                              : 'bg-amber-500 text-neutral-950 hover:bg-amber-600'
+                          }`}
+                        >
+                          {saveSuccess ? '✓' : 'Хадгалах'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Save full layout */}
+                    <div className="flex flex-col gap-2 bg-[#0c0d12]/50 border border-cyan-500/10 rounded-xl p-3">
+                      <div className="text-[9px] text-cyan-400 font-bold uppercase tracking-wider flex justify-between">
+                        <span>🏗️ Бүтэн байрлалыг хадгалах</span>
+                        <span className="text-neutral-500 normal-case font-normal">{(activeProject.modules || []).length} шүүгээ</span>
+                      </div>
+                      <div className="flex gap-1.5">
+                        <input
+                          type="text"
+                          value={layoutSaveName}
+                          onChange={(e) => setLayoutSaveName(e.target.value)}
+                          placeholder="Байршлын нэр бичих..."
+                          className="flex-1 bg-[#0c0d12] border border-white/10 focus:border-cyan-500/60 rounded-lg px-2.5 py-1 text-white text-xs outline-none transition-all"
+                        />
+                        <button
+                          type="button"
+                          disabled={layoutSaveSuccess}
+                          onClick={() => {
+                            const name = layoutSaveName.trim() || `${activeProject.name} layout`;
+                            saveLayout(name);
+                            setLayoutSaveName('');
+                            setLayoutSaveSuccess(true);
+                            setTimeout(() => setLayoutSaveSuccess(false), 2000);
+                          }}
+                          className={`px-3 py-1 font-bold rounded-lg transition-all cursor-pointer text-[9px] uppercase tracking-wider ${
+                            layoutSaveSuccess
+                              ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                              : 'bg-cyan-500 text-white hover:bg-cyan-600'
+                          }`}
+                        >
+                          {layoutSaveSuccess ? '✓' : 'Хадгалах'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {activeStep === 5 && (
+                <>
+                  <div className="text-[9px] text-neutral-500 font-bold uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                    <Info size={11} className="text-amber-500 shrink-0" />
+                    <span>Алхам 5: Гар аргаар нэмэлт хавтан оруулах</span>
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <div className="flex justify-between items-center bg-[#0c0d12]/20 p-2.5 rounded-xl border border-white/5">
+                      <span className="text-xs text-neutral-300 font-semibold">Гар деталь оруулах хэсэг</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddPartForm(!showAddPartForm)}
+                        className="px-2 py-1 bg-amber-500/10 hover:bg-amber-500 hover:text-neutral-950 text-amber-400 rounded-lg text-[9px] font-bold uppercase transition-all"
+                      >
+                        {showAddPartForm ? 'Хаах' : 'Шинэ деталь +'}
+                      </button>
+                    </div>
+
+                    {showAddPartForm && (
+                      <form onSubmit={handleAddCustomPart} className="flex flex-col gap-3 bg-[#0c0d12]/40 border border-white/5 p-4 rounded-xl">
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[10px] text-neutral-400 font-semibold">Нэр</label>
+                          <input
+                            type="text"
+                            value={newPartName}
+                            onChange={(e) => setNewPartName(e.target.value)}
+                            className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs outline-none focus:border-amber-500"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] text-neutral-400 font-semibold">Өргөн (мм)</label>
+                            <input
+                              type="number"
+                              value={newPartWidth}
+                              onChange={(e) => setNewPartWidth(parseInt(e.target.value) || 0)}
+                              className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs outline-none focus:border-amber-500"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] text-neutral-400 font-semibold">Өндөр (мм)</label>
+                            <input
+                              type="number"
+                              value={newPartHeight}
+                              onChange={(e) => setNewPartHeight(parseInt(e.target.value) || 0)}
+                              className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs outline-none focus:border-amber-500"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] text-neutral-400 font-semibold">Ширхэг</label>
+                            <input
+                              type="number"
+                              min={1}
+                              value={newPartQty}
+                              onChange={(e) => setNewPartQty(parseInt(e.target.value) || 1)}
+                              className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs outline-none focus:border-amber-500"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] text-neutral-400 font-semibold">Ангилал</label>
+                            <select
+                              value={newPartCategory}
+                              onChange={(e) => setNewPartCategory(e.target.value as any)}
+                              className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs outline-none focus:border-amber-500 cursor-pointer"
+                            >
+                              {['Хажуу хана', 'Дээд тавиур', 'Доод тавиур', 'Хаалга', 'Шургуулга', 'Ар тал', 'Хуваалт'].map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] text-neutral-400 font-semibold">Ирмэг наалт</label>
+                            <select
+                              value={newPartEdge}
+                              onChange={(e) => setNewPartEdge(e.target.value as any)}
+                              className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs outline-none focus:border-amber-500 cursor-pointer"
+                            >
+                              <option value="none">Байхгүй</option>
+                              <option value="1mm">1мм</option>
+                              <option value="2mm">2мм</option>
+                              <option value="all-sides">4 тал</option>
+                            </select>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] text-neutral-400 font-semibold">Материал</label>
+                            <select
+                              value={newPartMaterialId}
+                              onChange={(e) => setNewPartMaterialId(e.target.value)}
+                              className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs outline-none focus:border-amber-500 cursor-pointer"
+                            >
+                              {materials.map(mat => (
+                                <option key={mat.id} value={mat.id}>{mat.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="border-t border-white/5 pt-2 mt-1">
+                          <span className="text-[9px] text-neutral-500 uppercase font-bold">Эхлэх байршил (3D Офсет)</span>
+                          <div className="grid grid-cols-3 gap-2 mt-1">
+                            <div className="flex flex-col gap-0.5">
+                              <label className="text-[8px] text-neutral-400 font-medium">X (мм)</label>
+                              <input
+                                type="number"
+                                value={newPartXOffset}
+                                onChange={(e) => setNewPartXOffset(parseInt(e.target.value) || 0)}
+                                className="w-full bg-[#0c0d12] border border-white/10 rounded px-1.5 py-1 text-white text-[10px] outline-none"
+                              />
+                            </div>
+                            <div className="flex flex-col gap-0.5">
+                              <label className="text-[8px] text-neutral-400 font-medium">Y (мм)</label>
+                              <input
+                                type="number"
+                                value={newPartYOffset}
+                                onChange={(e) => setNewPartYOffset(parseInt(e.target.value) || 0)}
+                                className="w-full bg-[#0c0d12] border border-white/10 rounded px-1.5 py-1 text-white text-[10px] outline-none"
+                              />
+                            </div>
+                            <div className="flex flex-col gap-0.5">
+                              <label className="text-[8px] text-neutral-400 font-medium">Z (мм)</label>
+                              <input
+                                type="number"
+                                value={newPartZOffset}
+                                onChange={(e) => setNewPartZOffset(parseInt(e.target.value) || 0)}
+                                className="w-full bg-[#0c0d12] border border-white/10 rounded px-1.5 py-1 text-white text-[10px] outline-none"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <button
+                          type="submit"
+                          className="w-full mt-2 py-2 bg-amber-500 hover:bg-amber-600 text-neutral-950 text-xs font-bold rounded-lg cursor-pointer transition-all uppercase tracking-wider"
+                        >
+                          Шүүгээнд нэмэх
+                        </button>
+                      </form>
+                    )}
+
+                    <div className="flex flex-col gap-2.5">
+                      {(() => {
+                        const parts = selectedMod.parts.filter(p => p.id.startsWith('p-manual-') || p.id.includes('manual'));
+                        if (parts.length === 0) {
+                          return (
+                            <div className="text-center text-xs text-neutral-500 py-3 bg-[#0c0d12]/20 border border-dashed border-white/5 rounded-xl">
+                              Одоогоор гар аргаар нэмсэн деталь байхгүй байна.
+                            </div>
+                          );
+                        }
+                        return parts.map((part) => {
+                          const isExp = expandedPartId === part.id;
+                          return (
+                            <div key={part.id} className="flex flex-col border border-white/5 bg-[#0c0d12]/30 rounded-xl overflow-hidden">
+                              <div
+                                onClick={() => setExpandedPartId(isExp ? null : part.id)}
+                                className="flex justify-between items-center px-3 py-2 hover:bg-white/3 cursor-pointer transition-colors"
+                              >
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-semibold text-white">{part.name}</span>
+                                  <span className="text-[9px] text-neutral-500">
+                                    {part.width}x{part.height} | {part.quantity}ш | {part.category}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                  <button
+                                    type="button"
+                                    onClick={() => removePartFromActive(part.id)}
+                                    className="p-1 text-neutral-500 hover:text-red-400 transition-colors cursor-pointer"
+                                  >
+                                    <Trash2 size={11} />
+                                  </button>
+                                  <span className="text-[10px] text-amber-500 font-bold leading-none select-none">
+                                    {isExp ? '▲' : '▼'}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {isExp && (
+                                <div className="px-3 pb-3 pt-2 border-t border-white/5 flex flex-col gap-3 bg-[#0c0d12]/60">
+                                  <div className="flex flex-col gap-1">
+                                    <div className="flex justify-between text-[9px] text-neutral-350">
+                                      <span>X байршил (Зүүн - Баруун)</span>
+                                      <span className="text-amber-500 font-bold">{part.xOffset ?? 0} мм</span>
+                                    </div>
+                                    <input
+                                      type="range"
+                                      min={-Math.round(selectedMod.config.width / 2)}
+                                      max={Math.round(selectedMod.config.width / 2)}
+                                      step={10}
+                                      value={part.xOffset ?? 0}
+                                      onChange={(e) => updateActiveParts(
+                                        selectedMod.parts.map(p => p.id === part.id ? { ...p, xOffset: parseInt(e.target.value) } : p)
+                                      )}
+                                      className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                    />
+                                  </div>
+                                  <div className="flex flex-col gap-1">
+                                    <div className="flex justify-between text-[9px] text-neutral-350">
+                                      <span>Y байршил (Дээш - Доош)</span>
+                                      <span className="text-amber-500 font-bold">{part.yOffset ?? 0} мм</span>
+                                    </div>
+                                    <input
+                                      type="range"
+                                      min={0}
+                                      max={selectedMod.config.height}
+                                      step={10}
+                                      value={part.yOffset ?? 0}
+                                      onChange={(e) => updateActiveParts(
+                                        selectedMod.parts.map(p => p.id === part.id ? { ...p, yOffset: parseInt(e.target.value) } : p)
+                                      )}
+                                      className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                    />
+                                  </div>
+                                  <div className="flex flex-col gap-1">
+                                    <div className="flex justify-between text-[9px] text-neutral-350">
+                                      <span>Z байршил (Урагш - Хойш)</span>
+                                      <span className="text-amber-500 font-bold">{part.zOffset ?? 0} мм</span>
+                                    </div>
+                                    <input
+                                      type="range"
+                                      min={-Math.round(selectedMod.config.depth / 2)}
+                                      max={Math.round(selectedMod.config.depth / 2)}
+                                      step={10}
+                                      value={part.zOffset ?? 0}
+                                      onChange={(e) => updateActiveParts(
+                                        selectedMod.parts.map(p => p.id === part.id ? { ...p, zOffset: parseInt(e.target.value) } : p)
+                                      )}
+                                      className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                    />
+                                  </div>
+                                  <div className="flex flex-col gap-1">
+                                    <div className="flex justify-between text-[9px] text-neutral-350">
+                                      <span>Өндөр (Хэмжээ 1)</span>
+                                      <span className="text-amber-500 font-bold">{part.height} мм</span>
+                                    </div>
+                                    <input
+                                      type="range"
+                                      min={50}
+                                      max={2800}
+                                      step={10}
+                                      value={part.height}
+                                      onChange={(e) => updateActiveParts(
+                                        selectedMod.parts.map(p => p.id === part.id ? { ...p, height: parseInt(e.target.value) } : p)
+                                      )}
+                                      className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                    />
+                                  </div>
+                                  <div className="flex flex-col gap-1">
+                                    <div className="flex justify-between text-[9px] text-neutral-350">
+                                      <span>Өргөн (Хэмжээ 2)</span>
+                                      <span className="text-amber-500 font-bold">{part.width} мм</span>
+                                    </div>
+                                    <input
+                                      type="range"
+                                      min={50}
+                                      max={2800}
+                                      step={10}
+                                      value={part.width}
+                                      onChange={(e) => updateActiveParts(
+                                        selectedMod.parts.map(p => p.id === part.id ? { ...p, width: parseInt(e.target.value) } : p)
+                                      )}
+                                      className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                    />
+                                  </div>
+                                  <div className="flex items-center justify-between text-[9px] text-neutral-350">
+                                    <span>Тоо ширхэг</span>
+                                    <div className="flex items-center gap-1 bg-[#0c0d12] border border-white/10 rounded-lg p-0.5">
+                                      <button
+                                        type="button"
+                                        onClick={() => updateActiveParts(
+                                          selectedMod.parts.map(p => p.id === part.id ? { ...p, quantity: Math.max(1, p.quantity - 1) } : p)
+                                        )}
+                                        className="px-1.5 py-0.2 bg-neutral-800 text-white rounded font-bold"
+                                      >
+                                        -
+                                      </button>
+                                      <span className="px-1 text-white font-bold">{part.quantity}</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => updateActiveParts(
+                                          selectedMod.parts.map(p => p.id === part.id ? { ...p, quantity: p.quantity + 1 } : p)
+                                        )}
+                                        className="px-1.5 py-0.2 bg-neutral-800 text-white rounded font-bold"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
-            {/* X coordinate */}
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between text-xs font-semibold text-neutral-300">
-                <span>Х тэнхлэг (Зүүн - Баруун)</span>
-                <span className="text-amber-500 font-bold">{selectedMod.xOffset} мм</span>
-              </div>
-              <input
-                type="range"
-                min={-5000}
-                max={5000}
-                step={50}
-                value={selectedMod.xOffset}
-                onChange={(e) => updateModulePosition(selectedMod.id, parseInt(e.target.value), selectedMod.yOffset, selectedMod.zOffset)}
-                className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-              />
-            </div>
-
-            {/* Y coordinate */}
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between text-xs font-semibold text-neutral-300">
-                <span>Ү тэнхлэг (Өндөр / Давхарлах)</span>
-                <span className="text-amber-500 font-bold">{selectedMod.yOffset} мм</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={2500}
-                step={50}
-                value={selectedMod.yOffset}
-                onChange={(e) => updateModulePosition(selectedMod.id, selectedMod.xOffset, parseInt(e.target.value), selectedMod.zOffset)}
-                className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-              />
-            </div>
-
-            {/* Z coordinate */}
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between text-xs font-semibold text-neutral-300">
-                <span>Z тэнхлэг (Урагш - Хойш)</span>
-                <span className="text-amber-500 font-bold">{selectedMod.zOffset} мм</span>
-              </div>
-              <input
-                type="range"
-                min={-4000}
-                max={4000}
-                step={50}
-                value={selectedMod.zOffset}
-                onChange={(e) => updateModulePosition(selectedMod.id, selectedMod.xOffset, selectedMod.yOffset, parseInt(e.target.value))}
-                className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-              />
-            </div>
-
-            {/* Rotation (Y-axis) */}
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between text-xs font-semibold text-neutral-300">
-                <span>Эргэлт ⟳ (Y тэнхлэг)</span>
-                <span className="text-amber-500 font-bold">
-                  {Math.round(((selectedMod.rotation ?? 0) * 180) / Math.PI)}°
-                </span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={360}
-                step={1}
-                value={Math.round(((selectedMod.rotation ?? 0) * 180) / Math.PI)}
-                onChange={(e) => updateModuleRotation(selectedMod.id, parseInt(e.target.value))}
-                className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-              />
-              {/* Preset angle buttons */}
-              <div className="flex gap-1.5 mt-0.5">
-                {[0, 45, 90, 135, 180, 270].map((deg) => (
-                  <button
-                    key={deg}
-                    type="button"
-                    onClick={() => updateModuleRotation(selectedMod.id, deg)}
-                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-                      Math.round(((selectedMod.rotation ?? 0) * 180) / Math.PI) === deg
-                        ? 'bg-amber-500 text-neutral-950'
-                        : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white'
-                    }`}
-                  >
-                    {deg}°
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2.5 border-t border-white/5 pt-4">
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => updateModulePosition(selectedMod.id, selectedMod.xOffset, 0, selectedMod.zOffset)}
-                  className="py-2 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-xl transition-all cursor-pointer text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5"
-                  title="Шал руу буулгах"
-                >
-                  Шал руу буулгах
-                </button>
-                <button
-                  type="button"
-                  onClick={() => duplicateModule(selectedMod.id)}
-                  className="py-2 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl transition-all cursor-pointer text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5"
-                  title="Хайрцаг хувилах"
-                >
-                  Хайрцаг хувилах
-                </button>
-              </div>
-              {/* Save as box template */}
-              <div className="flex flex-col gap-2 bg-[#0c0d12]/60 border border-amber-500/10 rounded-xl p-3">
-                <div className="text-[9px] text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-                  <span>📦</span> Box загвар болгон хадгалах
-                </div>
-                <input
-                  type="text"
-                  value={saveName}
-                  onChange={(e) => setSaveName(e.target.value)}
-                  placeholder={selectedMod.name}
-                  className="w-full bg-[#0c0d12] border border-white/10 focus:border-amber-500/60 rounded-lg px-2.5 py-1.5 text-white text-xs outline-none transition-all placeholder:text-neutral-600"
-                />
-                <button
-                  type="button"
-                  disabled={saveSuccess}
-                  onClick={() => {
-                    const name = saveName.trim() || selectedMod.name;
-                    addCustomTemplate(name, selectedMod.type, selectedMod.config);
-                    setSaveName('');
-                    setSaveSuccess(true);
-                    setTimeout(() => setSaveSuccess(false), 2000);
-                  }}
-                  className={`w-full py-2 font-bold rounded-xl transition-all cursor-pointer text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 ${
-                    saveSuccess
-                      ? 'bg-green-500/20 border border-green-500/40 text-green-400'
-                      : 'bg-amber-500/15 hover:bg-amber-500/30 border border-amber-500/20 hover:border-amber-500/50 text-amber-400'
-                  }`}
-                >
-                  {saveSuccess ? '✓ Хадгалагдлаа!' : '📦 Box загвар хадгалах'}
-                </button>
-              </div>
-
-              {/* Save full layout */}
-              <div className="flex flex-col gap-2 bg-[#0c0d12]/60 border border-cyan-500/10 rounded-xl p-3">
-                <div className="text-[9px] text-cyan-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-                  <span>🏗️</span> Бүтэн загвар хадгалах
-                  <span className="ml-auto text-[8px] text-neutral-600 normal-case font-normal tracking-normal">
-                    {(activeProject.modules || []).length} хайрцаг
-                  </span>
-                </div>
-                <input
-                  type="text"
-                  value={layoutSaveName}
-                  onChange={(e) => setLayoutSaveName(e.target.value)}
-                  placeholder={`${activeProject.name} layout`}
-                  className="w-full bg-[#0c0d12] border border-white/10 focus:border-cyan-500/60 rounded-lg px-2.5 py-1.5 text-white text-xs outline-none transition-all placeholder:text-neutral-600"
-                />
-                <button
-                  type="button"
-                  disabled={layoutSaveSuccess}
-                  onClick={() => {
-                    const name = layoutSaveName.trim() || `${activeProject.name} layout`;
-                    saveLayout(name);
-                    setLayoutSaveName('');
-                    setLayoutSaveSuccess(true);
-                    setTimeout(() => setLayoutSaveSuccess(false), 2000);
-                  }}
-                  className={`w-full py-2 font-bold rounded-xl transition-all cursor-pointer text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 ${
-                    layoutSaveSuccess
-                      ? 'bg-green-500/20 border border-green-500/40 text-green-400'
-                      : 'bg-cyan-500/10 hover:bg-cyan-500/25 border border-cyan-500/15 hover:border-cyan-500/40 text-cyan-400'
-                  }`}
-                >
-                  {layoutSaveSuccess ? '✓ Хадгалагдлаа!' : '🏗️ Бүтэн загвар хадгалах'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Нэмэлт деталиуд (Хэсгүүд) */}
-        {selectedMod && (
-          <div className="bg-[#12141c] border border-white/5 rounded-2xl p-6 flex flex-col gap-6">
-            <div className="flex justify-between items-center border-b border-white/5 pb-2">
-              <h3 className="font-display font-bold text-white text-base">Нэмэлт хавтан (Деталь)</h3>
+            {/* Stepper Navigation Footer */}
+            <div className="flex justify-between items-center border-t border-white/5 pt-3.5 mt-1 shrink-0 select-none">
               <button
+                onClick={() => setActiveStep(prev => Math.max(1, prev - 1))}
+                disabled={activeStep === 1}
+                className="flex items-center gap-1 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-30 disabled:hover:bg-neutral-800 disabled:cursor-not-allowed text-neutral-300 font-bold text-[10px] uppercase rounded-xl transition-all cursor-pointer border border-white/5"
                 type="button"
-                onClick={() => setShowAddPartForm(!showAddPartForm)}
-                className="px-2 py-1 bg-[#1c1f2b] hover:bg-amber-500 hover:text-neutral-950 text-amber-500 border border-amber-500/20 rounded-lg text-[10px] font-bold uppercase cursor-pointer transition-all"
               >
-                {showAddPartForm ? 'Хаах' : 'Шинэ деталь нэмэх'}
+                <ChevronLeft size={12} />
+                <span>Өмнөх</span>
+              </button>
+              <span className="text-[9px] font-semibold text-neutral-500 uppercase tracking-wider">
+                Алхам {activeStep} / 5
+              </span>
+              <button
+                onClick={() => setActiveStep(prev => Math.min(5, prev + 1))}
+                disabled={activeStep === 5}
+                className="flex items-center gap-1 px-3 py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-30 disabled:hover:bg-amber-500 disabled:cursor-not-allowed text-neutral-950 font-bold text-[10px] uppercase rounded-xl transition-all cursor-pointer shadow-md shadow-amber-500/5"
+                type="button"
+              >
+                <span>Дараах</span>
+                <ChevronRight size={12} />
               </button>
             </div>
-
-            {/* Add manual part form inside Editor */}
-            {showAddPartForm && (
-              <form onSubmit={handleAddCustomPart} className="flex flex-col gap-3.5 bg-[#0c0d12]/40 border border-white/5 p-4 rounded-xl">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] text-neutral-400 font-semibold">Нэр</label>
-                  <input
-                    type="text"
-                    value={newPartName}
-                    onChange={(e) => setNewPartName(e.target.value)}
-                    className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs outline-none focus:border-amber-500"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] text-neutral-400 font-semibold">Өргөн (мм)</label>
-                    <input
-                      type="number"
-                      value={newPartWidth}
-                      onChange={(e) => setNewPartWidth(parseInt(e.target.value) || 0)}
-                      className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs outline-none focus:border-amber-500"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] text-neutral-400 font-semibold">Өндөр (мм)</label>
-                    <input
-                      type="number"
-                      value={newPartHeight}
-                      onChange={(e) => setNewPartHeight(parseInt(e.target.value) || 0)}
-                      className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs outline-none focus:border-amber-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] text-neutral-400 font-semibold">Ширхэг</label>
-                    <input
-                      type="number"
-                      min={1}
-                      value={newPartQty}
-                      onChange={(e) => setNewPartQty(parseInt(e.target.value) || 1)}
-                      className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs outline-none focus:border-amber-500"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] text-neutral-400 font-semibold">Ангилал</label>
-                    <select
-                      value={newPartCategory}
-                      onChange={(e) => setNewPartCategory(e.target.value as any)}
-                      className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs outline-none focus:border-amber-500 cursor-pointer"
-                    >
-                      {['Хажуу хана', 'Дээд тавиур', 'Доод тавиур', 'Хаалга', 'Шургуулга', 'Ар тал', 'Хуваалт'].map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] text-neutral-400 font-semibold">Ирмэг</label>
-                    <select
-                      value={newPartEdge}
-                      onChange={(e) => setNewPartEdge(e.target.value as any)}
-                      className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs outline-none focus:border-amber-500 cursor-pointer"
-                    >
-                      <option value="none">Байхгүй</option>
-                      <option value="1mm">1мм</option>
-                      <option value="2mm">2мм</option>
-                      <option value="all-sides">4 тал</option>
-                    </select>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] text-neutral-400 font-semibold">Материал</label>
-                    <select
-                      value={newPartMaterialId}
-                      onChange={(e) => setNewPartMaterialId(e.target.value)}
-                      className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs outline-none focus:border-amber-500 cursor-pointer"
-                    >
-                      {materials.map(mat => (
-                        <option key={mat.id} value={mat.id}>{mat.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Offset fields */}
-                <div className="border-t border-white/5 pt-2 mt-1">
-                  <span className="text-[9px] text-neutral-500 uppercase font-bold">Эхлэх байршил</span>
-                  <div className="grid grid-cols-3 gap-2 mt-1">
-                    <div className="flex flex-col gap-0.5">
-                      <label className="text-[8px] text-neutral-400">X (мм)</label>
-                      <input
-                        type="number"
-                        value={newPartXOffset}
-                        onChange={(e) => setNewPartXOffset(parseInt(e.target.value) || 0)}
-                        className="w-full bg-[#0c0d12] border border-white/10 rounded px-1.5 py-1 text-white text-[10px] outline-none"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      <label className="text-[8px] text-neutral-400">Y (мм)</label>
-                      <input
-                        type="number"
-                        value={newPartYOffset}
-                        onChange={(e) => setNewPartYOffset(parseInt(e.target.value) || 0)}
-                        className="w-full bg-[#0c0d12] border border-white/10 rounded px-1.5 py-1 text-white text-[10px] outline-none"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      <label className="text-[8px] text-neutral-400">Z (мм)</label>
-                      <input
-                        type="number"
-                        value={newPartZOffset}
-                        onChange={(e) => setNewPartZOffset(parseInt(e.target.value) || 0)}
-                        className="w-full bg-[#0c0d12] border border-white/10 rounded px-1.5 py-1 text-white text-[10px] outline-none"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full mt-2 py-2 bg-amber-500 hover:bg-amber-600 text-neutral-950 text-xs font-bold rounded-lg cursor-pointer transition-all uppercase tracking-wider"
-                >
-                  Шүүгээнд нэмэх
-                </button>
-              </form>
-            )}
-
-            {/* List of manual parts */}
-            <div className="flex flex-col gap-2.5">
-              {(() => {
-                const parts = selectedMod.parts.filter(p => p.id.startsWith('p-manual-') || p.id.includes('manual'));
-                if (parts.length === 0) {
-                  return (
-                    <div className="text-center text-xs text-neutral-500 py-3 bg-[#0c0d12]/20 border border-dashed border-white/5 rounded-xl">
-                      Одоогоор гар аргаар нэмсэн деталь байхгүй байна.
-                    </div>
-                  );
-                }
-
-                return parts.map((part) => {
-                  const isExp = expandedPartId === part.id;
-
-                  return (
-                    <div key={part.id} className="flex flex-col border border-white/5 bg-[#0c0d12]/30 rounded-xl overflow-hidden">
-                      {/* Header */}
-                      <div
-                        onClick={() => setExpandedPartId(isExp ? null : part.id)}
-                        className="flex justify-between items-center px-3 py-2.5 hover:bg-white/3 cursor-pointer transition-colors"
-                      >
-                        <div className="flex flex-col">
-                          <span className="text-xs font-semibold text-white">{part.name}</span>
-                          <span className="text-[9px] text-neutral-500">
-                            {part.width}x{part.height}x18мм | {part.quantity}ш | {part.category}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            type="button"
-                            onClick={() => removePartFromActive(part.id)}
-                            className="p-1 text-neutral-500 hover:text-red-400 transition-colors cursor-pointer"
-                            title="Устгах"
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                          <span className="text-[10px] text-amber-500 font-bold leading-none select-none">
-                            {isExp ? '▲' : '▼'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Sliders for offsets and dimensions */}
-                      {isExp && (
-                        <div className="px-3 pb-4 pt-2 border-t border-white/5 flex flex-col gap-4 bg-[#0c0d12]/60">
-                          {/* X Offset */}
-                          <div className="flex flex-col gap-1.5">
-                            <div className="flex justify-between text-[10px] text-neutral-300">
-                              <span>X байршил (Зүүн - Баруун)</span>
-                              <span className="text-amber-500 font-mono font-bold">{part.xOffset ?? 0} мм</span>
-                            </div>
-                            <input
-                              type="range"
-                              min={-Math.round(selectedMod.config.width / 2)}
-                              max={Math.round(selectedMod.config.width / 2)}
-                              step={10}
-                              value={part.xOffset ?? 0}
-                              onChange={(e) => updateActiveParts(
-                                selectedMod.parts.map(p => p.id === part.id ? { ...p, xOffset: parseInt(e.target.value) } : p)
-                              )}
-                              className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                            />
-                          </div>
-
-                          {/* Y Offset */}
-                          <div className="flex flex-col gap-1.5">
-                            <div className="flex justify-between text-[10px] text-neutral-300">
-                              <span>Y байршил (Дээш - Доош)</span>
-                              <span className="text-amber-500 font-mono font-bold">{part.yOffset ?? 0} мм</span>
-                            </div>
-                            <input
-                              type="range"
-                              min={0}
-                              max={selectedMod.config.height}
-                              step={10}
-                              value={part.yOffset ?? 0}
-                              onChange={(e) => updateActiveParts(
-                                selectedMod.parts.map(p => p.id === part.id ? { ...p, yOffset: parseInt(e.target.value) } : p)
-                              )}
-                              className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                            />
-                          </div>
-
-                          {/* Z Offset */}
-                          <div className="flex flex-col gap-1.5">
-                            <div className="flex justify-between text-[10px] text-neutral-300">
-                              <span>Z байршил (Урагш - Хойш)</span>
-                              <span className="text-amber-500 font-mono font-bold">{part.zOffset ?? 0} мм</span>
-                            </div>
-                            <input
-                              type="range"
-                              min={-Math.round(selectedMod.config.depth / 2)}
-                              max={Math.round(selectedMod.config.depth / 2)}
-                              step={10}
-                              value={part.zOffset ?? 0}
-                              onChange={(e) => updateActiveParts(
-                                selectedMod.parts.map(p => p.id === part.id ? { ...p, zOffset: parseInt(e.target.value) } : p)
-                              )}
-                              className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                            />
-                          </div>
-
-                          {/* Height Slider */}
-                          <div className="flex flex-col gap-1.5">
-                            <div className="flex justify-between text-[10px] text-neutral-300">
-                              <span>Бэлдэцийн хэмжээ 1 (Өндөр/Урт)</span>
-                              <span className="text-amber-500 font-mono font-bold">{part.height} мм</span>
-                            </div>
-                            <input
-                              type="range"
-                              min={50}
-                              max={2800}
-                              step={10}
-                              value={part.height}
-                              onChange={(e) => updateActiveParts(
-                                selectedMod.parts.map(p => p.id === part.id ? { ...p, height: parseInt(e.target.value) } : p)
-                              )}
-                              className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                            />
-                          </div>
-
-                          {/* Width Slider */}
-                          <div className="flex flex-col gap-1.5">
-                            <div className="flex justify-between text-[10px] text-neutral-300">
-                              <span>Бэлдэцийн хэмжээ 2 (Өргөн/Гүн)</span>
-                              <span className="text-amber-500 font-mono font-bold">{part.width} мм</span>
-                            </div>
-                            <input
-                              type="range"
-                              min={50}
-                              max={2800}
-                              step={10}
-                              value={part.width}
-                              onChange={(e) => updateActiveParts(
-                                selectedMod.parts.map(p => p.id === part.id ? { ...p, width: parseInt(e.target.value) } : p)
-                              )}
-                              className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                            />
-                          </div>
-
-                          {/* Quantity */}
-                          <div className="flex items-center justify-between text-[10px] text-neutral-300 mt-1">
-                            <span>Тоо ширхэг</span>
-                            <div className="flex items-center gap-1 bg-[#0c0d12] border border-white/10 rounded-lg p-1">
-                              <button
-                                type="button"
-                                onClick={() => updateActiveParts(
-                                  selectedMod.parts.map(p => p.id === part.id ? { ...p, quantity: Math.max(1, p.quantity - 1) } : p)
-                                )}
-                                className="px-2 py-0.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded font-bold cursor-pointer"
-                              >
-                                -
-                              </button>
-                              <span className="px-2 text-white font-bold">{part.quantity}</span>
-                              <button
-                                type="button"
-                                onClick={() => updateActiveParts(
-                                  selectedMod.parts.map(p => p.id === part.id ? { ...p, quantity: p.quantity + 1 } : p)
-                                )}
-                                className="px-2 py-0.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded font-bold cursor-pointer"
-                              >
-                                +
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                });
-              })()}
-            </div>
           </div>
         )}
-
-        {/* Live Material & Color Swappers */}
-        <div className="bg-[#12141c] border border-white/5 rounded-2xl p-6 flex flex-col gap-6">
-          <h3 className="font-display font-bold text-white text-base">Материал ба Өнгө сонгох</h3>
-
-          {/* Outer body material */}
-          <div className="flex flex-col gap-3">
-            <span className="text-xs text-neutral-400 font-semibold">Их биеийн материал:</span>
-            <div className="grid grid-cols-2 gap-2">
-              {materials.map((mat) => (
-                <button
-                  key={mat.id}
-                  onClick={() => updateActiveConfig({ materialId: mat.id })}
-                  className={`flex items-center gap-2 p-2.5 rounded-xl border text-[11px] font-medium transition-all text-left cursor-pointer ${
-                    config.materialId === mat.id
-                      ? 'border-amber-500 bg-amber-500/5 text-white'
-                      : 'border-white/5 bg-[#0c0d12] text-neutral-400 hover:text-white'
-                  }`}
-                >
-                  <span className="w-3.5 h-3.5 rounded-full border border-white/10 shrink-0" style={{ backgroundColor: mat.color }} />
-                  <span className="truncate">{mat.name}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Body color palette */}
-            <div className="flex flex-col gap-2 pt-1">
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] text-neutral-500 font-semibold">Их биеийн өнгө:</span>
-                <div className="flex items-center gap-1.5">
-                  {config.bodyColor && (
-                    <button
-                      onClick={() => updateActiveConfig({ bodyColor: undefined })}
-                      className="text-[8px] text-neutral-500 hover:text-red-400 transition-all cursor-pointer px-1.5 py-0.5 bg-neutral-800 rounded"
-                      title="Өнгө арилгах (материалын өнгө ашиглах)"
-                    >
-                      ✕ Арилгах
-                    </button>
-                  )}
-                  <div className="relative flex items-center gap-1.5 bg-[#0c0d12] border border-white/10 px-2 py-1 rounded-lg">
-                    <span className="text-[9px] text-neutral-400 font-bold uppercase">Сонгох</span>
-                    <input
-                      type="color"
-                      value={config.bodyColor || (materials.find(m => m.id === config.materialId)?.color || '#ffffff')}
-                      onChange={(e) => updateActiveConfig({ bodyColor: e.target.value })}
-                      className="w-4 h-4 border-0 p-0 bg-transparent cursor-pointer rounded outline-none"
-                      title="Хүссэн өнгөө сонгох"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-6 gap-2">
-                {COLOR_PALETTE.map((color) => {
-                  const isActive = config.bodyColor === color;
-                  return (
-                    <button
-                      key={color}
-                      onClick={() => updateActiveConfig({ bodyColor: color })}
-                      className={`aspect-square rounded-full border transition-all cursor-pointer hover:scale-110 active:scale-95 ${
-                        isActive ? 'border-white ring-2 ring-amber-500 scale-105 shadow-lg' : 'border-transparent hover:border-white/30'
-                      }`}
-                      style={{ backgroundColor: color }}
-                      title={color}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Door panels material */}
-          <div className="flex flex-col gap-3 border-t border-white/5 pt-5">
-            <span className="text-xs text-neutral-400 font-semibold">Хаалга / Нүүрний материал:</span>
-            <div className="grid grid-cols-2 gap-2">
-              {materials.map((mat) => (
-                <button
-                  key={mat.id}
-                  onClick={() => updateActiveConfig({ doorMaterialId: mat.id })}
-                  className={`flex items-center gap-2 p-2.5 rounded-xl border text-[11px] font-medium transition-all text-left cursor-pointer ${
-                    config.doorMaterialId === mat.id
-                      ? 'border-amber-500 bg-amber-500/5 text-white'
-                      : 'border-white/5 bg-[#0c0d12] text-neutral-400 hover:text-white'
-                  }`}
-                >
-                  <span className="w-3.5 h-3.5 rounded-full border border-white/10 shrink-0" style={{ backgroundColor: mat.color }} />
-                  <span className="truncate">{mat.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Custom Door Color Picker (Gradient Swatches & Custom Picker) */}
-          <div className="flex flex-col gap-3 border-t border-white/5 pt-5">
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-neutral-400 font-semibold">Хаалга / Нүүрний өнгө:</span>
-              {/* Native color picker trigger */}
-              <div className="relative flex items-center gap-1.5 bg-[#0c0d12] border border-white/10 px-2 py-1 rounded-lg">
-                <span className="text-[9px] text-neutral-400 font-bold uppercase">Сонгох</span>
-                <input
-                  type="color"
-                  value={config.color || '#ffffff'}
-                  onChange={(e) => updateActiveConfig({ color: e.target.value })}
-                  className="w-4 h-4 border-0 p-0 bg-transparent cursor-pointer rounded outline-none"
-                  title="Хүссэн өнгөө сонгох"
-                />
-              </div>
-            </div>
-            
-            {/* Gradient swatches grid */}
-            <div className="grid grid-cols-6 gap-2">
-              {COLOR_PALETTE.map((color) => {
-                const isActive = config.color === color;
-                return (
-                  <button
-                    key={color}
-                    onClick={() => updateActiveConfig({ color })}
-                    className={`aspect-square rounded-full border transition-all cursor-pointer hover:scale-110 active:scale-95 ${
-                      isActive ? 'border-white ring-2 ring-amber-500 scale-105 shadow-lg' : 'border-transparent hover:border-white/30'
-                    }`}
-                    style={{ backgroundColor: color }}
-                    title={color}
-                  />
-                );
-              })}
-            </div>
-          </div>
-        </div>
       </div>
       {/* ═══════════ PRINT SPEC SHEET MODAL ═══════════ */}
       {showPrintModal && (() => {
@@ -2953,6 +3044,116 @@ export const Editor: React.FC = () => {
           </div>
         );
       })()}
+
+      {/* 💡 HELP MANUAL TUTORIAL MODAL */}
+      {showHelpModal && (
+        <div className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#12141c] border border-white/10 rounded-2xl w-full max-w-xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl relative">
+            
+            {/* Close absolute button */}
+            <button
+              onClick={() => setShowHelpModal(false)}
+              className="absolute top-4 right-4 p-2 rounded-xl bg-neutral-850 hover:bg-neutral-800 text-neutral-400 hover:text-white transition-all cursor-pointer border border-white/5"
+              title="Хаах"
+            >
+              <X size={16} />
+            </button>
+
+            {/* Modal Header */}
+            <div className="p-6 border-b border-white/5 bg-[#12141c]">
+              <h2 className="font-display font-extrabold text-white text-base flex items-center gap-2">
+                <span>💡 TavMax AI ашиглах заавар</span>
+              </h2>
+              <p className="text-[10px] text-neutral-500 mt-1">Системийг хэрхэн хялбар ашиглах талаар зааварчилгаа</p>
+            </div>
+
+            {/* Modal Content Scrollable */}
+            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6" style={{ scrollbarWidth: 'thin' }}>
+              {/* Step 1 */}
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 font-black text-sm flex items-center justify-center shrink-0">
+                  1
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <h4 className="font-bold text-white text-xs">3D Загварыг удирдах, эргүүлэх</h4>
+                  <p className="text-[11px] text-neutral-400 leading-relaxed">
+                    Дэлгэц дээрх тавилгыг бүх талаас нь харахын тулд хулганы дараах товчлууруудыг ашиглана уу:
+                  </p>
+                  <ul className="text-[10px] text-neutral-500 flex flex-col gap-1 list-disc pl-4 leading-relaxed">
+                    <li><strong className="text-neutral-300">🔄 Зүүн товчлуур дарах + чирэх:</strong> 3D загварыг эргүүлэх</li>
+                    <li><strong className="text-neutral-300">🖐️ Баруун товчлуур дарах + чирэх:</strong> Загварыг зүүн, баруун, дээш, доош шилжүүлэх</li>
+                    <li><strong className="text-neutral-300">🔍 Хулсны скролл дугуй:</strong> Загварыг ойртуулах, холдуулах</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div className="flex gap-4 border-t border-white/5 pt-5">
+                <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 font-black text-sm flex items-center justify-center shrink-0">
+                  2
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <h4 className="font-bold text-white text-xs">Шүүгээ (Кабинет) нэмж байрлуулах</h4>
+                  <p className="text-[11px] text-neutral-400 leading-relaxed">
+                    Зүүн талын загварын цэсийг ашиглаж тавилгаа өрнө:
+                  </p>
+                  <ul className="text-[10px] text-neutral-500 flex flex-col gap-1 list-disc pl-4 leading-relaxed">
+                    <li>Зүүн талаас бэлэн загварыг 3D дэлгэц рүү <strong className="text-neutral-300">чирж тавих (Drag & Drop)</strong> эсвэл <strong className="text-neutral-300">"Нэмэх"</strong> товчийг дарж оруулна.</li>
+                    <li>Шинээр нэмэгдсэн шүүгээ нь сонгогдсон шүүгээний яг хажууд автоматаар наалдаж байрлана.</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div className="flex gap-4 border-t border-white/5 pt-5">
+                <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 font-black text-sm flex items-center justify-center shrink-0">
+                  3
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <h4 className="font-bold text-white text-xs">Нарийвчилсан хэмжээ, тохиргоо хийх</h4>
+                  <p className="text-[11px] text-neutral-400 leading-relaxed">
+                    Өөрийн хэрэгцээнд тааруулан шүүгээний бүтцийг өөрчлөх:
+                  </p>
+                  <ul className="text-[10px] text-neutral-500 flex flex-col gap-1 list-disc pl-4 leading-relaxed">
+                    <li>3D дэлгэц дээрх шүүгээн дээр дарахад тухайн шүүгээ идэвхжинэ.</li>
+                    <li>Баруун талын <strong className="text-neutral-350">Шүүгээний Тохиргоо</strong> цэснээс Их биений хэмжээ, доторх тавиур, шургуулгын тоо болон өнгө материалыг алхам алхмаар тохируулна уу.</li>
+                    <li>Хэмжээсийг слайдероор чирэх эсвэл хажуугийн талбарт <strong className="text-neutral-300">гараар тоог бичиж оруулах</strong> боломжтой.</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Step 4 */}
+              <div className="flex gap-4 border-t border-white/5 pt-5">
+                <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 font-black text-sm flex items-center justify-center shrink-0">
+                  4
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <h4 className="font-bold text-white text-xs">Үнэ болон Зүсэлт оновчлол харах</h4>
+                  <p className="text-[11px] text-neutral-400 leading-relaxed">
+                    Зохион бүтээж дууссаны дараа дараах хуудсууд руу орно уу:
+                  </p>
+                  <ul className="text-[10px] text-neutral-500 flex flex-col gap-1 list-disc pl-4 leading-relaxed">
+                    <li><strong className="text-neutral-300">Үнэ & Бэлдэц:</strong> Бүх материалын тооцоо, хуудасны үнэ болон нийт төлбөрийг харуулна.</li>
+                    <li><strong className="text-neutral-300">Зүсэлт оновчлол:</strong> Хавтангуудыг хэрхэн хэмнэлттэй зүсэж гаргах схем зураглалыг харуулна.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-white/5 bg-[#0c0d12]/50 flex justify-end">
+              <button
+                onClick={() => setShowHelpModal(false)}
+                className="px-6 py-2 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                type="button"
+              >
+                Ойлголоо, Хаах
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 };

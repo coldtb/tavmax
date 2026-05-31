@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import type { Project, Material } from '../data/mockData';
 import { useProjectStore, getCabinetSections, getCabinetFrontPanels } from '../store/projectStore';
+import { Box } from 'lucide-react';
+
 
 interface ThreeViewerProps {
   project: Project;
@@ -2424,6 +2426,37 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           drawDimensionLine(dStart, dEnd, `${config.depth}мм`, new THREE.Vector3(-15, 0, 0));
         }
       }
+
+      // 4. Add selection outline (bounding box helper and translucent selection mesh)
+      if (selectedModuleId) {
+        const selectedGroup = furnitureGroup.children.find((g) => g.name === selectedModuleId);
+        if (selectedGroup) {
+          // BoxHelper for wireframe edges (warm amber color)
+          const boxHelper = new THREE.BoxHelper(selectedGroup, new THREE.Color('#f59e0b'));
+          dimsGroup.add(boxHelper);
+
+          // Translucent selection box mesh
+          const bbox = new THREE.Box3().setFromObject(selectedGroup);
+          const size = new THREE.Vector3();
+          bbox.getSize(size);
+          const center = new THREE.Vector3();
+          bbox.getCenter(center);
+
+          // Add a tiny padding to the translucent box so it doesn't z-fight with cabinet faces
+          const selectGeo = new THREE.BoxGeometry(size.x + 6, size.y + 6, size.z + 6);
+          const selectMat = new THREE.MeshBasicMaterial({
+            color: '#f59e0b',
+            transparent: true,
+            opacity: 0.08,
+            depthWrite: false,
+            side: THREE.DoubleSide
+          });
+          const selectMesh = new THREE.Mesh(selectGeo, selectMat);
+          selectMesh.position.copy(center);
+          dimsGroup.add(selectMesh);
+        }
+      }
+
       if ((window as any).tavmaxLog) {
         (window as any).tavmaxLog(`buildFurnitureModel completed successfully for project: ${project.id}`);
       }
@@ -2522,6 +2555,22 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
   return (
     <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl bg-[#0c0d12] border border-white/5">
       <div ref={containerRef} className="w-full h-full" />
+
+      {/* Empty visualizer guidance */}
+      {(!project.modules || project.modules.length === 0) && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-[#0c0d12]/90 backdrop-blur-sm z-30 pointer-events-none">
+          <div className="w-20 h-20 mb-6 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 animate-bounce">
+            <Box size={36} />
+          </div>
+          <h3 className="text-lg font-bold text-white mb-2">3D Төлөвлөгч Хоосон байна</h3>
+          <p className="text-xs text-neutral-400 max-w-sm leading-relaxed mb-6">
+            Зүүн талын цэснээс шүүгээ чирж оруулах эсвэл "Нэмэх" товчийг дарж загварлаж эхэлнэ үү.
+          </p>
+          <div className="flex gap-2 text-[10px] uppercase tracking-wider font-extrabold text-amber-400 bg-amber-500/10 px-4 py-2 rounded-lg border border-amber-500/20">
+            <span>👈 Зүүн талаас шүүгээ чирж оруулна уу</span>
+          </div>
+        </div>
+      )}
 
       {/* A-B Measurement Overlay */}
       {measureMode && (
