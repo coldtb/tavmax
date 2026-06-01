@@ -117,6 +117,178 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
     doorOpenFactor: 0,
   });
 
+  const updateDimensionLabels = (labelsContainer: HTMLDivElement) => {
+    if (!rendererRef.current || !cameraRef.current || !containerRef.current) return;
+    const selectedMod = projectRef.current.modules?.find(m => m.id === selectedModuleId);
+    if (!showDimensions || !selectedModuleId || !selectedMod) {
+      labelsContainer.innerHTML = '';
+      return;
+    }
+
+    cameraRef.current.updateMatrixWorld(true);
+
+    const rect = rendererRef.current.domElement.getBoundingClientRect();
+    const config = selectedMod.config;
+    const width = Number(config.width) || 0;
+    const height = Number(config.height) || 0;
+    const depth = Number(config.depth) || 0;
+    const hasLegs = !!config.hasLegs;
+    const legHeight = hasLegs ? 100 : 0;
+    const bodyHeight = height - legHeight;
+    const insideHeight = bodyHeight - 36;
+    const shelves = Number(config.shelves) || 0;
+    const drawers = Number(config.drawers) || 0;
+
+    const mx = selectedMod.xOffset;
+    const my = selectedMod.yOffset;
+    const mz = selectedMod.zOffset;
+    const rotationY = selectedMod.rotation || 0;
+
+    const localToWorld = (lx: number, ly: number, lz: number) => {
+      const rx = lx * Math.cos(rotationY) + lz * Math.sin(rotationY);
+      const rz = -lx * Math.sin(rotationY) + lz * Math.cos(rotationY);
+      return new THREE.Vector3(rx + mx, ly + my, rz + mz);
+    };
+
+    const labels: { text: string; pos3d: THREE.Vector3; styleClass?: string }[] = [];
+
+    // 1. Outer Dimensions (Amber/Orange)
+    labels.push({
+      text: `${width}мм`,
+      pos3d: localToWorld(0, legHeight - 50, depth / 2 + 50),
+      styleClass: 'border-amber-500/30 text-amber-400 bg-[#12141c]/95'
+    });
+    labels.push({
+      text: `${height}мм`,
+      pos3d: localToWorld(-width / 2 - 50, height / 2, depth / 2 + 50),
+      styleClass: 'border-amber-500/30 text-amber-400 bg-[#12141c]/95'
+    });
+    labels.push({
+      text: `${depth}мм`,
+      pos3d: localToWorld(-width / 2 - 50, legHeight - 50, 0),
+      styleClass: 'border-amber-500/30 text-amber-400 bg-[#12141c]/95'
+    });
+
+    // 2. Legs (if enabled)
+    if (hasLegs) {
+      labels.push({
+        text: `Хөл: ${legHeight}мм`,
+        pos3d: localToWorld(-width / 2 + 40, legHeight / 2, depth / 2 - 40),
+        styleClass: 'border-yellow-500/20 text-yellow-400 bg-[#12141c]/90'
+      });
+    }
+
+    // 3. Section widths (if partitions > 0)
+    const sections = getCabinetSections(width, config, selectedMod.type);
+    const partitions = sections.length - 1;
+    if (partitions > 0) {
+      sections.forEach((sec, sIdx) => {
+        labels.push({
+          text: `Секц ${sIdx + 1}: ${Math.round(sec.width)}мм`,
+          pos3d: localToWorld(sec.centerX, legHeight + 36, depth / 2 - 40),
+          styleClass: 'border-emerald-500/20 text-emerald-400 bg-[#12141c]/90'
+        });
+      });
+    }
+
+    // 4. Shelves spacing
+    if (shelves > 0) {
+      if (partitions > 0) {
+        sections.forEach((sec, sIdx) => {
+          const shelvesInSec = Math.floor(shelves / sections.length) + (sIdx < shelves % sections.length ? 1 : 0);
+          if (shelvesInSec > 0) {
+            const step = insideHeight / (shelvesInSec + 1);
+            for (let i = 0; i <= shelvesInSec; i++) {
+              const gapH = Math.round(step - (i === shelvesInSec ? 0 : 18));
+              labels.push({
+                text: `${gapH}мм`,
+                pos3d: localToWorld(sec.centerX, legHeight + 18 + i * step + step / 2, 0),
+                styleClass: 'border-blue-500/20 text-blue-300 bg-[#12141c]/90'
+              });
+            }
+          }
+        });
+      } else {
+        const sortedY = [...(config.shelfPositions || [])].sort((a, b) => a - b);
+        if (sortedY.length === shelves) {
+          // Bottom space
+          labels.push({
+            text: `${Math.round(sortedY[0])}мм`,
+            pos3d: localToWorld(0, legHeight + 18 + sortedY[0] / 2, 0),
+            styleClass: 'border-blue-500/20 text-blue-300 bg-[#12141c]/90'
+          });
+          // Middle spaces
+          for (let i = 1; i < shelves; i++) {
+            const gapH = Math.round(sortedY[i] - sortedY[i - 1] - 18);
+            labels.push({
+              text: `${gapH}мм`,
+              pos3d: localToWorld(0, legHeight + 18 + (sortedY[i - 1] + sortedY[i]) / 2, 0),
+              styleClass: 'border-blue-500/20 text-blue-300 bg-[#12141c]/90'
+            });
+          }
+          // Top space
+          const topGapH = Math.round(insideHeight - sortedY[shelves - 1] - 18);
+          labels.push({
+            text: `${topGapH}мм`,
+            pos3d: localToWorld(0, legHeight + 18 + sortedY[shelves - 1] + 18 + topGapH / 2, 0),
+            styleClass: 'border-blue-500/20 text-blue-300 bg-[#12141c]/90'
+          });
+        } else {
+          // Fallback equal spacing
+          const step = insideHeight / (shelves + 1);
+          for (let i = 0; i <= shelves; i++) {
+            const gapH = Math.round(step - (i === shelves ? 0 : 18));
+            labels.push({
+              text: `${gapH}мм`,
+              pos3d: localToWorld(0, legHeight + 18 + i * step + step / 2, 0),
+              styleClass: 'border-blue-500/20 text-blue-300 bg-[#12141c]/90'
+            });
+          }
+        }
+      }
+    }
+
+    // 5. Drawers (if any)
+    if (drawers > 0) {
+      const drawerSecIdx = partitions > 0 ? sections.length - 1 : 0;
+      const sec = sections[drawerSecIdx];
+      const drH = (bodyHeight - 10) / drawers;
+      for (let i = 0; i < drawers; i++) {
+        labels.push({
+          text: `Шургуулга: ${Math.round(drH - 6)}мм`,
+          pos3d: localToWorld(sec.centerX, legHeight + 5 + i * drH + drH / 2, depth / 2 + 10),
+          styleClass: 'border-purple-500/20 text-purple-300 bg-[#12141c]/90'
+        });
+      }
+    }
+
+    // Project and render
+    let html = '';
+    labels.forEach(lbl => {
+      const tempV = lbl.pos3d.clone().project(cameraRef.current!);
+      if (tempV.z <= 1) {
+        const x = (tempV.x * 0.5 + 0.5) * rect.width;
+        const y = (-tempV.y * 0.5 + 0.5) * rect.height;
+        
+        // Hide if coordinates are out of bounds of visualizer canvas
+        if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+          html += `
+            <div class="absolute -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 rounded text-[9px] font-black bg-[#12141c]/90 border border-white/10 shadow-lg pointer-events-none whitespace-nowrap ${lbl.styleClass || ''}"
+                 style="left: ${x}px; top: ${y}px;">
+              ${lbl.text}
+            </div>
+          `;
+        }
+      }
+    });
+    labelsContainer.innerHTML = html;
+  };
+
+  const updateDimensionLabelsRef = useRef(updateDimensionLabels);
+  useEffect(() => {
+    updateDimensionLabelsRef.current = updateDimensionLabels;
+  });
+
   useEffect(() => {
     if (!containerRef.current) return;
     const container = containerRef.current;
@@ -907,6 +1079,11 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
         // Update interactive transformations inside groups
         updatePiecePositions();
+
+        const labelsContainer = document.getElementById('dimensions-labels-container') as HTMLDivElement | null;
+        if (labelsContainer) {
+          updateDimensionLabelsRef.current(labelsContainer);
+        }
 
         if (controlsRef.current) controlsRef.current.update();
         if (rendererRef.current && sceneRef.current && cameraRef.current) {
@@ -2760,13 +2937,25 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
         const selectedMod = projectModules.find((m) => m.id === selectedModuleId);
         if (selectedMod) {
           const config = selectedMod.config;
+          const width = Number(config.width) || 0;
+          const height = Number(config.height) || 0;
+          const depth = Number(config.depth) || 0;
+          const hasLegs = !!config.hasLegs;
+          const legHeight = hasLegs ? 100 : 0;
+          const bodyHeight = height - legHeight;
+          const insideHeight = bodyHeight - 36;
+          const shelves = Number(config.shelves) || 0;
+
           const mx = selectedMod.xOffset;
           const my = selectedMod.yOffset;
           const mz = selectedMod.zOffset;
+          const rotationY = selectedMod.rotation || 0;
 
-          const xOffset = -config.width / 2 + mx;
-          const yOffset = (config.hasLegs ? 100 : 0) + my;
-          const zOffset = -config.depth / 2 + mz;
+          const localToWorld = (lx: number, ly: number, lz: number) => {
+            const rx = lx * Math.cos(rotationY) + lz * Math.sin(rotationY);
+            const rz = -lx * Math.sin(rotationY) + lz * Math.cos(rotationY);
+            return new THREE.Vector3(rx + mx, ly + my, rz + mz);
+          };
 
           const drawDimensionLine = (
             start: THREE.Vector3,
@@ -2794,18 +2983,90 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             dimsGroup.add(tick2);
           };
 
-          // Outer Dimension Lines
-          const wStart = new THREE.Vector3(xOffset, yOffset - 50, zOffset + config.depth + 50);
-          const wEnd = new THREE.Vector3(xOffset + config.width, yOffset - 50, zOffset + config.depth + 50);
-          drawDimensionLine(wStart, wEnd, `${config.width}мм`, new THREE.Vector3(0, 0, 15));
+          // Outer Dimension Lines (Rotated)
+          const wStart = localToWorld(-width / 2, legHeight - 50, depth / 2 + 50);
+          const wEnd = localToWorld(width / 2, legHeight - 50, depth / 2 + 50);
+          const wTick = localToWorld(0, 0, 15).sub(localToWorld(0, 0, 0));
+          drawDimensionLine(wStart, wEnd, `${width}мм`, wTick);
 
-          const hStart = new THREE.Vector3(xOffset - 50, yOffset, zOffset + config.depth + 50);
-          const hEnd = new THREE.Vector3(xOffset - 50, yOffset + config.height, zOffset + config.depth + 50);
-          drawDimensionLine(hStart, hEnd, `${config.height}мм`, new THREE.Vector3(-15, 0, 0));
+          const hStart = localToWorld(-width / 2 - 50, legHeight, depth / 2 + 50);
+          const hEnd = localToWorld(-width / 2 - 50, height, depth / 2 + 50);
+          const hTick = localToWorld(-15, 0, 0).sub(localToWorld(0, 0, 0));
+          drawDimensionLine(hStart, hEnd, `${height}мм`, hTick);
 
-          const dStart = new THREE.Vector3(xOffset - 50, yOffset - 50, zOffset);
-          const dEnd = new THREE.Vector3(xOffset - 50, yOffset - 50, zOffset + config.depth);
-          drawDimensionLine(dStart, dEnd, `${config.depth}мм`, new THREE.Vector3(-15, 0, 0));
+          const dStart = localToWorld(-width / 2 - 50, legHeight - 50, -depth / 2);
+          const dEnd = localToWorld(-width / 2 - 50, legHeight - 50, depth / 2);
+          const dTick = localToWorld(-15, 0, 0).sub(localToWorld(0, 0, 0));
+          drawDimensionLine(dStart, dEnd, `${depth}мм`, dTick);
+
+          // Horizontal Partition Dimension Lines (Rotated)
+          const sections = getCabinetSections(width, config, selectedMod.type);
+          const partitions = sections.length - 1;
+          if (partitions > 0) {
+            sections.forEach((sec, sIdx) => {
+              const startX = sec.centerX - sec.width / 2;
+              const endX = sec.centerX + sec.width / 2;
+              const pStart = localToWorld(startX, legHeight + 36, depth / 2 - 40);
+              const pEnd = localToWorld(endX, legHeight + 36, depth / 2 - 40);
+              const pTick = localToWorld(0, 10, 0).sub(localToWorld(0, 0, 0));
+              drawDimensionLine(pStart, pEnd, '', pTick);
+            });
+          }
+
+          // Vertical Shelf Space Dimension Lines (Rotated)
+          if (shelves > 0) {
+            const sTick = localToWorld(10, 0, 0).sub(localToWorld(0, 0, 0));
+            if (partitions > 0) {
+              sections.forEach((sec, sIdx) => {
+                const shelvesInSec = Math.floor(shelves / sections.length) + (sIdx < shelves % sections.length ? 1 : 0);
+                if (shelvesInSec > 0) {
+                  const step = insideHeight / (shelvesInSec + 1);
+                  for (let i = 0; i <= shelvesInSec; i++) {
+                    const startY = legHeight + 18 + i * step;
+                    const endY = legHeight + 18 + (i + 1) * step - (i === shelvesInSec ? 0 : 18);
+                    const sStart = localToWorld(sec.centerX, startY, 0);
+                    const sEnd = localToWorld(sec.centerX, endY, 0);
+                    drawDimensionLine(sStart, sEnd, '', sTick);
+                  }
+                }
+              });
+            } else {
+              const sortedY = [...(config.shelfPositions || [])].sort((a, b) => a - b);
+              if (sortedY.length === shelves) {
+                // Bottom
+                drawDimensionLine(
+                  localToWorld(0, legHeight + 18, 0),
+                  localToWorld(0, legHeight + 18 + sortedY[0], 0),
+                  '', sTick
+                );
+                // Middles
+                for (let i = 1; i < shelves; i++) {
+                  drawDimensionLine(
+                    localToWorld(0, legHeight + 18 + sortedY[i - 1] + 18, 0),
+                    localToWorld(0, legHeight + 18 + sortedY[i], 0),
+                    '', sTick
+                  );
+                }
+                // Top
+                drawDimensionLine(
+                  localToWorld(0, legHeight + 18 + sortedY[shelves - 1] + 18, 0),
+                  localToWorld(0, legHeight + 18 + insideHeight, 0),
+                  '', sTick
+                );
+              } else {
+                const step = insideHeight / (shelves + 1);
+                for (let i = 0; i <= shelves; i++) {
+                  const startY = legHeight + 18 + i * step;
+                  const endY = legHeight + 18 + (i + 1) * step - (i === shelves ? 0 : 18);
+                  drawDimensionLine(
+                    localToWorld(0, startY, 0),
+                    localToWorld(0, endY, 0),
+                    '', sTick
+                  );
+                }
+              }
+            }
+          }
         }
       }
 
@@ -2936,7 +3197,8 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
   return (
     <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl bg-[#0c0d12] border border-white/5">
-      <div ref={containerRef} className="w-full h-full" />
+      <div ref={containerRef} className="w-full h-full relative z-0" />
+      <div id="dimensions-labels-container" className="absolute inset-0 pointer-events-none overflow-hidden z-30" />
 
       {/* Empty visualizer guidance */}
       {(!project.modules || project.modules.length === 0) && (

@@ -1366,8 +1366,21 @@ export const Editor: React.FC = () => {
                     <span>Алхам 3: Хаалга, сорогч, өнгө материал</span>
                   </div>
 
+                  <div className="flex justify-between items-center bg-[#0c0d12]/40 border border-white/5 p-2 px-3 rounded-xl mb-3">
+                    <span className="text-xs text-neutral-300 font-semibold">Хаалга, шургуулга онгойлгох</span>
+                    <label className="relative inline-flex items-center cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={openDoors}
+                        onChange={(e) => setOpenDoors(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-neutral-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-neutral-400 after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500 peer-checked:after:bg-white"></div>
+                    </label>
+                  </div>
+
                   {/* Doors config or count */}
-                  {(selectedMod.type === 'custom' || selectedMod.type === 'kitchen_lower' || selectedMod.type === 'kitchen_upper' || selectedMod.type === 'built_in_hood' || selectedMod.type === 'sink' || selectedMod.type === 'cabinet' || selectedMod.type === 'vitrine' || selectedMod.type === 'cooktop') && (
+                  {(selectedMod.type === 'custom' || selectedMod.type === 'kitchen_lower' || selectedMod.type === 'kitchen_upper' || selectedMod.type === 'built_in_hood' || selectedMod.type === 'sink' || selectedMod.type === 'cabinet' || selectedMod.type === 'vitrine' || selectedMod.type === 'cooktop' || selectedMod.type === 'wardrobe') && (
                     <div className="flex flex-col gap-2">
                       <div className="flex justify-between items-center">
                         <label className="text-xs text-neutral-400 font-semibold">Хаалганы тохиргоо</label>
@@ -2321,7 +2334,7 @@ return (
               className={`p-2 rounded-lg transition-all cursor-pointer ${
                 showDimensions ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-neutral-800 text-neutral-400 border border-transparent'
               }`}
-              title="Тавилгын гаднах хэмжээсийг харуулах / нуух"
+              title="Хэмжээсийг харуулах / нуух: Хайрцаг, тавиур, босоо хуваалт, шургуулга, хөл зэрэг бүх хэмжээг харах"
             >
               <Grid size={16} />
             </button>
