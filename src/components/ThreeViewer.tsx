@@ -1973,6 +1973,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           if (config.countertopType && config.countertopType !== 'none') {
             const ctMat = getCountertopMaterial(config.countertopType);
             const ctT = config.countertopThickness ?? 40;
+            const isStone_kl = config.countertopType === 'stone';
             const ctHalf = ctT / 2;
             addBoard(
               width,
@@ -1982,7 +1983,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               height + ctHalf,
               12.5,
               ctMat,
-              isStone ? 'Чулуун тавцан (Гал тогоо)' : 'Модон тавцан (Гал тогоо)',
+              isStone_kl ? 'Чулуун тавцан (Гал тогоо)' : 'Модон тавцан (Гал тогоо)',
               'Дээд тавиур'
             );
           }
@@ -2504,6 +2505,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           const ctT_cooktop = config.countertopThickness ?? 40;
           if (hasCountertop) {
             const ctMat = getCountertopMaterial(config.countertopType);
+            const isStone_ck = config.countertopType === 'stone';
             addBoard(
               width,
               ctT_cooktop,
@@ -2512,7 +2514,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               height + ctT_cooktop / 2,
               12.5,
               ctMat,
-              isStone ? 'Чулуун тавцан (Плитк)' : 'Модон тавцан (Плитк)',
+              isStone_ck ? 'Чулуун тавцан (Плитк)' : 'Модон тавцан (Плитк)',
               'Дээд тавиур'
             );
           }
@@ -2590,6 +2592,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           const ctT_sink = config.countertopThickness ?? 40;
           if (hasCountertop) {
             const ctMat = getCountertopMaterial(config.countertopType);
+            const isStone_sk = config.countertopType === 'stone';
             addBoard(
               width,
               ctT_sink,
@@ -2598,7 +2601,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               height + ctT_sink / 2,
               12.5,
               ctMat,
-              isStone ? 'Чулуун тавцан (Угаалтуур)' : 'Модон тавцан (Угаалтуур)',
+              isStone_sk ? 'Чулуун тавцан (Угаалтуур)' : 'Модон тавцан (Угаалтуур)',
               'Дээд тавиур'
             );
           }
