@@ -679,7 +679,7 @@ export const Editor: React.FC = () => {
   const renderConfigurator = (isFloating = false) => {
     if (!selectedMod) return null;
     return (
-          <div className="bg-[#12141c] border border-white/5 rounded-2xl p-5 flex flex-col gap-5">
+          <div className={isFloating ? "flex flex-col gap-5 p-5 h-full overflow-y-auto" : "bg-[#12141c] border border-white/5 rounded-2xl p-5 flex flex-col gap-5"} style={isFloating ? { scrollbarWidth: 'thin' } : undefined}>
             {/* Wizard Header */}
             <div className="flex justify-between items-center border-b border-white/5 pb-3">
               <div className="flex flex-col">
@@ -750,7 +750,7 @@ export const Editor: React.FC = () => {
             </div>
 
             {/* Step Contents Container */}
-            <div className="flex flex-col gap-4 overflow-y-auto max-h-[520px] pr-1" style={{ scrollbarWidth: 'thin' }}>
+            <div className="flex flex-col gap-4 overflow-y-auto flex-1 pr-1" style={{ scrollbarWidth: 'thin' }}>
               {activeStep === 1 && (
                 <>
                   <div className="text-[9px] text-neutral-500 font-bold uppercase tracking-wider flex items-center gap-1.5 mb-1">
@@ -2265,16 +2265,7 @@ return (
         >
           👁️ 3D Загвар
         </button>
-        <button
-          onClick={() => setMobileTab('settings')}
-          className={`flex-1 py-2.5 text-[10px] uppercase tracking-wider font-bold rounded-lg transition-all cursor-pointer ${
-            mobileTab === 'settings'
-              ? 'bg-amber-500 text-neutral-950 font-extrabold shadow'
-              : 'text-neutral-400 hover:text-white'
-          }`}
-        >
-          ⚙️ Тохиргоо
-        </button>
+
         <button
           onClick={() => setMobileTab('templates')}
           className={`flex-1 py-2.5 text-[10px] uppercase tracking-wider font-bold rounded-lg transition-all cursor-pointer ${
@@ -2558,7 +2549,7 @@ return (
       </div>
 
       {/* MIDDLE COLUMN: 3D Visualizer Canvas (col-span-6 on desktop, h-[920px]) */}
-      <div className={`lg:col-span-6 flex flex-col gap-4 ${isMobile ? (mobileTab === '3d' ? 'flex h-[55vh]' : 'hidden') : 'flex h-[920px]'}`}>
+      <div className={`lg:col-span-9 flex flex-col gap-4 ${isMobile ? (mobileTab === '3d' ? 'flex h-[55vh]' : 'hidden') : 'flex h-[920px]'}`}>
         {/* Visualizer HUD controls */}
         <div className="flex justify-between items-center gap-4 bg-[#12141c] border border-white/5 px-4 py-3 rounded-xl overflow-x-auto scrollbar-none whitespace-nowrap">
           <div className="flex gap-2 shrink-0">
@@ -2800,15 +2791,26 @@ return (
           )}
 
           {showFloatingConfig && selectedMod && (
-            <div className="absolute top-4 right-4 z-20 w-80 max-h-[90%] bg-[#12141c]/95 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-2xl overflow-y-auto flex flex-col gap-4" style={{ scrollbarWidth: 'thin' }}>
-              {renderConfigurator(true)}
-            </div>
+            <>
+              {/* Backdrop — click to close */}
+              <div
+                className="absolute inset-0 z-10"
+                onClick={() => setShowFloatingConfig(false)}
+              />
+              {/* Floating Configurator Panel */}
+              <div
+                className="absolute top-3 right-3 z-20 flex flex-col gap-0 bg-[#0e1018] border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+                style={{ width: 460, maxHeight: 'calc(100% - 24px)', scrollbarWidth: 'thin' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {renderConfigurator(true)}
+              </div>
+            </>
           )}
         </div>
       </div>
-
-      {/* RIGHT COLUMN: Configuration sliders side panel (col-span-2) */}
-      <div className={`lg:col-span-3 flex flex-col gap-6 max-h-[920px] overflow-y-auto pr-2 ${isMobile ? (mobileTab === 'settings' ? 'flex' : 'hidden') : 'flex'}`}>
+      {/* RIGHT COLUMN REMOVED — settings accessible via right-click floating overlay */}
+      <div className="hidden">
         {/* Project info card */}
         <div className="bg-[#12141c] border border-white/5 rounded-2xl p-5 flex flex-col gap-1">
           <span className="text-[10px] text-amber-500 uppercase tracking-wider font-bold">Идэвхтэй төсөл</span>
