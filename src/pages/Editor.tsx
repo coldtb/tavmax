@@ -1556,10 +1556,10 @@ export const Editor: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Door Style Selection (Хавтгай vs Классик) */}
-                      {Number(config.doors) > 0 && (
+                      {/* Door/Drawer Style Selection (Хавтгай vs Классик) */}
+                      {(Number(config.doors) > 0 || Number(config.drawers) > 0) && (
                         <div className="flex flex-col gap-1.5 mt-1 bg-[#0c0d12]/30 border border-white/5 p-3 rounded-xl">
-                          <label className="text-[11px] text-neutral-400 font-semibold">Хаалганы загвар</label>
+                          <label className="text-[11px] text-neutral-400 font-semibold">Хаалга / Шургуулганы загвар</label>
                           <div className="grid grid-cols-2 gap-2">
                             <button
                               type="button"
