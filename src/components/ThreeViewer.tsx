@@ -2050,145 +2050,200 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           }
 
           // Drawers & Doors
-          if (drawers > 0 && doors === 0) {
-            const drH = (bodyHeight - 10) / drawers;
-            for (let i = 0; i < drawers; i++) {
-              const dy = legHeight + drH / 2 + 5 + i * drH;
-              const drawerMesh = addBoard(width - 10, drH - 6, 18, 0, dy, halfD + 9, doorMat, `Шургуулганы нүүр ${i + 1}`, 'Шургуулга');
+          const panels = getCabinetFrontPanels(width, config);
+          if (sections.length > 1) {
+            const numSections = sections.length;
+            const drawerSecIdx = drawers > 0 ? numSections - 1 : -1;
+            const numDoorSections = drawers > 0 ? numSections - 1 : numSections;
 
-              // Handle
-              if (handleType !== 'none') {
-                const handleGeom = new THREE.CylinderGeometry(4, 4, Math.min(120, width * 0.4), 16);
-                const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
-                const handle = new THREE.Mesh(handleGeom, handleMat);
-                handle.rotation.z = Math.PI / 2;
-                handle.position.set(0, 0, 12);
-                drawerMesh.add(handle);
+            for (let j = 0; j < numSections; j++) {
+              const sec = sections[j];
+              const panel = panels[j];
+              const dx = panel.centerX;
+
+              if (j === drawerSecIdx && drawers > 0) {
+                // Drawers (Stacked vertically in the last section, taking full height of section)
+                const drH = (bodyHeight - 10) / drawers;
+                for (let i = 0; i < drawers; i++) {
+                  const dy = legHeight + drH / 2 + 5 + i * drH;
+                  const drawerMesh = addBoard(panel.width, drH - 6, 18, dx, dy, halfD + 9, doorMat, `Шургуулганы нүүр ${i + 1}`, 'Шургуулга');
+
+                  if (handleType !== 'none') {
+                    const handleGeom = new THREE.CylinderGeometry(4, 4, Math.min(120, panel.width * 0.4), 16);
+                    const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
+                    const handle = new THREE.Mesh(handleGeom, handleMat);
+                    handle.rotation.z = Math.PI / 2;
+                    handle.position.set(0, 0, 12);
+                    drawerMesh.add(handle);
+                  }
+                }
+              } else if (j < numDoorSections) {
+                // Door(s) in this section
+                const secDoors = Math.floor(doors / numDoorSections) + (j < doors % numDoorSections ? 1 : 0);
+                if (secDoors > 0) {
+                  const doorW = (panel.width - 4 * (secDoors - 1)) / secDoors;
+                  const doorH = bodyHeight - 10;
+                  const doorY = legHeight + bodyHeight / 2;
+
+                  for (let i = 0; i < secDoors; i++) {
+                    const doorX = dx - panel.width / 2 + doorW / 2 + i * (doorW + 4);
+                    const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга');
+
+                    // Handle
+                    if (handleType !== 'none') {
+                      const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
+                      const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
+                      const handle = new THREE.Mesh(handleGeom, handleMat);
+                      handle.rotation.x = Math.PI / 2;
+                      const handleSide = i % 2 === 0 ? 1 : -1;
+                      handle.position.set(handleSide * (doorW / 2 - 25), doorH / 2 - 60, 12);
+                      doorMesh.add(handle);
+                    }
+                  }
+                }
               }
             }
-          } else if (doors > 0 && drawers === 0) {
-            if (config.customDoors) {
-              const hasLeftDoor = config.leftDoor !== undefined ? !!config.leftDoor : (doors === 1 || doors >= 2);
-              const hasRightDoor = config.rightDoor !== undefined ? !!config.rightDoor : (doors >= 2);
-              const defaultDoorWidth = width >= 800 ? (width - 10) / 2 : (width - 10);
-              const customDoorWidth = config.doorWidth ? Number(config.doorWidth) : defaultDoorWidth;
-              const doorH = config.doorHeight ? Number(config.doorHeight) : (bodyHeight - 10);
-              const doorY = legHeight + 5 + doorH / 2;
-
-              if (hasLeftDoor) {
-                const doorX = width >= 800 ? -halfW + 5 + customDoorWidth / 2 : 0;
-                const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Зүүн)`, 'Хаалга');
-                if (handleType !== 'none') {
-                  const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
-                  const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
-                  const handle = new THREE.Mesh(handleGeom, handleMat);
-                  handle.rotation.x = Math.PI / 2;
-                  handle.position.set(customDoorWidth / 2 - 25, doorH / 2 - 60, 12);
-                  doorMesh.add(handle);
-                }
-              }
-              if (hasRightDoor) {
-                const doorX = width >= 800 ? halfW - 5 - customDoorWidth / 2 : 0;
-                const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Баруун)`, 'Хаалга');
-                if (handleType !== 'none') {
-                  const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
-                  const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
-                  const handle = new THREE.Mesh(handleGeom, handleMat);
-                  handle.rotation.x = Math.PI / 2;
-                  handle.position.set(-customDoorWidth / 2 + 25, doorH / 2 - 60, 12);
-                  doorMesh.add(handle);
-                }
-              }
-            } else {
-              const doorW = (width - 10) / doors;
-              for (let i = 0; i < doors; i++) {
-                const doorX = -halfW + 5 + doorW / 2 + i * doorW;
-                const doorH = bodyHeight - 10;
-                const doorY = legHeight + bodyHeight / 2;
-                const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга');
+          } else {
+            if (drawers > 0 && doors === 0) {
+              const drH = (bodyHeight - 10) / drawers;
+              for (let i = 0; i < drawers; i++) {
+                const dy = legHeight + drH / 2 + 5 + i * drH;
+                const drawerMesh = addBoard(width - 10, drH - 6, 18, 0, dy, halfD + 9, doorMat, `Шургуулганы нүүр ${i + 1}`, 'Шургуулга');
 
                 // Handle
                 if (handleType !== 'none') {
-                  const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
+                  const handleGeom = new THREE.CylinderGeometry(4, 4, Math.min(120, width * 0.4), 16);
                   const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                   const handle = new THREE.Mesh(handleGeom, handleMat);
-                  handle.rotation.x = Math.PI / 2;
-                  const handleSide = i % 2 === 0 ? 1 : -1;
-                  handle.position.set(handleSide * (doorW / 2 - 25), doorH / 2 - 60, 12);
-                  doorMesh.add(handle);
+                  handle.rotation.z = Math.PI / 2;
+                  handle.position.set(0, 0, 12);
+                  drawerMesh.add(handle);
                 }
               }
-            }
-          } else if (drawers > 0 && doors > 0) {
-            const singleDrawerH = 150;
-            
-            // Render drawers stacked vertically at the top
-            for (let j = 0; j < drawers; j++) {
-              const py = height - (drawers - j - 0.5) * singleDrawerH;
-              const drawerMesh = addBoard(width - 10, singleDrawerH - 10, 18, 0, py, halfD + 9, doorMat, `Шургуулганы нүүр ${j + 1}`, 'Шургуулга');
+            } else if (doors > 0 && drawers === 0) {
+              if (config.customDoors) {
+                const hasLeftDoor = config.leftDoor !== undefined ? !!config.leftDoor : (doors === 1 || doors >= 2);
+                const hasRightDoor = config.rightDoor !== undefined ? !!config.rightDoor : (doors >= 2);
+                const defaultDoorWidth = width >= 800 ? (width - 10) / 2 : (width - 10);
+                const customDoorWidth = config.doorWidth ? Number(config.doorWidth) : defaultDoorWidth;
+                const doorH = config.doorHeight ? Number(config.doorHeight) : (bodyHeight - 10);
+                const doorY = legHeight + 5 + doorH / 2;
 
-              // Handle
-              if (handleType !== 'none') {
-                const handleGeom = new THREE.CylinderGeometry(4, 4, Math.min(120, width * 0.4), 16);
-                const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
-                const handle = new THREE.Mesh(handleGeom, handleMat);
-                handle.rotation.z = Math.PI / 2;
-                handle.position.set(0, 0, 12);
-                drawerMesh.add(handle);
-              }
-            }
+                if (hasLeftDoor) {
+                  const doorX = width >= 800 ? -halfW + 5 + customDoorWidth / 2 : 0;
+                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Зүүн)`, 'Хаалга');
+                  if (handleType !== 'none') {
+                    const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
+                    const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
+                    const handle = new THREE.Mesh(handleGeom, handleMat);
+                    handle.rotation.x = Math.PI / 2;
+                    handle.position.set(customDoorWidth / 2 - 25, doorH / 2 - 60, 12);
+                    doorMesh.add(handle);
+                  }
+                }
+                if (hasRightDoor) {
+                  const doorX = width >= 800 ? halfW - 5 - customDoorWidth / 2 : 0;
+                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Баруун)`, 'Хаалга');
+                  if (handleType !== 'none') {
+                    const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
+                    const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
+                    const handle = new THREE.Mesh(handleGeom, handleMat);
+                    handle.rotation.x = Math.PI / 2;
+                    handle.position.set(-customDoorWidth / 2 + 25, doorH / 2 - 60, 12);
+                    doorMesh.add(handle);
+                  }
+                }
+              } else {
+                const doorW = (width - 10) / doors;
+                for (let i = 0; i < doors; i++) {
+                  const doorX = -halfW + 5 + doorW / 2 + i * doorW;
+                  const doorH = bodyHeight - 10;
+                  const doorY = legHeight + bodyHeight / 2;
+                  const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга');
 
-            // Render doors below the drawers stack
-            if (config.customDoors) {
-              const doorH = config.doorHeight ? Number(config.doorHeight) : (bodyHeight - drawers * singleDrawerH - 10);
-              const doorY = legHeight + doorH / 2 + 5;
-              const hasLeftDoor = config.leftDoor !== undefined ? !!config.leftDoor : (doors === 1 || doors >= 2);
-              const hasRightDoor = config.rightDoor !== undefined ? !!config.rightDoor : (doors >= 2);
-              const defaultDoorWidth = width >= 800 ? (width - 10) / 2 : (width - 10);
-              const customDoorWidth = config.doorWidth ? Number(config.doorWidth) : defaultDoorWidth;
-
-              if (hasLeftDoor) {
-                const doorX = width >= 800 ? -halfW + 5 + customDoorWidth / 2 : 0;
-                const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Зүүн)`, 'Хаалга');
-                if (handleType !== 'none') {
-                  const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
-                  const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
-                  const handle = new THREE.Mesh(handleGeom, handleMat);
-                  handle.rotation.x = Math.PI / 2;
-                  handle.position.set(customDoorWidth / 2 - 25, doorH / 2 - 40, 12);
-                  doorMesh.add(handle);
+                  // Handle
+                  if (handleType !== 'none') {
+                    const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
+                    const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
+                    const handle = new THREE.Mesh(handleGeom, handleMat);
+                    handle.rotation.x = Math.PI / 2;
+                    const handleSide = i % 2 === 0 ? 1 : -1;
+                    handle.position.set(handleSide * (doorW / 2 - 25), doorH / 2 - 60, 12);
+                    doorMesh.add(handle);
+                  }
                 }
               }
-              if (hasRightDoor) {
-                const doorX = width >= 800 ? halfW - 5 - customDoorWidth / 2 : 0;
-                const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Баруун)`, 'Хаалга');
-                if (handleType !== 'none') {
-                  const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
-                  const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
-                  const handle = new THREE.Mesh(handleGeom, handleMat);
-                  handle.rotation.x = Math.PI / 2;
-                  handle.position.set(-customDoorWidth / 2 + 25, doorH / 2 - 40, 12);
-                  doorMesh.add(handle);
-                }
-              }
-            } else {
-              const doorH = bodyHeight - drawers * singleDrawerH - 10;
-              const doorY = legHeight + doorH / 2 + 5;
-              const doorW = (width - 10) / doors;
+            } else if (drawers > 0 && doors > 0) {
+              const singleDrawerH = 150;
 
-              for (let i = 0; i < doors; i++) {
-                const doorX = -halfW + 5 + doorW / 2 + i * doorW;
-                const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга');
+              // Render drawers stacked vertically at the top
+              for (let j = 0; j < drawers; j++) {
+                const py = height - (drawers - j - 0.5) * singleDrawerH;
+                const drawerMesh = addBoard(width - 10, singleDrawerH - 10, 18, 0, py, halfD + 9, doorMat, `Шургуулганы нүүр ${j + 1}`, 'Шургуулга');
 
                 // Handle
                 if (handleType !== 'none') {
-                  const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
+                  const handleGeom = new THREE.CylinderGeometry(4, 4, Math.min(120, width * 0.4), 16);
                   const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                   const handle = new THREE.Mesh(handleGeom, handleMat);
-                  handle.rotation.x = Math.PI / 2;
-                  const handleSide = i % 2 === 0 ? 1 : -1;
-                  handle.position.set(handleSide * (doorW / 2 - 25), doorH / 2 - 40, 12);
-                  doorMesh.add(handle);
+                  handle.rotation.z = Math.PI / 2;
+                  handle.position.set(0, 0, 12);
+                  drawerMesh.add(handle);
+                }
+              }
+
+              // Render doors below the drawers stack
+              if (config.customDoors) {
+                const doorH = config.doorHeight ? Number(config.doorHeight) : (bodyHeight - drawers * singleDrawerH - 10);
+                const doorY = legHeight + doorH / 2 + 5;
+                const hasLeftDoor = config.leftDoor !== undefined ? !!config.leftDoor : (doors === 1 || doors >= 2);
+                const hasRightDoor = config.rightDoor !== undefined ? !!config.rightDoor : (doors >= 2);
+                const defaultDoorWidth = width >= 800 ? (width - 10) / 2 : (width - 10);
+                const customDoorWidth = config.doorWidth ? Number(config.doorWidth) : defaultDoorWidth;
+
+                if (hasLeftDoor) {
+                  const doorX = width >= 800 ? -halfW + 5 + customDoorWidth / 2 : 0;
+                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Зүүн)`, 'Хаалга');
+                  if (handleType !== 'none') {
+                    const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
+                    const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
+                    const handle = new THREE.Mesh(handleGeom, handleMat);
+                    handle.rotation.x = Math.PI / 2;
+                    handle.position.set(customDoorWidth / 2 - 25, doorH / 2 - 40, 12);
+                    doorMesh.add(handle);
+                  }
+                }
+                if (hasRightDoor) {
+                  const doorX = width >= 800 ? halfW - 5 - customDoorWidth / 2 : 0;
+                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Баруун)`, 'Хаалга');
+                  if (handleType !== 'none') {
+                    const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
+                    const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
+                    const handle = new THREE.Mesh(handleGeom, handleMat);
+                    handle.rotation.x = Math.PI / 2;
+                    handle.position.set(-customDoorWidth / 2 + 25, doorH / 2 - 40, 12);
+                    doorMesh.add(handle);
+                  }
+                }
+              } else {
+                const doorH = bodyHeight - drawers * singleDrawerH - 10;
+                const doorY = legHeight + doorH / 2 + 5;
+                const doorW = (width - 10) / doors;
+
+                for (let i = 0; i < doors; i++) {
+                  const doorX = -halfW + 5 + doorW / 2 + i * doorW;
+                  const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга');
+
+                  // Handle
+                  if (handleType !== 'none') {
+                    const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
+                    const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
+                    const handle = new THREE.Mesh(handleGeom, handleMat);
+                    handle.rotation.x = Math.PI / 2;
+                    const handleSide = i % 2 === 0 ? 1 : -1;
+                    handle.position.set(handleSide * (doorW / 2 - 25), doorH / 2 - 40, 12);
+                    doorMesh.add(handle);
+                  }
                 }
               }
             }
