@@ -70,6 +70,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
   }, [explode]);
 
   useEffect(() => {
+    console.log("ThreeViewer: openDoors changed to", openDoors);
     openDoorsRef.current = openDoors;
   }, [openDoors]);
 
@@ -1169,6 +1170,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
   // Build the 3D panels
   function buildFurnitureModel() {
+    console.log("ThreeViewer: buildFurnitureModel triggered! Modules count:", project.modules?.length || 0);
     if ((window as any).tavmaxLog) {
       (window as any).tavmaxLog(`buildFurnitureModel started for project: ${project.id}. Modules count: ${project.modules?.length || 0}`);
     }
@@ -3128,6 +3130,10 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
       if (!furnitureGroup) return;
 
       const { explodeFactor, doorOpenFactor } = animState.current;
+      
+      if (Math.random() < 0.008) {
+        console.log("ThreeViewer: updatePiecePositions factor =", doorOpenFactor, "explode =", explodeFactor);
+      }
 
       furnitureGroup.children.forEach((groupObj) => {
         const moduleGroup = groupObj as THREE.Group;
@@ -3151,7 +3157,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               targetY += (doorH / 2) * (Math.cos(openAngle) - 1);
               targetZ += (doorH / 2) * Math.sin(openAngle);
             } else {
-              const isLeftHinged = mesh.userData.id.includes('left') || mesh.position.x < 0;
+              const isLeftHinged = mesh.userData.id.includes('left') || baseX < 0;
               mesh.rotation.y = isLeftHinged ? -openAngle : openAngle;
 
               const hingeWidthOffset = (mesh.geometry as THREE.BoxGeometry).parameters.width / 2;
