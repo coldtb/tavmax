@@ -42,6 +42,8 @@ export interface FurnitureConfig {
   burnerSize?: number;       // Давтан пластикийн радиус мм-ээр (20–80)
   doorStyle?: 'flat' | 'classic'; // Хаалганы загвар (хавтгай эсвэл сонгодог/хээтэй)
   countertopThickness?: 25 | 40; // Тавцангийн зузаан (2.5см эсвэл 4.0см)
+  cooktopWidth?: number;     // Плиткний өргөн (мм-ээр)
+  cooktopDepth?: number;     // Плиткний урт/гүн (мм-ээр)
 }
 
 export interface Part {

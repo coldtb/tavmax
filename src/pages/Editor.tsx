@@ -1654,18 +1654,22 @@ export const Editor: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="flex flex-col gap-2">
+
+
+                      {/* Cooktop Width */}
+                      <div className="flex flex-col gap-2 border-t border-white/5 pt-2">
                         <div className="flex justify-between items-center">
-                          <label className="text-xs text-neutral-400">Пластикийн хэмжээ</label>
+                          <label className="text-xs text-neutral-400">Плиткний өргөн</label>
                           <div className="flex items-center gap-1">
                             <input
                               type="number"
-                              min={5}
-                              step={1}
-                              value={config.burnerSize ?? 50}
+                              min={200}
+                              max={2400}
+                              step={10}
+                              value={config.cooktopWidth ?? (selectedMod.type === 'cooktop' ? config.width : config.width - 60)}
                               onChange={(e) => {
                                 const v = parseInt(e.target.value);
-                                if (!isNaN(v) && v >= 5) updateActiveConfig({ burnerSize: v });
+                                if (!isNaN(v) && v >= 200) updateActiveConfig({ cooktopWidth: v });
                               }}
                               className="w-16 px-2 py-1 rounded-lg text-xs font-bold text-white bg-[#0c0d12] border border-white/10 focus:outline-none focus:border-amber-500/60 transition-all text-center"
                             />
@@ -1674,11 +1678,42 @@ export const Editor: React.FC = () => {
                         </div>
                         <input
                           type="range"
-                          min={5}
-                          max={300}
-                          step={5}
-                          value={config.burnerSize ?? 50}
-                          onChange={(e) => updateActiveConfig({ burnerSize: parseInt(e.target.value) })}
+                          min={200}
+                          max={Math.max(1200, config.width)}
+                          step={10}
+                          value={config.cooktopWidth ?? (selectedMod.type === 'cooktop' ? config.width : config.width - 60)}
+                          onChange={(e) => updateActiveConfig({ cooktopWidth: parseInt(e.target.value) })}
+                          className="w-full h-1.5 rounded-full accent-amber-500 cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Cooktop Depth */}
+                      <div className="flex flex-col gap-2">
+                        <div className="flex justify-between items-center">
+                          <label className="text-xs text-neutral-400">Плиткний урт (гүн)</label>
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              min={200}
+                              max={1200}
+                              step={10}
+                              value={config.cooktopDepth ?? (selectedMod.type === 'cooktop' ? config.depth + 20 : config.depth - 40)}
+                              onChange={(e) => {
+                                const v = parseInt(e.target.value);
+                                if (!isNaN(v) && v >= 200) updateActiveConfig({ cooktopDepth: v });
+                              }}
+                              className="w-16 px-2 py-1 rounded-lg text-xs font-bold text-white bg-[#0c0d12] border border-white/10 focus:outline-none focus:border-amber-500/60 transition-all text-center"
+                            />
+                            <span className="text-[10px] text-amber-400 font-semibold">мм</span>
+                          </div>
+                        </div>
+                        <input
+                          type="range"
+                          min={200}
+                          max={Math.max(800, config.depth + 100)}
+                          step={10}
+                          value={config.cooktopDepth ?? (selectedMod.type === 'cooktop' ? config.depth + 20 : config.depth - 40)}
+                          onChange={(e) => updateActiveConfig({ cooktopDepth: parseInt(e.target.value) })}
                           className="w-full h-1.5 rounded-full accent-amber-500 cursor-pointer"
                         />
                       </div>

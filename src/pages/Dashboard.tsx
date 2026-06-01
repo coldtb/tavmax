@@ -28,7 +28,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigat
 
   const handleOpenProject = (proj: Project) => {
     onSelectProject(proj);
-    onNavigate('/editor');
+    onNavigate('editor');
   };
 
   const handleCreateNew = () => {
@@ -60,7 +60,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigat
     };
     addProject(newProj);
     onSelectProject(newProj);
-    onNavigate('/editor');
+    onNavigate('editor');
   };
 
   // Drag and drop
@@ -176,7 +176,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigat
     setAiResult(null);
     setAiError(null);
     setShowAiModal(false);
-    onNavigate('/editor');
+    onNavigate('editor');
   };
 
   const resetAiModal = () => {
@@ -249,7 +249,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigat
         <div className="lg:col-span-2 flex flex-col gap-4">
           <div className="flex justify-between items-center">
             <h2 className="font-display font-bold text-xl text-white">Сүүлийн төслүүд</h2>
-            <button onClick={() => onNavigate('/editor')} className="text-amber-500 text-xs hover:underline flex items-center gap-1">
+            <button onClick={() => onNavigate('editor')} className="text-amber-500 text-xs hover:underline flex items-center gap-1">
               Бүгдийг үзэх <ArrowRight size={14} />
             </button>
           </div>

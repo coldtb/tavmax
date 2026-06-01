@@ -42,12 +42,12 @@ const createWoodTexture = (): THREE.CanvasTexture => {
   canvas.height = 512;
   const ctx = canvas.getContext('2d')!;
   
-  // Warm brown base
-  ctx.fillStyle = '#92531e';
+  // White base for perfect tinting
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, 512, 512);
   
   // Draw organic wood grain lines (Horizontal)
-  ctx.strokeStyle = '#5a300d';
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.18)';
   ctx.lineWidth = 2.0;
   
   for (let i = 0; i < 70; i++) {
@@ -64,7 +64,7 @@ const createWoodTexture = (): THREE.CanvasTexture => {
   }
   
   // Fine noise fibers (Horizontal)
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.03)';
   for (let i = 0; i < 6000; i++) {
     const rx = Math.random() * 512;
     const ry = Math.random() * 512;
@@ -1354,9 +1354,13 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           } else {
             colorHex = config.bodyColor || mat.color;
           }
+          
+          const isWoodMat = mat.category === 'Egger' || mat.category === 'Plywood' || mat.id === 'mat-ct-wood' || mat.id === 'mat-1' || mat.id === 'mat-2' || mat.id === 'mat-5';
+          
           return new THREE.MeshStandardMaterial({
             color: new THREE.Color(colorHex),
-            roughness: mat.category === 'Acrylic' ? 0.05 : 0.6,
+            map: isWoodMat ? getWoodTexture() : null,
+            roughness: mat.category === 'Acrylic' ? 0.05 : (isWoodMat ? 0.35 : 0.6),
             metalness: mat.category === 'Acrylic' ? 0.1 : 0.0,
             bumpScale: 0.05,
           });
@@ -1374,6 +1378,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             const woodTex = getWoodTexture();
             return new THREE.MeshStandardMaterial({
               map: woodTex,
+              color: new THREE.Color('#d97706'), // Warm wood brown tint
               roughness: 0.35,
               metalness: 0.0,
             });
@@ -1440,17 +1445,23 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               return cloned;
             };
             
-            // Frame dimensions — smaller for drawer fronts, normal for doors
+            // Frame dimensions — similar for drawer fronts, normal for doors
             const isDrawerFront = category === 'Шургуулга';
-            const smallerDim = Math.min(w, h);
+            const doorFW = Math.max(55, Math.min(85, w * 0.20));
             const fW = isDrawerFront
-              ? Math.max(10, Math.min(20, smallerDim * 0.17))   // narrow frame for short drawers
-              : Math.max(55, Math.min(85, w * 0.20));            // normal frame for doors
-            const fT = isDrawerFront ? 6 : 10;   // thinner protrusion for drawers
+              ? Math.max(30, Math.min(doorFW, h * 0.28))   // scale frame width down if drawer is too short, but let it match door if possible
+              : doorFW;            // normal frame for doors
+            const fT = 10;   // identical protrusion for both to look similar
             // Base board front face is at local z = +9 (half of 18mm)
             // Frame sits on top of that: center at z = 9 + fT/2 = 14
             const fZ = 9 + fT / 2;
             const frameMat = getBrighter(1.18);
+
+            // Dynamic classic panel parameters scaled based on frame thickness fT
+            const grooveT = fT * 0.5;
+            const grooveZ = 9 + grooveT / 2;
+            const rfT = fT * 0.8;
+            const rfZ = 9 + rfT;
 
             // LEFT stile
             const lGeo = new THREE.BoxGeometry(fW, h, fT);
@@ -1513,9 +1524,9 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             const addPanel = (centerY: number, pH: number) => {
               if (panelInnerW < 20 || pH < 20) return;
               // Dark groove recess area
-              const grooveGeo = new THREE.BoxGeometry(panelInnerW - 2, pH - 2, 5);
+              const grooveGeo = new THREE.BoxGeometry(panelInnerW - 2, pH - 2, grooveT);
               const grooveMesh = new THREE.Mesh(grooveGeo, getDarkerMaterial(mat, 0.68));
-              grooveMesh.position.set(0, centerY, 9 + 2.5);
+              grooveMesh.position.set(0, centerY, grooveZ);
               grooveMesh.userData = { isInternalClassicPart: true };
               grooveMesh.castShadow = true; grooveMesh.receiveShadow = true;
               addOutline(grooveMesh, grooveGeo);
@@ -1525,9 +1536,9 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               const rfW = panelInnerW - 20;
               const rfH = pH - 20;
               if (rfW > 8 && rfH > 8) {
-                const rfGeo = new THREE.BoxGeometry(rfW, rfH, 8);
+                const rfGeo = new THREE.BoxGeometry(rfW, rfH, rfT);
                 const rfMesh = new THREE.Mesh(rfGeo, getBrighter(1.05));
-                rfMesh.position.set(0, centerY, 9 + 8);
+                rfMesh.position.set(0, centerY, rfZ);
                 rfMesh.userData = { isInternalClassicPart: true };
                 rfMesh.castShadow = true; rfMesh.receiveShadow = true;
                 addOutline(rfMesh, rfGeo);
@@ -1542,7 +1553,6 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             } else {
               addPanel(0, singlePanelH);
             }
-
           } else {
             geom = new THREE.BoxGeometry(w, h, d);
             mesh = new THREE.Mesh(geom, mat);
@@ -2534,12 +2544,14 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           }
 
           // Glossy black glass Cooktop Plate
+          const cW = config.cooktopWidth ?? width;
+          const cD = config.cooktopDepth ?? (depth + 20);
           const cooktopPlateY = hasCountertop ? (height + ctT_cooktop + 5) : (height + 5);
           const cooktopPlateZ = hasCountertop ? 12.5 : 0;
           const cooktopPlate = addBoard(
-            width,
+            cW,
             10,
-            depth + 20,
+            cD,
             0,
             cooktopPlateY,
             cooktopPlateZ,
@@ -2548,16 +2560,15 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             'Дээд тавиур'
           );
           
-          // Draw configurable burners on the cooktop plate
-          const bSize = Math.max(5, config.burnerSize ?? Math.round(width * 0.18));
+          // Draw auto-proportioned burners on the cooktop plate
           const bCount = config.burnerCount ?? 4;
-          const burnerGeo = new THREE.CylinderGeometry(bSize, bSize, 4, 32);
+          const clamped = Math.min(cW * 0.15, cD * 0.15); // Auto-calculated burner size (15% of minimum dimension)
+          const burnerGeo = new THREE.CylinderGeometry(clamped, clamped, 4, 32);
           const burnerMat = new THREE.MeshStandardMaterial({ color: '#111', emissive: '#f97316', emissiveIntensity: 0.55, roughness: 0.1, metalness: 0.3 });
           const burnerRingMat = new THREE.MeshStandardMaterial({ color: '#444', metalness: 0.8, roughness: 0.2 });
-          // Spacing: center each burner at (bSize + gap) from center
-          const bGap = bSize * 0.3;
-          const bSpX = bSize + bGap;
-          const bSpZ = bSize + bGap;
+          // Spacing: center each burner at 22% of the plate dimensions from center
+          const bSpX = cW * 0.22;
+          const bSpZ = cD * 0.22;
           const allBurnerPos = [
             [-bSpX, 6, -bSpZ],
             [ bSpX, 6, -bSpZ],
@@ -2568,7 +2579,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           activeBurners.forEach((pos) => {
             const burner = new THREE.Mesh(burnerGeo, burnerMat);
             burner.position.set(pos[0], pos[1], pos[2]);
-            const ringGeo = new THREE.TorusGeometry(bSize + 5, 3, 8, 32);
+            const ringGeo = new THREE.TorusGeometry(clamped + 5, 3, 8, 32);
             const ring = new THREE.Mesh(ringGeo, burnerRingMat);
             ring.rotation.x = Math.PI / 2;
             ring.position.set(pos[0], pos[1] + 4, pos[2]);
@@ -3301,13 +3312,15 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
         // Render optional built-in Cooktop/Stove (Плиткэн зуух) on top
         if (config.hasCooktop && mod.type !== 'cooktop') {
+          const cW2 = config.cooktopWidth ?? (width - 60);
+          const cD2 = config.cooktopDepth ?? (depth - 40);
           const hasCountertop = config.countertopType && config.countertopType !== 'none';
           const cooktopPlateY = hasCountertop ? (height + 38 + 5) : (height + 5);
           const cooktopPlateZ = hasCountertop ? 12.5 : 0;
           const cooktopPlate = addBoard(
-            width - 60,
+            cW2,
             10,
-            depth - 40,
+            cD2,
             0,
             cooktopPlateY,
             cooktopPlateZ,
@@ -3316,16 +3329,15 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             'Дээд тавиур'
           );
           
-          // Draw configurable burners on the cooktop plate
-          const bSize2 = Math.max(5, config.burnerSize ?? Math.round(width * 0.18));
+          // Draw auto-proportioned burners on the cooktop plate
           const bCount2 = config.burnerCount ?? 4;
-          const clamped2 = Math.min(bSize2, width * 0.22);
+          const clamped2 = Math.min(cW2 * 0.15, cD2 * 0.15); // Auto-calculated burner size (15% of minimum dimension)
           const burnerGeo2 = new THREE.CylinderGeometry(clamped2, clamped2, 4, 32);
           const burnerMat2 = new THREE.MeshStandardMaterial({ color: '#111', emissive: '#f97316', emissiveIntensity: 0.55, roughness: 0.1, metalness: 0.3 });
           const burnerRingMat2 = new THREE.MeshStandardMaterial({ color: '#444', metalness: 0.8, roughness: 0.2 });
-          const bGap2 = clamped2 * 0.3;
-          const bSpX2 = clamped2 + bGap2;
-          const bSpZ2 = clamped2 + bGap2;
+          // Spacing: center each burner at 22% of the plate dimensions from center
+          const bSpX2 = cW2 * 0.22;
+          const bSpZ2 = cD2 * 0.22;
           const allBurnerPos2 = [
             [-bSpX2, 6, -bSpZ2],
             [ bSpX2, 6, -bSpZ2],
