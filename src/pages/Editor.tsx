@@ -896,6 +896,29 @@ export const Editor: React.FC = () => {
                         <option value="stone">Чулуун тавцан (Stone)</option>
                         <option value="wood">Модон тавцан (Wood)</option>
                       </select>
+
+                      {/* Countertop thickness selector – shown only when a countertop is active */}
+                      {config.countertopType && config.countertopType !== 'none' && (
+                        <div className="flex flex-col gap-1 mt-1">
+                          <label className="text-xs text-neutral-400 font-semibold">Тавцангийн зузаан</label>
+                          <div className="flex gap-2">
+                            {([25, 40] as const).map((mm) => (
+                              <button
+                                key={mm}
+                                id={`ct-thickness-${mm}`}
+                                onClick={() => updateActiveConfig({ countertopThickness: mm })}
+                                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                                  (config.countertopThickness ?? 40) === mm
+                                    ? 'bg-amber-500 border-amber-400 text-black shadow-md shadow-amber-900/40'
+                                    : 'bg-[#0c0d12] border-white/10 text-neutral-300 hover:border-amber-500/50'
+                                }`}
+                              >
+                                {mm === 25 ? '25мм (2.5см)' : '40мм (4.0см)'}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 

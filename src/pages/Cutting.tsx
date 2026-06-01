@@ -24,15 +24,12 @@ export const Cutting: React.FC = () => {
   const nestedSheets = useMemo(() => {
     if (!activeProject || !activeProject.parts || activeProject.parts.length === 0) return [];
 
-    // Map project parts to nesting optimizer inputs
-    // Exclude stone countertops — they are ordered from stone suppliers, not cut from wood panels
-    const woodParts = activeProject.parts.filter(
-      (p) => !p.name.includes('Чулуун тавцан')
-    );
+    // Countertop material IDs — they use dedicated 4m x 600mm sheets, no rotation
+    const COUNTERTOP_MAT_IDS = new Set(['mat-ct-wood', 'mat-ct-stone']);
 
     // Group parts by materialId
-    const partsByMaterial: { [matId: string]: typeof woodParts } = {};
-    woodParts.forEach((p) => {
+    const partsByMaterial: { [matId: string]: typeof activeProject.parts } = {};
+    activeProject.parts.forEach((p) => {
       if (!partsByMaterial[p.materialId]) {
         partsByMaterial[p.materialId] = [];
       }
@@ -43,6 +40,13 @@ export const Cutting: React.FC = () => {
     let globalSheetId = 1;
 
     Object.entries(partsByMaterial).forEach(([matId, parts]) => {
+      const isCountertopMat = COUNTERTOP_MAT_IDS.has(matId);
+
+      // Countertop sheets: 4000mm long x 600mm wide, no rotation
+      const nestSheetW = isCountertopMat ? 4000 : sheetDimensions.width;
+      const nestSheetH = isCountertopMat ? 600 : sheetDimensions.height;
+      const nestRotation = isCountertopMat ? false : allowRotation;
+
       const partsInput: NestingPartInput[] = parts.map((p) => ({
         id: p.id,
         name: p.name,
@@ -53,11 +57,11 @@ export const Cutting: React.FC = () => {
       }));
 
       const sheets = runNestingOptimizer(partsInput, {
-        sheetWidth: sheetDimensions.width,
-        sheetHeight: sheetDimensions.height,
+        sheetWidth: nestSheetW,
+        sheetHeight: nestSheetH,
         kerf,
         margin,
-        allowRotation,
+        allowRotation: nestRotation,
       });
 
       sheets.forEach((sheet) => {

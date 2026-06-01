@@ -41,6 +41,7 @@ export interface FurnitureConfig {
   burnerCount?: 2 | 4;       // Давтан пластикийн тоо (2 эсвэл 4)
   burnerSize?: number;       // Давтан пластикийн радиус мм-ээр (20–80)
   doorStyle?: 'flat' | 'classic'; // Хаалганы загвар (хавтгай эсвэл сонгодог/хээтэй)
+  countertopThickness?: 25 | 40; // Тавцангийн зузаан (2.5см эсвэл 4.0см)
 }
 
 export interface Part {
@@ -94,7 +95,9 @@ export const DEFAULT_MATERIALS: Material[] = [
   { id: 'mat-5', name: 'Хусны Фанер (Plywood)', code: 'PL-18', category: 'Plywood', thickness: 18, price: 165000, stock: 150, supplier: 'Орос Фанер ХХК', color: '#e6c280' },
   { id: 'mat-6', name: 'Цагаан MDF (Зөөлөн)', code: 'MDF-16', category: 'MDF', thickness: 16, price: 110000, stock: 210, supplier: 'Вүүд Хаус ХХК', color: '#eeeeee' },
   { id: 'mat-7', name: 'ХДФ Ар тал (HDF White)', code: 'HDF-03', category: 'HDF', thickness: 3, price: 35000, stock: 400, supplier: 'Вүүд Хаус ХХК', color: '#f5f5f5' },
-  { id: 'mat-8', name: 'Шилэн хавтан (Тунгалаг, 8мм)', code: 'GL-08', category: 'Acrylic', thickness: 8, price: 95000, stock: 180, supplier: 'Шилэн Хийц ХХК', color: '#cce8f0' }
+  { id: 'mat-8', name: 'Шилэн хавтан (Тунгалаг, 8мм)', code: 'GL-08', category: 'Acrylic', thickness: 8, price: 95000, stock: 180, supplier: 'Шилэн Хийц ХХК', color: '#cce8f0' },
+  { id: 'mat-ct-wood', name: 'Модон тавцан (Бор судалтай)', code: 'CT-WOOD', category: 'Countertop', thickness: 40, price: 280000, stock: 50, supplier: 'Евро Декор ХХК', color: '#d97706' },
+  { id: 'mat-ct-stone', name: 'Чулуун тавцан (Хар судалтай цагаан гантиг)', code: 'CT-STONE', category: 'Countertop', thickness: 40, price: 450000, stock: 35, supplier: 'Шунхлай Групп', color: '#fafafa' }
 ];
 
 export const INITIAL_PROJECTS: Project[] = [

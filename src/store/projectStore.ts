@@ -311,13 +311,14 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
       // Countertop
       if (config.countertopType && config.countertopType !== 'none') {
         const isStone = config.countertopType === 'stone';
+        const ctMatId = isStone ? 'mat-ct-stone' : 'mat-ct-wood';
         parts.push({
           id: 'p-c-countertop',
           name: isStone ? 'Чулуун тавцан (Хоосон шүүгээ)' : 'Модон тавцан (Хоосон шүүгээ)',
-          width: depth + 25,
+          width: 600,
           height: width,
           quantity: 1,
-          materialId: isStone ? 'mat-3' : materialId,
+          materialId: ctMatId,
           edgeBanding: 'all-sides',
           category: 'Дээд тавиур',
           notes: isStone ? 'Чулууны цехээс бэлтгүүлнэ' : 'Талбарт зүсэж угсарна'
@@ -526,10 +527,10 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
         parts.push({
           id: 'p-kl-countertop',
           name: isStone ? 'Чулуун тавцан (Гал тогоо)' : 'Модон тавцан (Гал тогоо)',
-          width: depth + 25,
+          width: 600,
           height: width,
           quantity: 1,
-          materialId: isStone ? 'mat-3' : materialId,
+          materialId: isStone ? 'mat-ct-stone' : 'mat-ct-wood',
           edgeBanding: 'all-sides',
           category: 'Дээд тавиур',
           notes: isStone ? 'Чулууны цехээс бэлтгүүлнэ' : 'Талбарт зүсэж угсарна'
@@ -616,13 +617,14 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
 
       if (config.countertopType && config.countertopType !== 'none') {
         const isStone = config.countertopType === 'stone';
+        const ctMatId = isStone ? 'mat-ct-stone' : 'mat-ct-wood';
         parts.push({
           id: 'p-ck-countertop',
-          name: isStone ? 'Чулуун тавцан (Гал тогоо)' : 'Модон тавцан (Гал тогоо)',
-          width: depth + 25,
+          name: isStone ? 'Чулуун тавцан (Плитк)' : 'Модон тавцан (Плитк)',
+          width: 600,
           height: width,
           quantity: 1,
-          materialId: isStone ? 'mat-3' : materialId,
+          materialId: ctMatId,
           edgeBanding: 'all-sides',
           category: 'Дээд тавиур',
           notes: isStone ? 'Чулууны цехээс бэлтгүүлнэ' : 'Талбарт зүсэж угсарна'
@@ -660,13 +662,14 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
 
       if (config.countertopType && config.countertopType !== 'none') {
         const isStone = config.countertopType === 'stone';
+        const ctMatId = isStone ? 'mat-ct-stone' : 'mat-ct-wood';
         parts.push({
           id: 'p-sk-countertop',
           name: isStone ? 'Чулуун тавцан (Угаалтуур)' : 'Модон тавцан (Угаалтуур)',
-          width: depth + 25,
+          width: 600,
           height: width,
           quantity: 1,
-          materialId: isStone ? 'mat-3' : materialId,
+          materialId: ctMatId,
           edgeBanding: 'all-sides',
           category: 'Дээд тавиур',
           notes: isStone ? 'Угаалтуурын нүх гаргаж бэлтгэнэ' : 'Талбарт зүсэж угаалтуурын нүх гаргана'
@@ -900,7 +903,10 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
       }
       if (isLower && config.countertopType && config.countertopType !== 'none') {
         const isStone = config.countertopType === 'stone';
-        parts.push({ id: 'p-co-ct', name: isStone ? 'Буланд тохирох чулуун тавцан' : 'Буланд тохирох модон тавцан', width: size, height: size, quantity: 1, materialId: isStone ? 'mat-3' : materialId, edgeBanding: 'all-sides', category: 'Дээд тавиур' });
+        const ctMatId = isStone ? 'mat-ct-stone' : 'mat-ct-wood';
+        // Corner countertop: two separate 600mm-wide pieces (back arm and front arm)
+        parts.push({ id: 'p-co-ct-back', name: isStone ? 'Буланд чулуун тавцан (Ар)' : 'Буланд модон тавцан (Ар)', width: 600, height: size, quantity: 1, materialId: ctMatId, edgeBanding: 'all-sides', category: 'Дээд тавиур' });
+        parts.push({ id: 'p-co-ct-front', name: isStone ? 'Буланд чулуун тавцан (Урд)' : 'Буланд модон тавцан (Урд)', width: 600, height: size, quantity: 1, materialId: ctMatId, edgeBanding: 'all-sides', category: 'Дээд тавиур' });
       }
       break;
     }
@@ -1225,6 +1231,16 @@ export const useProjectStore = create<ProjectState>()(
     const activeMod = updatedModules.find((m) => m.id === targetModuleId);
     const rootConfig = activeMod ? activeMod.config : state.activeProject.config;
 
+    const newCtThickness = config.countertopThickness;
+    let updatedMaterials = state.materials;
+    if (newCtThickness !== undefined) {
+      updatedMaterials = state.materials.map(m => 
+        (m.id === 'mat-ct-wood' || m.id === 'mat-ct-stone') 
+          ? { ...m, thickness: newCtThickness } 
+          : m
+      );
+    }
+
     const updatedProject = {
       ...state.activeProject,
       config: rootConfig,
@@ -1235,7 +1251,8 @@ export const useProjectStore = create<ProjectState>()(
 
     return {
       activeProject: updatedProject,
-      projects: state.projects.map((p) => p.id === state.activeProject!.id ? updatedProject : p)
+      projects: state.projects.map((p) => p.id === state.activeProject!.id ? updatedProject : p),
+      materials: updatedMaterials
     };
   }),
 

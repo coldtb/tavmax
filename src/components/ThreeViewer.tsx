@@ -46,24 +46,24 @@ const createWoodTexture = (): THREE.CanvasTexture => {
   ctx.fillStyle = '#92531e';
   ctx.fillRect(0, 0, 512, 512);
   
-  // Draw organic wood grain lines
+  // Draw organic wood grain lines (Horizontal)
   ctx.strokeStyle = '#5a300d';
   ctx.lineWidth = 2.0;
   
   for (let i = 0; i < 70; i++) {
     ctx.beginPath();
-    const startX = Math.random() * 512;
-    ctx.moveTo(startX, 0);
+    const startY = Math.random() * 512;
+    ctx.moveTo(0, startY);
     
-    let currentX = startX;
-    for (let y = 10; y <= 512; y += 10) {
-      currentX += Math.sin(y * 0.04 + startX) * 0.9 + (Math.random() - 0.5) * 0.6;
-      ctx.lineTo(currentX, y);
+    let currentY = startY;
+    for (let x = 10; x <= 512; x += 10) {
+      currentY += Math.sin(x * 0.04 + startY) * 0.9 + (Math.random() - 0.5) * 0.6;
+      ctx.lineTo(x, currentY);
     }
     ctx.stroke();
   }
   
-  // Fine noise fibers
+  // Fine noise fibers (Horizontal)
   ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
   for (let i = 0; i < 6000; i++) {
     const rx = Math.random() * 512;
@@ -1401,11 +1401,30 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           
           let geom: THREE.BufferGeometry;
           let mesh: THREE.Mesh;
+
+          const getDarkerMaterial = (baseMat: THREE.Material, factor: number) => {
+            const cloned = baseMat.clone();
+            if ((cloned as any).color) {
+              (cloned as any).color.multiplyScalar(factor);
+            }
+            return cloned;
+          };
+
+          const addOutline = (m: THREE.Mesh, g: THREE.BufferGeometry) => {
+            const edges = new THREE.EdgesGeometry(g);
+            const lineMat = new THREE.LineBasicMaterial({
+              color: 0x0a0a0e,
+              transparent: true,
+              opacity: 0.55
+            });
+            const line = new THREE.LineSegments(edges, lineMat);
+            m.add(line);
+          };
           
           if (isClassicDoor) {
-            // Create a base board (12mm thick)
-            geom = new THREE.BoxGeometry(w, h, 12);
-            mesh = new THREE.Mesh(geom, mat);
+            // BASE BOARD — darker background for deep groove shadow effect
+            geom = new THREE.BoxGeometry(w, h, 18);
+            mesh = new THREE.Mesh(geom, getDarkerMaterial(mat, 0.72));
             
             // Override add to adjust external child positions (e.g. handles)
             const originalAdd = mesh.add.bind(mesh);
@@ -1414,95 +1433,140 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                 if (obj.userData && obj.userData.isInternalClassicPart) {
                   originalAdd(obj);
                 } else {
-                  // External child like a handle
-                  obj.position.z += 3;
+                  // External child like a handle — push forward past the frame
+                  obj.position.z += 6;
                   originalAdd(obj);
                 }
               });
               return mesh;
             };
             
-            // Add classic frame border moldings (6mm thick, 70mm wide)
-            const fW = Math.min(70, w * 0.25);
-            const fT = 6;
-            const frameMat = mat;
+            // Frame width: min 80mm or 22% of door width
+            const fW = Math.max(60, Math.min(90, w * 0.22));
+            // Frame molding THICKNESS — 12mm so it casts real shadow into the groove
+            const fT = 12;
+            // Frame sits flush with front face of base board (z= 9 + fT/2 = 15)
+            const fZ = 9 + fT / 2;
+
+            // Use a BRIGHTER version of the door material for the frame moldings
+            const getBrighterMaterial = (baseMat: THREE.Material, factor: number) => {
+              const cloned = baseMat.clone();
+              if ((cloned as any).color) {
+                (cloned as any).color.multiplyScalar(factor);
+              }
+              return cloned;
+            };
+            const frameMat2 = getBrighterMaterial(mat, 1.12);
             
-            // Left Frame
+            // LEFT stile
             const leftGeo = new THREE.BoxGeometry(fW, h, fT);
-            const leftMesh = new THREE.Mesh(leftGeo, frameMat);
+            const leftMesh = new THREE.Mesh(leftGeo, frameMat2);
             leftMesh.castShadow = true;
             leftMesh.receiveShadow = true;
-            leftMesh.position.set(-w / 2 + fW / 2, 0, 6 + fT / 2);
+            leftMesh.position.set(-w / 2 + fW / 2, 0, fZ);
             leftMesh.userData = { isInternalClassicPart: true };
+            addOutline(leftMesh, leftGeo);
             mesh.add(leftMesh);
             
-            // Right Frame
+            // RIGHT stile
             const rightGeo = new THREE.BoxGeometry(fW, h, fT);
-            const rightMesh = new THREE.Mesh(rightGeo, frameMat);
+            const rightMesh = new THREE.Mesh(rightGeo, frameMat2);
             rightMesh.castShadow = true;
             rightMesh.receiveShadow = true;
-            rightMesh.position.set(w / 2 - fW / 2, 0, 6 + fT / 2);
+            rightMesh.position.set(w / 2 - fW / 2, 0, fZ);
             rightMesh.userData = { isInternalClassicPart: true };
+            addOutline(rightMesh, rightGeo);
             mesh.add(rightMesh);
             
-            // Top Rail
-            const topGeo = new THREE.BoxGeometry(w - 2 * fW, fW, fT);
-            const topMesh = new THREE.Mesh(topGeo, frameMat);
+            // TOP rail
+            const railW = w - 2 * fW;
+            const topGeo = new THREE.BoxGeometry(railW, fW, fT);
+            const topMesh = new THREE.Mesh(topGeo, frameMat2);
             topMesh.castShadow = true;
             topMesh.receiveShadow = true;
-            topMesh.position.set(0, h / 2 - fW / 2, 6 + fT / 2);
+            topMesh.position.set(0, h / 2 - fW / 2, fZ);
             topMesh.userData = { isInternalClassicPart: true };
+            addOutline(topMesh, topGeo);
             mesh.add(topMesh);
             
-            // Bottom Rail
-            const botGeo = new THREE.BoxGeometry(w - 2 * fW, fW, fT);
-            const botMesh = new THREE.Mesh(botGeo, frameMat);
+            // BOTTOM rail
+            const botGeo = new THREE.BoxGeometry(railW, fW, fT);
+            const botMesh = new THREE.Mesh(botGeo, frameMat2);
             botMesh.castShadow = true;
             botMesh.receiveShadow = true;
-            botMesh.position.set(0, -h / 2 + fW / 2, 6 + fT / 2);
+            botMesh.position.set(0, -h / 2 + fW / 2, fZ);
             botMesh.userData = { isInternalClassicPart: true };
+            addOutline(botMesh, botGeo);
             mesh.add(botMesh);
+
+            // MIDDLE rail (only for tall doors > 900mm)
+            if (h > 900) {
+              const midGeo = new THREE.BoxGeometry(railW, fW * 0.85, fT);
+              const midMesh = new THREE.Mesh(midGeo, frameMat2);
+              midMesh.castShadow = true;
+              midMesh.receiveShadow = true;
+              midMesh.position.set(0, 0, fZ);
+              midMesh.userData = { isInternalClassicPart: true };
+              addOutline(midMesh, midGeo);
+              mesh.add(midMesh);
+            }
             
-            // Classic Raised Panel (3-tier step chamfer)
-            const innerW = w - 2 * fW - 12;
-            const innerH = h - 2 * fW - 12;
-            
-            if (innerW > 20 && innerH > 20) {
-              // Base raised panel
-              const pBaseGeo = new THREE.BoxGeometry(innerW, innerH, 2);
-              const pBase = new THREE.Mesh(pBaseGeo, frameMat);
-              pBase.castShadow = true;
-              pBase.receiveShadow = true;
-              pBase.position.set(0, 0, 6 + 1);
-              pBase.userData = { isInternalClassicPart: true };
-              mesh.add(pBase);
-              
-              // Mid-level raised step
-              const pMidW = innerW - 16;
-              const pMidH = innerH - 16;
+            // RAISED PANELS — recessed sunken field inside the frame opening
+            // Panel is INSIDE the opening: x from (-w/2+fW) to (w/2-fW), y from (-h/2+fW) to (h/2-fW)
+            const innerW = w - 2 * fW;
+            const innerH = h > 900 ? (h - 2 * fW - fW * 0.85) / 2 - 6 : (h - 2 * fW - 12);
+
+            const buildPanel = (panelCenterY: number) => {
+              if (innerW < 20 || innerH < 20) return;
+
+              // Outer stepped border of the panel (chamfer ring) — slightly darker
+              const pBorderGeo = new THREE.BoxGeometry(innerW - 4, innerH - 4, 6);
+              const pBorder = new THREE.Mesh(pBorderGeo, getDarkerMaterial(mat, 0.82));
+              pBorder.castShadow = true;
+              pBorder.receiveShadow = true;
+              pBorder.position.set(0, panelCenterY, 9 + 3);
+              pBorder.userData = { isInternalClassicPart: true };
+              addOutline(pBorder, pBorderGeo);
+              mesh.add(pBorder);
+
+              // Inner chamfer step — medium
+              const pMidW = innerW - 20;
+              const pMidH = innerH - 20;
               if (pMidW > 10 && pMidH > 10) {
-                const pMidGeo = new THREE.BoxGeometry(pMidW, pMidH, 2.5);
-                const pMid = new THREE.Mesh(pMidGeo, frameMat);
+                const pMidGeo = new THREE.BoxGeometry(pMidW, pMidH, 5);
+                const pMid = new THREE.Mesh(pMidGeo, getDarkerMaterial(mat, 0.90));
                 pMid.castShadow = true;
                 pMid.receiveShadow = true;
-                pMid.position.set(0, 0, 6 + 2.25);
+                pMid.position.set(0, panelCenterY, 9 + 5);
                 pMid.userData = { isInternalClassicPart: true };
+                addOutline(pMid, pMidGeo);
                 mesh.add(pMid);
               }
-              
-              // Top flat field
-              const pTopW = innerW - 32;
-              const pTopH = innerH - 32;
+
+              // Flat centre field — nearly full brightness
+              const pTopW = innerW - 36;
+              const pTopH = innerH - 36;
               if (pTopW > 5 && pTopH > 5) {
-                const pTopGeo = new THREE.BoxGeometry(pTopW, pTopH, 3.5);
-                const pTop = new THREE.Mesh(pTopGeo, frameMat);
+                const pTopGeo = new THREE.BoxGeometry(pTopW, pTopH, 4);
+                const pTop = new THREE.Mesh(pTopGeo, getDarkerMaterial(mat, 0.97));
                 pTop.castShadow = true;
                 pTop.receiveShadow = true;
-                pTop.position.set(0, 0, 6 + 3.75);
+                pTop.position.set(0, panelCenterY, 9 + 7.5);
                 pTop.userData = { isInternalClassicPart: true };
+                addOutline(pTop, pTopGeo);
                 mesh.add(pTop);
               }
+            };
+
+            if (h > 900) {
+              // Two panels split by middle rail
+              const panelOffset = innerH / 2 + fW * 0.425 + 3;
+              buildPanel(panelOffset);
+              buildPanel(-panelOffset);
+            } else {
+              buildPanel(0);
             }
+
           } else {
             geom = new THREE.BoxGeometry(w, h, d);
             mesh = new THREE.Mesh(geom, mat);
@@ -1510,6 +1574,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           
           mesh.castShadow = true;
           mesh.receiveShadow = true;
+          addOutline(mesh, geom);
 
           mesh.userData = {
             id: userData.id || `p-gen-${category.toLowerCase().replace(/ /g, '-')}-${Date.now()}-${Math.random()}`,
@@ -1941,12 +2006,14 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           // Render Countertop if active
           if (config.countertopType && config.countertopType !== 'none') {
             const ctMat = getCountertopMaterial(config.countertopType);
+            const ctT = config.countertopThickness ?? 40;
+            const ctHalf = ctT / 2;
             addBoard(
               width,
-              38,
+              ctT,
               depth + 25,
               0,
-              height + 19,
+              height + ctHalf,
               12.5,
               ctMat,
               isStone ? 'Чулуун тавцан (Гал тогоо)' : 'Модон тавцан (Гал тогоо)',
@@ -2288,10 +2355,12 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           // ── COUNTERTOP (L-shaped, two pieces) ────────────────────────────────
           if (isLower && config.countertopType && config.countertopType !== 'none') {
             const ctMat = getCountertopMaterial(config.countertopType);
+            const ctT = config.countertopThickness ?? 40;
+            const ctHalf = ctT / 2;
             // Back arm countertop (full width, z from -hs to 0)
-            addBoard(S, 38, hs+25, 0, height+19, -hs/2+12.5, ctMat, 'Буланд тавцан – Ар', 'Дээд тавиур');
+            addBoard(S, ctT, hs+25, 0, height+ctHalf, -hs/2+12.5, ctMat, 'Буланд тавцан – Ар', 'Дээд тавиур');
             // Front arm countertop (x from -hs to 0, z from 0 to +hs)
-            addBoard(hs, 38, hs+25, -hs/2, height+19, hs/2+12.5, ctMat, 'Буланд тавцан – Урд', 'Дээд тавиур');
+            addBoard(hs, ctT, hs+25, -hs/2, height+ctHalf, hs/2+12.5, ctMat, 'Буланд тавцан – Урд', 'Дээд тавиур');
           }
 
         } else if (mod.type === 'kitchen_upper') {
@@ -2466,23 +2535,24 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
           // Render Countertop if active
           const hasCountertop = config.countertopType && config.countertopType !== 'none';
+          const ctT_cooktop = config.countertopThickness ?? 40;
           if (hasCountertop) {
             const ctMat = getCountertopMaterial(config.countertopType);
             addBoard(
               width,
-              38,
+              ctT_cooktop,
               depth + 25,
               0,
-              height + 19,
+              height + ctT_cooktop / 2,
               12.5,
               ctMat,
-              isStone ? 'Чулуун тавцан (Гал тогоо)' : 'Модон тавцан (Гал тогоо)',
+              isStone ? 'Чулуун тавцан (Плитк)' : 'Модон тавцан (Плитк)',
               'Дээд тавиур'
             );
           }
 
           // Glossy black glass Cooktop Plate
-          const cooktopPlateY = hasCountertop ? (height + 38 + 5) : (height + 5);
+          const cooktopPlateY = hasCountertop ? (height + ctT_cooktop + 5) : (height + 5);
           const cooktopPlateZ = hasCountertop ? 12.5 : 0;
           const cooktopPlate = addBoard(
             width,
@@ -2551,14 +2621,15 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
           // Render Countertop if active
           const hasCountertop = config.countertopType && config.countertopType !== 'none';
+          const ctT_sink = config.countertopThickness ?? 40;
           if (hasCountertop) {
             const ctMat = getCountertopMaterial(config.countertopType);
             addBoard(
               width,
-              38,
+              ctT_sink,
               depth + 25,
               0,
-              height + 19,
+              height + ctT_sink / 2,
               12.5,
               ctMat,
               isStone ? 'Чулуун тавцан (Угаалтуур)' : 'Модон тавцан (Угаалтуур)',
@@ -2569,7 +2640,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           // Render Sink Basin (Угаалтуурын тосгуур) sitting on/in countertop
           const sinkW = width * 0.65;
           const sinkD = depth * 0.7;
-          const sinkY = hasCountertop ? (height + 38 + 2) : (height + 2);
+          const sinkY = hasCountertop ? (height + ctT_sink + 2) : (height + 2);
           const sinkZ = hasCountertop ? 12.5 : 0;
           const steelMat = new THREE.MeshStandardMaterial({ color: '#9ca3af', metalness: 0.85, roughness: 0.25 });
           
