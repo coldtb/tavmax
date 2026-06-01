@@ -1363,19 +1363,18 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
         };
 
         const getCountertopMaterial = (ctType: string) => {
-          const isStone = ctType === 'stone';
-          if (isStone) {
-            const stoneTex = getMarbleTexture();
+          if (ctType === 'stone') {
+            // Clean white/grey marble — no texture, no seam
             return new THREE.MeshStandardMaterial({
-              map: stoneTex,
-              roughness: 0.15,
-              metalness: 0.05,
+              color: new THREE.Color('#e6e2dc'),
+              roughness: 0.10,
+              metalness: 0.04,
             });
           } else {
-            const woodTex = getWoodTexture();
+            // Warm wood brown — solid, no grain lines
             return new THREE.MeshStandardMaterial({
-              map: woodTex,
-              roughness: 0.4,
+              color: new THREE.Color('#b8864e'),
+              roughness: 0.30,
               metalness: 0.0,
             });
           }
@@ -1398,7 +1397,10 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           category: string,
           userData: any = {}
         ) => {
-          const isClassicDoor = category === 'Хаалга' && config.doorStyle === 'classic' && !name.includes('шил') && !name.includes('Шил');
+          // Classic style applies to doors AND drawer fronts
+          const isDrawerFront = category === 'Шургуулга';
+          const isDoorOrDrawer = category === 'Хаалга' || isDrawerFront;
+          const isClassicDoor = isDoorOrDrawer && config.doorStyle === 'classic' && !name.includes('шил') && !name.includes('Шил');
           
           let geom: THREE.BufferGeometry;
           let mesh: THREE.Mesh;
@@ -1434,9 +1436,13 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               return cloned;
             };
             
-            // Frame dimensions
-            const fW = Math.max(55, Math.min(85, w * 0.20));
-            const fT = 10;   // frame molding protrusion beyond base board front
+            // Frame dimensions — smaller for drawer fronts, normal for doors
+            const isDrawerFront = category === 'Шургуулга';
+            const smallerDim = Math.min(w, h);
+            const fW = isDrawerFront
+              ? Math.max(10, Math.min(20, smallerDim * 0.17))   // narrow frame for short drawers
+              : Math.max(55, Math.min(85, w * 0.20));            // normal frame for doors
+            const fT = isDrawerFront ? 6 : 10;   // thinner protrusion for drawers
             // Base board front face is at local z = +9 (half of 18mm)
             // Frame sits on top of that: center at z = 9 + fT/2 = 14
             const fZ = 9 + fT / 2;
@@ -1540,7 +1546,11 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           
           mesh.castShadow = true;
           mesh.receiveShadow = true;
-          addOutline(mesh, geom);
+          // Don't add outline to countertop boards — prevents visible seam lines between adjacent modules
+          const isCountertopBoard = name.toLowerCase().includes('тавцан');
+          if (!isCountertopBoard) {
+            addOutline(mesh, geom);
+          }
 
           mesh.userData = {
             id: userData.id || `p-gen-${category.toLowerCase().replace(/ /g, '-')}-${Date.now()}-${Math.random()}`,
