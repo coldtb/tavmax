@@ -141,6 +141,11 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
     let parentModuleGroup: THREE.Group | null = null;
     let draggedShelfIndex = -1;
 
+    // Partition drag-and-drop state variables
+    let isDraggingPartition = false;
+    let draggedPartitionMesh: THREE.Mesh | null = null;
+    let draggedPartitionIndex = -1;
+
     try {
       // 1. Scene setup
       const scene = new THREE.Scene();
@@ -391,6 +396,46 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             }
             return;
           }
+          // Check if we hit a vertical partition to drag it horizontally
+          else if (hitObj.userData.category === 'Хуваалт' && hitObj.userData.partitionIndex !== undefined && hitObj instanceof THREE.Mesh) {
+            isDraggingPartition = true;
+            draggedPartitionMesh = hitObj;
+            draggedPartitionIndex = hitObj.userData.partitionIndex;
+
+            // Find parent module group
+            let obj: THREE.Object3D | null = hitObj;
+            let group: THREE.Group | null = null;
+            while (obj && obj !== scene) {
+              if (obj.parent === furnitureGroup) {
+                group = obj as THREE.Group;
+                break;
+              }
+              obj = obj.parent;
+            }
+            parentModuleGroup = group;
+
+            if (group) {
+              setSelectedModuleId(group.name); // Select this module in store
+              controlsRef.current.enabled = false; // Disable camera panning/orbiting
+
+              // Glow partition drag effect (warm amber/yellow glow)
+              if (hitObj.material && !Array.isArray(hitObj.material)) {
+                const mat = hitObj.material as any;
+                if (mat.emissive) {
+                  mat.emissive.setHex(0x3f320b); // warm amber glow
+                }
+              }
+
+              // Set drag projection plane perpendicular to camera direction facing the front
+              const camDir = new THREE.Vector3();
+              cameraRef.current.getWorldDirection(camDir);
+              const planeNormal = new THREE.Vector3(camDir.x, 0, camDir.z).normalize();
+              const worldPos = new THREE.Vector3();
+              hitObj.getWorldPosition(worldPos);
+              dragPlane.setFromNormalAndCoplanarPoint(planeNormal, worldPos);
+            }
+            return;
+          }
 
           // Otherwise drag the entire module
           // Trace up to find top-level group directly under furnitureGroup
@@ -545,19 +590,61 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           return;
         }
 
-        // Set cursor to ns-resize when hovering over a draggable shelf
-        if (!isDragging && !isDraggingShelf && !measureModeRef.current) {
+        // ── PARTITION DRAG MODE ──
+        if (isDraggingPartition && draggedPartitionMesh && parentModuleGroup) {
+          raycaster.setFromCamera(mouse, cameraRef.current);
+          if (raycaster.ray.intersectPlane(dragPlane, dragIntersection)) {
+            const currentModuleId = parentModuleGroup.name;
+            const activeMod = projectRef.current.modules || [];
+            const activeModItem = activeMod.find(m => m.id === currentModuleId);
+            if (activeModItem) {
+              const config = activeModItem.config;
+              const width = Number(config.width) || 0;
+              const halfW = width / 2;
+              const dPositions = config.dividerPositions || [];
+              const localPartitionIdx = draggedPartitionMesh.userData.partitionIndex;
+
+              // Calculate X position relative to left outer edge (ranges 0 to width)
+              let relativeX = dragIntersection.x - parentModuleGroup.position.x + halfW;
+
+              // Neighbor limits to prevent overlapping
+              const minVal = localPartitionIdx === 0 ? 100 : (dPositions[localPartitionIdx - 1] || 0) + 100;
+              const maxVal = localPartitionIdx === dPositions.length - 1 ? width - 100 : (dPositions[localPartitionIdx + 1] || width) - 100;
+
+              const clampedX = Math.max(minVal, Math.min(maxVal, relativeX));
+
+              // Update the 3D mesh X position visually
+              draggedPartitionMesh.position.x = -halfW + clampedX;
+
+              // Update the userData.baseX so that it stays in place during render loop interpolation
+              draggedPartitionMesh.userData.baseX = -halfW + clampedX;
+            }
+          }
+          return;
+        }
+
+        // Set cursor to ns-resize when hovering over a draggable shelf, or ew-resize when hovering over a draggable partition
+        if (!isDragging && !isDraggingShelf && !isDraggingPartition && !measureModeRef.current) {
           raycaster.setFromCamera(mouse, cameraRef.current);
           const intersects = raycaster.intersectObjects(furnitureGroup.children, true);
           let hoverShelf = false;
+          let hoverPartition = false;
           if (intersects.length > 0) {
             const hitObj = intersects[0].object;
             if (hitObj.userData.category === 'Дээд тавиур' && hitObj.userData.shelfIndex !== undefined) {
               hoverShelf = true;
+            } else if (hitObj.userData.category === 'Хуваалт' && hitObj.userData.partitionIndex !== undefined) {
+              hoverPartition = true;
             }
           }
           if (rendererRef.current?.domElement) {
-            rendererRef.current.domElement.style.cursor = hoverShelf ? 'ns-resize' : 'default';
+            if (hoverShelf) {
+              rendererRef.current.domElement.style.cursor = 'ns-resize';
+            } else if (hoverPartition) {
+              rendererRef.current.domElement.style.cursor = 'ew-resize';
+            } else {
+              rendererRef.current.domElement.style.cursor = 'default';
+            }
           }
         }
 
@@ -675,6 +762,43 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           draggedShelfMesh = null;
           parentModuleGroup = null;
           draggedShelfIndex = -1;
+          return;
+        }
+
+        // Handle partition dragging commit
+        if (isDraggingPartition && draggedPartitionMesh && parentModuleGroup) {
+          isDraggingPartition = false;
+          if (controlsRef.current) controlsRef.current.enabled = true; // Re-enable camera orbiting
+
+          // Clear highlight glow
+          if (draggedPartitionMesh.material && !Array.isArray(draggedPartitionMesh.material)) {
+            const mat = draggedPartitionMesh.material as any;
+            if (mat.emissive) {
+              mat.emissive.setHex(0x000000);
+            }
+          }
+
+          // Commit X position change to the store
+          const currentModuleId = parentModuleGroup.name;
+          const activeMod = projectRef.current.modules || [];
+          const activeModItem = activeMod.find(m => m.id === currentModuleId);
+          if (activeModItem) {
+            const config = activeModItem.config;
+            const width = Number(config.width) || 0;
+            const halfW = width / 2;
+            const dPositions = config.dividerPositions || [];
+            
+            // Calculate final relative position from left outer edge
+            const finalX = draggedPartitionMesh.position.x + halfW;
+            
+            const newPos = [...dPositions];
+            newPos[draggedPartitionIndex] = Math.round(finalX);
+            updateActiveConfig({ dividerPositions: newPos });
+          }
+
+          draggedPartitionMesh = null;
+          parentModuleGroup = null;
+          draggedPartitionIndex = -1;
           return;
         }
 
@@ -1147,7 +1271,12 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                 pz = 0;
               }
 
-              const boardMesh = addBoard(w, h, d, px, py, pz, mat, part.name, part.category, { id: `${part.id}-${qIdx}` });
+              const partitionMatch = part.id.match(/div-(\d+)/);
+              const partitionIdx = partitionMatch ? parseInt(partitionMatch[1]) : undefined;
+              const boardMesh = addBoard(w, h, d, px, py, pz, mat, part.name, part.category, {
+                id: `${part.id}-${qIdx}`,
+                partitionIndex: partitionIdx
+              });
 
               if (part.category === 'Шургуулга' && handleType !== 'none') {
                 const handleGeom = new THREE.CylinderGeometry(4, 4, Math.min(120, w * 0.4), 16);
@@ -1184,7 +1313,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           // Dividers
           for (let i = 0; i < partitions; i++) {
             const dx = -halfW + dPositions[i];
-            addBoard(18, bodyHeight - 36, depth - 10, dx, legHeight + bodyHeight / 2, 5, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт');
+            addBoard(18, bodyHeight - 36, depth - 10, dx, legHeight + bodyHeight / 2, 5, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт', { partitionIndex: i });
           }
 
           // Shelves
@@ -1234,7 +1363,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           // Dividers
           for (let i = 0; i < partitions; i++) {
             const dx = -halfW + dPositions[i];
-            addBoard(18, bodyHeight - 36, depth - 20, dx, legHeight + bodyHeight / 2, 10, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт');
+            addBoard(18, bodyHeight - 36, depth - 20, dx, legHeight + bodyHeight / 2, 10, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт', { partitionIndex: i });
           }
 
           // Shelves
@@ -1357,7 +1486,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           // Dividers
           for (let i = 0; i < partitionsCount; i++) {
             const dx = -halfW + dPositions[i];
-            addBoard(18, bodyHeight - 36, depth - 20, dx, legHeight + bodyHeight / 2, 0, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт');
+            addBoard(18, bodyHeight - 36, depth - 20, dx, legHeight + bodyHeight / 2, 0, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт', { partitionIndex: i });
           }
 
           // Shelves
@@ -1642,7 +1771,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           // Dividers
           for (let i = 0; i < partitionsCount; i++) {
             const dx = -halfW + dPositions[i];
-            addBoard(18, height - 36, depth - 20, dx, height / 2, 0, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт');
+            addBoard(18, height - 36, depth - 20, dx, height / 2, 0, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт', { partitionIndex: i });
           }
 
           // Shelves
@@ -2427,7 +2556,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           // Dividers
           for (let i = 0; i < partitions; i++) {
             const dx = -halfW + dPositions[i];
-            addBoard(18, bodyHeight - 36, depth - 20, dx, legHeight + bodyHeight / 2, 10, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт');
+            addBoard(18, bodyHeight - 36, depth - 20, dx, legHeight + bodyHeight / 2, 10, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт', { partitionIndex: i });
           }
 
           // Distribute doors, drawers, shelves across sections
