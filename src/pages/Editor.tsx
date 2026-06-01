@@ -883,45 +883,6 @@ export const Editor: React.FC = () => {
                     </label>
                   </div>
 
-                  {/* Countertop status */}
-                  {(selectedMod.type === 'custom' || selectedMod.type === 'kitchen_lower' || selectedMod.type === 'cooktop' || selectedMod.type === 'sink' || selectedMod.type === 'corner_lower') && (
-                    <div className="flex flex-col gap-1.5 border-t border-white/5 pt-3">
-                      <label className="text-xs text-neutral-400 font-semibold">Тавцангийн төрөл (Countertop)</label>
-                      <select
-                        value={config.countertopType || 'none'}
-                        onChange={(e) => updateActiveConfig({ countertopType: e.target.value as any })}
-                        className="w-full bg-[#0c0d12] border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-amber-500 cursor-pointer"
-                      >
-                        <option value="none">Байхгүй</option>
-                        <option value="stone">Чулуун тавцан (Stone)</option>
-                        <option value="wood">Модон тавцан (Wood)</option>
-                      </select>
-
-                      {/* Countertop thickness selector – shown only when a countertop is active */}
-                      {config.countertopType && config.countertopType !== 'none' && (
-                        <div className="flex flex-col gap-1 mt-1">
-                          <label className="text-xs text-neutral-400 font-semibold">Тавцангийн зузаан</label>
-                          <div className="flex gap-2">
-                            {([25, 40] as const).map((mm) => (
-                              <button
-                                key={mm}
-                                id={`ct-thickness-${mm}`}
-                                onClick={() => updateActiveConfig({ countertopThickness: mm })}
-                                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                                  (config.countertopThickness ?? 40) === mm
-                                    ? 'bg-amber-500 border-amber-400 text-black shadow-md shadow-amber-900/40'
-                                    : 'bg-[#0c0d12] border-white/10 text-neutral-300 hover:border-amber-500/50'
-                                }`}
-                              >
-                                {mm === 25 ? '25мм (2.5см)' : '40мм (4.0см)'}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
                   {/* Glass Left/Right options for Vitrine */}
                   {selectedMod.type === 'vitrine' && (
                     <div className="flex flex-col gap-2.5 border-t border-white/5 pt-3">
@@ -1402,6 +1363,47 @@ export const Editor: React.FC = () => {
                     </label>
                   </div>
 
+                  {/* Countertop selector — wood / stone / none */}
+                  {(selectedMod.type === 'custom' || selectedMod.type === 'kitchen_lower' || selectedMod.type === 'cooktop' || selectedMod.type === 'sink' || selectedMod.type === 'corner_lower') && (
+                    <div className="flex flex-col gap-1.5 mb-3 border border-white/5 bg-[#0c0d12]/30 p-3 rounded-xl">
+                      <label className="text-[11px] text-neutral-400 font-semibold uppercase tracking-wider">🪨 Тавцан (Countertop)</label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {(['none', 'stone', 'wood'] as const).map((v) => (
+                          <button
+                            key={v}
+                            type="button"
+                            onClick={() => updateActiveConfig({ countertopType: v })}
+                            className={`py-1.5 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
+                              (config.countertopType || 'none') === v
+                                ? 'bg-amber-500 border-amber-400 text-black'
+                                : 'bg-[#0c0d12] border-white/10 text-neutral-300 hover:border-amber-400/50'
+                            }`}
+                          >
+                            {v === 'none' ? 'Байхгүй' : v === 'stone' ? '🪨 Чулуун' : '🪵 Модон'}
+                          </button>
+                        ))}
+                      </div>
+                      {(config.countertopType && config.countertopType !== 'none') && (
+                        <div className="flex gap-2 mt-1">
+                          {([25, 40] as const).map((mm) => (
+                            <button
+                              key={mm}
+                              type="button"
+                              onClick={() => updateActiveConfig({ countertopThickness: mm })}
+                              className={`flex-1 py-1 rounded-lg text-[10px] font-semibold border transition-all ${
+                                (config.countertopThickness ?? 40) === mm
+                                  ? 'bg-amber-500/20 border-amber-500 text-amber-400'
+                                  : 'bg-[#0c0d12] border-white/10 text-neutral-400 hover:border-amber-500/40'
+                              }`}
+                            >
+                              {mm === 25 ? '25мм' : '40мм'}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Doors config or count */}
                   {(selectedMod.type === 'custom' || selectedMod.type === 'kitchen_lower' || selectedMod.type === 'kitchen_upper' || selectedMod.type === 'built_in_hood' || selectedMod.type === 'sink' || selectedMod.type === 'cabinet' || selectedMod.type === 'vitrine' || selectedMod.type === 'cooktop' || selectedMod.type === 'wardrobe') && (
                     <div className="flex flex-col gap-2">
@@ -1538,14 +1540,19 @@ export const Editor: React.FC = () => {
                       ) : (
                         <div className="flex flex-col gap-1.5 mt-1 bg-[#0c0d12]/30 border border-white/5 p-3 rounded-xl">
                           <label className="text-[11px] text-neutral-400 font-semibold">Хаалганы тоо</label>
-                          <input
-                            type="number"
-                            min={0}
-                            max={6}
-                            value={config.doors}
-                            onChange={(e) => updateActiveConfig({ doors: Math.max(0, parseInt(e.target.value) || 0) })}
-                            className="w-full bg-[#0c0d12] border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-amber-500"
-                          />
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => updateActiveConfig({ doors: Math.max(0, Number(config.doors) - 1) })}
+                              className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0c0d12] border border-white/10 text-white text-base font-bold hover:border-amber-500/60 transition-all"
+                            >−</button>
+                            <span className="flex-1 text-center text-white text-sm font-bold">{Number(config.doors)}</span>
+                            <button
+                              type="button"
+                              onClick={() => updateActiveConfig({ doors: Math.min(10, Number(config.doors) + 1) })}
+                              className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0c0d12] border border-white/10 text-white text-base font-bold hover:border-amber-500/60 transition-all"
+                            >+</button>
+                          </div>
                         </div>
                       )}
 
