@@ -54,6 +54,8 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
   const projectRef = useRef(project);
   const enableSnappingRef = useRef(enableSnapping);
+  const explodeRef = useRef(explode);
+  const openDoorsRef = useRef(openDoors);
 
   useEffect(() => {
     projectRef.current = project;
@@ -62,6 +64,14 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
   useEffect(() => {
     enableSnappingRef.current = enableSnapping;
   }, [enableSnapping]);
+
+  useEffect(() => {
+    explodeRef.current = explode;
+  }, [explode]);
+
+  useEffect(() => {
+    openDoorsRef.current = openDoors;
+  }, [openDoors]);
 
   const selectedModuleId = useProjectStore((s) => s.selectedModuleId);
   const updateModulePosition = useProjectStore((s) => s.updateModulePosition);
@@ -1074,8 +1084,8 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
         animId = requestAnimationFrame(animate);
         
         // Interpolate animation factors for smooth transitions
-        animState.current.explodeFactor += ( (explode ? 1 : 0) - animState.current.explodeFactor ) * 0.1;
-        animState.current.doorOpenFactor += ( (openDoors ? 1 : 0) - animState.current.doorOpenFactor ) * 0.08;
+        animState.current.explodeFactor += ( (explodeRef.current ? 1 : 0) - animState.current.explodeFactor ) * 0.1;
+        animState.current.doorOpenFactor += ( (openDoorsRef.current ? 1 : 0) - animState.current.doorOpenFactor ) * 0.08;
 
         // Update interactive transformations inside groups
         updatePiecePositions();
