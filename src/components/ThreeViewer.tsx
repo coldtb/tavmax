@@ -1242,8 +1242,9 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
         if (renderer) renderer.dispose();
       };
     } catch (err: any) {
-      setEngineError(err.stack || err.message);
-      console.error(err);
+      const msg = err?.stack || err?.message || (typeof err === 'object' ? JSON.stringify(err) : String(err));
+      setEngineError(msg);
+      console.error('ThreeViewer init error:', err);
     }
   }, []);
 
@@ -3501,10 +3502,11 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
       }
     } catch (err: any) {
       if ((window as any).tavmaxLog) {
-        (window as any).tavmaxLog(`buildFurnitureModel crashed: ${err.stack || err.message}`);
+        (window as any).tavmaxLog(`buildFurnitureModel crashed: ${err?.stack || err?.message || String(err)}`);
       }
-      setEngineError(err.stack || err.message);
-      console.error(err);
+      const msg = err?.stack || err?.message || (typeof err === 'object' ? JSON.stringify(err) : String(err));
+      setEngineError(msg);
+      console.error('ThreeViewer buildFurnitureModel error:', err);
     }
   }
 
@@ -3557,10 +3559,11 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           mesh.position.set(targetX, targetY, targetZ);
         });
       });
-    } catch (err: any) {
-      setEngineError(err.stack || err.message);
-      console.error(err);
-    }
+      } catch (err: any) {
+        const msg = err?.stack || err?.message || (typeof err === 'object' ? JSON.stringify(err) : String(err));
+        setEngineError(msg);
+        console.error('ThreeViewer render error:', err);
+      }
   }
 
   if (engineError) {
