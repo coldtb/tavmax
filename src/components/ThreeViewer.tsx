@@ -33,6 +33,129 @@ const getShelfY = (
   return legHeight + baseOffset + (i + 1) * step;
 }
 
+let cachedWoodTex: THREE.CanvasTexture | null = null;
+let cachedMarbleTex: THREE.CanvasTexture | null = null;
+
+const createWoodTexture = (): THREE.CanvasTexture => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d')!;
+  
+  // Warm brown base
+  ctx.fillStyle = '#92531e';
+  ctx.fillRect(0, 0, 512, 512);
+  
+  // Draw organic wood grain lines
+  ctx.strokeStyle = '#5a300d';
+  ctx.lineWidth = 2.0;
+  
+  for (let i = 0; i < 70; i++) {
+    ctx.beginPath();
+    const startX = Math.random() * 512;
+    ctx.moveTo(startX, 0);
+    
+    let currentX = startX;
+    for (let y = 10; y <= 512; y += 10) {
+      currentX += Math.sin(y * 0.04 + startX) * 0.9 + (Math.random() - 0.5) * 0.6;
+      ctx.lineTo(currentX, y);
+    }
+    ctx.stroke();
+  }
+  
+  // Fine noise fibers
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+  for (let i = 0; i < 6000; i++) {
+    const rx = Math.random() * 512;
+    const ry = Math.random() * 512;
+    ctx.fillRect(rx, ry, Math.random() * 15 + 5, 1);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(2, 2);
+  return texture;
+};
+
+const createMarbleTexture = (): THREE.CanvasTexture => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 1024;
+  const ctx = canvas.getContext('2d')!;
+  
+  // Clean off-white base
+  ctx.fillStyle = '#fafafa';
+  ctx.fillRect(0, 0, 1024, 1024);
+  
+  // Draw dark grey/black marble veins
+  const drawVein = (startX: number, startY: number, length: number, angle: number, depth: number) => {
+    if (depth > 4) return;
+    ctx.strokeStyle = `rgba(35, 35, 40, ${0.15 + Math.random() * 0.3})`;
+    ctx.lineWidth = Math.max(0.6, 4.0 - depth * 0.8);
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    
+    let curX = startX;
+    let curY = startY;
+    const segments = 22;
+    const segLen = length / segments;
+    
+    for (let i = 0; i < segments; i++) {
+      angle += (Math.random() - 0.5) * 0.45;
+      curX += Math.cos(angle) * segLen;
+      curY += Math.sin(angle) * segLen;
+      ctx.lineTo(curX, curY);
+      
+      if (Math.random() < 0.14) {
+        drawVein(curX, curY, length * 0.55, angle + (Math.random() > 0.5 ? 0.75 : -0.75), depth + 1);
+      }
+    }
+    ctx.stroke();
+  };
+  
+  // Draw 10 main veins
+  for (let i = 0; i < 10; i++) {
+    const sx = Math.random() * 1024;
+    const sy = Math.random() * 1024;
+    const angle = Math.random() * Math.PI * 2;
+    drawVein(sx, sy, 350 + Math.random() * 350, angle, 0);
+  }
+  
+  // Grey soft clouds/shadows
+  for (let i = 0; i < 7; i++) {
+    const cx = Math.random() * 1024;
+    const cy = Math.random() * 1024;
+    const r = 250 + Math.random() * 250;
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    grad.addColorStop(0, 'rgba(110, 110, 115, 0.05)');
+    grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  return texture;
+};
+
+const getWoodTexture = () => {
+  if (!cachedWoodTex) {
+    cachedWoodTex = createWoodTexture();
+  }
+  return cachedWoodTex;
+};
+
+const getMarbleTexture = () => {
+  if (!cachedMarbleTex) {
+    cachedMarbleTex = createMarbleTexture();
+  }
+  return cachedMarbleTex;
+};
+
 export const ThreeViewer: React.FC<ThreeViewerProps> = ({
   project,
   materials,
@@ -1238,6 +1361,25 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           });
         };
 
+        const getCountertopMaterial = (ctType: string) => {
+          const isStone = ctType === 'stone';
+          if (isStone) {
+            const stoneTex = getMarbleTexture();
+            return new THREE.MeshStandardMaterial({
+              map: stoneTex,
+              roughness: 0.15,
+              metalness: 0.05,
+            });
+          } else {
+            const woodTex = getWoodTexture();
+            return new THREE.MeshStandardMaterial({
+              map: woodTex,
+              roughness: 0.4,
+              metalness: 0.0,
+            });
+          }
+        };
+
         const bodyMat = getMaterialMesh(materialId, false);
         const doorMat = getMaterialMesh(doorMaterialId, true);
         const hdfMat = getMaterialMesh('mat-7', false); // HDF back panel
@@ -1255,8 +1397,117 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           category: string,
           userData: any = {}
         ) => {
-          const geom = new THREE.BoxGeometry(w, h, d);
-          const mesh = new THREE.Mesh(geom, mat);
+          const isClassicDoor = category === 'Хаалга' && config.doorStyle === 'classic' && !name.includes('шил') && !name.includes('Шил');
+          
+          let geom: THREE.BufferGeometry;
+          let mesh: THREE.Mesh;
+          
+          if (isClassicDoor) {
+            // Create a base board (12mm thick)
+            geom = new THREE.BoxGeometry(w, h, 12);
+            mesh = new THREE.Mesh(geom, mat);
+            
+            // Override add to adjust external child positions (e.g. handles)
+            const originalAdd = mesh.add.bind(mesh);
+            mesh.add = function (...objects: THREE.Object3D[]) {
+              objects.forEach((obj) => {
+                if (obj.userData && obj.userData.isInternalClassicPart) {
+                  originalAdd(obj);
+                } else {
+                  // External child like a handle
+                  obj.position.z += 3;
+                  originalAdd(obj);
+                }
+              });
+              return mesh;
+            };
+            
+            // Add classic frame border moldings (6mm thick, 70mm wide)
+            const fW = Math.min(70, w * 0.25);
+            const fT = 6;
+            const frameMat = mat;
+            
+            // Left Frame
+            const leftGeo = new THREE.BoxGeometry(fW, h, fT);
+            const leftMesh = new THREE.Mesh(leftGeo, frameMat);
+            leftMesh.castShadow = true;
+            leftMesh.receiveShadow = true;
+            leftMesh.position.set(-w / 2 + fW / 2, 0, 6 + fT / 2);
+            leftMesh.userData = { isInternalClassicPart: true };
+            mesh.add(leftMesh);
+            
+            // Right Frame
+            const rightGeo = new THREE.BoxGeometry(fW, h, fT);
+            const rightMesh = new THREE.Mesh(rightGeo, frameMat);
+            rightMesh.castShadow = true;
+            rightMesh.receiveShadow = true;
+            rightMesh.position.set(w / 2 - fW / 2, 0, 6 + fT / 2);
+            rightMesh.userData = { isInternalClassicPart: true };
+            mesh.add(rightMesh);
+            
+            // Top Rail
+            const topGeo = new THREE.BoxGeometry(w - 2 * fW, fW, fT);
+            const topMesh = new THREE.Mesh(topGeo, frameMat);
+            topMesh.castShadow = true;
+            topMesh.receiveShadow = true;
+            topMesh.position.set(0, h / 2 - fW / 2, 6 + fT / 2);
+            topMesh.userData = { isInternalClassicPart: true };
+            mesh.add(topMesh);
+            
+            // Bottom Rail
+            const botGeo = new THREE.BoxGeometry(w - 2 * fW, fW, fT);
+            const botMesh = new THREE.Mesh(botGeo, frameMat);
+            botMesh.castShadow = true;
+            botMesh.receiveShadow = true;
+            botMesh.position.set(0, -h / 2 + fW / 2, 6 + fT / 2);
+            botMesh.userData = { isInternalClassicPart: true };
+            mesh.add(botMesh);
+            
+            // Classic Raised Panel (3-tier step chamfer)
+            const innerW = w - 2 * fW - 12;
+            const innerH = h - 2 * fW - 12;
+            
+            if (innerW > 20 && innerH > 20) {
+              // Base raised panel
+              const pBaseGeo = new THREE.BoxGeometry(innerW, innerH, 2);
+              const pBase = new THREE.Mesh(pBaseGeo, frameMat);
+              pBase.castShadow = true;
+              pBase.receiveShadow = true;
+              pBase.position.set(0, 0, 6 + 1);
+              pBase.userData = { isInternalClassicPart: true };
+              mesh.add(pBase);
+              
+              // Mid-level raised step
+              const pMidW = innerW - 16;
+              const pMidH = innerH - 16;
+              if (pMidW > 10 && pMidH > 10) {
+                const pMidGeo = new THREE.BoxGeometry(pMidW, pMidH, 2.5);
+                const pMid = new THREE.Mesh(pMidGeo, frameMat);
+                pMid.castShadow = true;
+                pMid.receiveShadow = true;
+                pMid.position.set(0, 0, 6 + 2.25);
+                pMid.userData = { isInternalClassicPart: true };
+                mesh.add(pMid);
+              }
+              
+              // Top flat field
+              const pTopW = innerW - 32;
+              const pTopH = innerH - 32;
+              if (pTopW > 5 && pTopH > 5) {
+                const pTopGeo = new THREE.BoxGeometry(pTopW, pTopH, 3.5);
+                const pTop = new THREE.Mesh(pTopGeo, frameMat);
+                pTop.castShadow = true;
+                pTop.receiveShadow = true;
+                pTop.position.set(0, 0, 6 + 3.75);
+                pTop.userData = { isInternalClassicPart: true };
+                mesh.add(pTop);
+              }
+            }
+          } else {
+            geom = new THREE.BoxGeometry(w, h, d);
+            mesh = new THREE.Mesh(geom, mat);
+          }
+          
           mesh.castShadow = true;
           mesh.receiveShadow = true;
 
@@ -1278,33 +1529,86 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           return mesh;
         };
 
-        // Render Legs
+        // Render Legs (Closed 10cm Plinth / Socle)
         const buildLegs = () => {
           if (!hasLegs) return;
-          const legGeo = new THREE.CylinderGeometry(20, 12, 100, 16);
-          const legMat = new THREE.MeshStandardMaterial({ color: '#111827', metalness: 0.5, roughness: 0.5 });
-          const legPositions = [
-            [-halfW + 40, 50, -halfD + 40],
-            [halfW - 40, 50, -halfD + 40],
-            [-halfW + 40, 50, halfD - 40],
-            [halfW - 40, 50, halfD - 40]
-          ];
-          legPositions.forEach((pos) => {
-            const leg = new THREE.Mesh(legGeo, legMat);
-            leg.position.set(pos[0], pos[1], pos[2]);
-            leg.castShadow = true;
-            leg.receiveShadow = true;
-            leg.userData = {
-              category: 'leg',
-              baseX: pos[0],
-              baseY: pos[1],
-              baseZ: pos[2],
-              expX: pos[0] * 0.1,
-              expY: -35,
-              expZ: pos[2] * 0.1
-            };
-            moduleGroup.add(leg);
-          });
+          
+          // Front plinth board
+          const fPlinthW = width;
+          const fPlinthGeo = new THREE.BoxGeometry(fPlinthW, 100, 18);
+          const fPlinth = new THREE.Mesh(fPlinthGeo, bodyMat);
+          fPlinth.castShadow = true;
+          fPlinth.receiveShadow = true;
+          const fPlinthZ = halfD - 50;
+          fPlinth.position.set(0, 50, fPlinthZ);
+          fPlinth.userData = {
+            category: 'leg',
+            baseX: 0,
+            baseY: 50,
+            baseZ: fPlinthZ,
+            expX: 0,
+            expY: -35,
+            expZ: 15
+          };
+          moduleGroup.add(fPlinth);
+
+          // Back plinth board
+          const bPlinthW = Math.max(10, width - 36);
+          const bPlinthGeo = new THREE.BoxGeometry(bPlinthW, 100, 18);
+          const bPlinth = new THREE.Mesh(bPlinthGeo, bodyMat);
+          bPlinth.castShadow = true;
+          bPlinth.receiveShadow = true;
+          const bPlinthZ = -halfD + 9;
+          bPlinth.position.set(0, 50, bPlinthZ);
+          bPlinth.userData = {
+            category: 'leg',
+            baseX: 0,
+            baseY: 50,
+            baseZ: bPlinthZ,
+            expX: 0,
+            expY: -35,
+            expZ: -15
+          };
+          moduleGroup.add(bPlinth);
+
+          // Side plinth boards (Left & Right)
+          const sPlinthD = Math.max(10, depth - 68);
+          const sPlinthGeo = new THREE.BoxGeometry(18, 100, sPlinthD);
+          
+          // Left side plinth
+          const lPlinth = new THREE.Mesh(sPlinthGeo, bodyMat);
+          lPlinth.castShadow = true;
+          lPlinth.receiveShadow = true;
+          const lPlinthX = -halfW + 9;
+          const sidePlinthZ = halfD - 59 - sPlinthD / 2;
+          lPlinth.position.set(lPlinthX, 50, sidePlinthZ);
+          lPlinth.userData = {
+            category: 'leg',
+            baseX: lPlinthX,
+            baseY: 50,
+            baseZ: sidePlinthZ,
+            expX: -10,
+            expY: -35,
+            expZ: 0
+          };
+          moduleGroup.add(lPlinth);
+
+          // Right side plinth
+          const rPlinth = new THREE.Mesh(sPlinthGeo, bodyMat);
+          rPlinth.castShadow = true;
+          rPlinth.receiveShadow = true;
+          const rPlinthX = halfW - 9;
+          rPlinth.position.set(rPlinthX, 50, sidePlinthZ);
+          rPlinth.userData = {
+            category: 'leg',
+            baseX: rPlinthX,
+            baseY: 50,
+            baseZ: sidePlinthZ,
+            expX: 10,
+            expY: -35,
+            expZ: 0
+          };
+          moduleGroup.add(rPlinth);
         };
 
         const modParts = mod.parts || [];
@@ -1320,11 +1624,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           modParts.forEach((part) => {
             const isCountertop = part.id.includes('countertop');
             const mat = isCountertop 
-              ? new THREE.MeshStandardMaterial({
-                  color: config.countertopType === 'stone' ? '#e2e8f0' : '#d97706',
-                  roughness: config.countertopType === 'stone' ? 0.1 : 0.6,
-                  metalness: config.countertopType === 'stone' ? 0.1 : 0.0,
-                })
+              ? getCountertopMaterial(config.countertopType || 'none')
               : getMaterialMesh(part.materialId);
             const quantity = Number(part.quantity) || 0;
 
@@ -1640,12 +1940,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
           // Render Countertop if active
           if (config.countertopType && config.countertopType !== 'none') {
-            const isStone = config.countertopType === 'stone';
-            const ctMat = new THREE.MeshStandardMaterial({
-              color: isStone ? '#e2e8f0' : '#d97706',
-              roughness: isStone ? 0.1 : 0.6,
-              metalness: isStone ? 0.1 : 0.0,
-            });
+            const ctMat = getCountertopMaterial(config.countertopType);
             addBoard(
               width,
               38,
@@ -1861,17 +2156,85 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           const topY = legH + bodyH - P / 2;
           const botY = legH + P / 2;
 
-          // ── LEGS (4 corners — full square footprint) ─────────────────────────
+          // ── PLINTH / LEGS (Closed 10cm Plinth / Socle) ─────────────────────────
           if (isLower && hasLegs) {
-            const legGeo = new THREE.CylinderGeometry(20, 12, 100, 16);
-            const legM = new THREE.MeshStandardMaterial({ color: '#111827', metalness: 0.5, roughness: 0.5 });
-            [[-hs+40,50,-hs+40], [-hs+40,50,hs-40], [hs-40,50,-hs+40], [hs-40,50,hs-40]].forEach(([lx,ly,lz]) => {
-              const leg = new THREE.Mesh(legGeo, legM);
-              leg.position.set(lx, ly, lz);
-              leg.castShadow = true;
-              leg.userData = { category: 'leg', baseX: lx, baseY: ly, baseZ: lz, expX: lx*0.1, expY: -35, expZ: lz*0.1 };
-              moduleGroup.add(leg);
-            });
+            // Left plinth board
+            const lpW = 18;
+            const lpD = S - 18;
+            const lpGeo = new THREE.BoxGeometry(lpW, 100, lpD);
+            const lp = new THREE.Mesh(lpGeo, bodyMat);
+            lp.castShadow = true;
+            lp.receiveShadow = true;
+            const lpX = -hs + 9;
+            const lpZ = 9;
+            lp.position.set(lpX, 50, lpZ);
+            lp.userData = { category: 'leg', baseX: lpX, baseY: 50, baseZ: lpZ, expX: -15, expY: -35, expZ: 0 };
+            moduleGroup.add(lp);
+
+            // Back plinth board
+            const bpW = S;
+            const bpD = 18;
+            const bpGeo = new THREE.BoxGeometry(bpW, 100, bpD);
+            const bp = new THREE.Mesh(bpGeo, bodyMat);
+            bp.castShadow = true;
+            bp.receiveShadow = true;
+            const bpX = 0;
+            const bpZ = -hs + 9;
+            bp.position.set(bpX, 50, bpZ);
+            bp.userData = { category: 'leg', baseX: bpX, baseY: 50, baseZ: bpZ, expX: 0, expY: -35, expZ: -15 };
+            moduleGroup.add(bp);
+
+            // Right plinth board
+            const rpW = 18;
+            const rpD = hs;
+            const rpGeo = new THREE.BoxGeometry(rpW, 100, rpD);
+            const rp = new THREE.Mesh(rpGeo, bodyMat);
+            rp.castShadow = true;
+            rp.receiveShadow = true;
+            const rpX = hs - 9;
+            const rpZ = -hs / 2;
+            rp.position.set(rpX, 50, rpZ);
+            rp.userData = { category: 'leg', baseX: rpX, baseY: 50, baseZ: rpZ, expX: 15, expY: -35, expZ: 0 };
+            moduleGroup.add(rp);
+
+            // Back arm front plinth board
+            const bafpW = hs - 18;
+            const bafpD = 18;
+            const bafpGeo = new THREE.BoxGeometry(bafpW, 100, bafpD);
+            const bafp = new THREE.Mesh(bafpGeo, bodyMat);
+            bafp.castShadow = true;
+            bafp.receiveShadow = true;
+            const bafpX = hs / 2 + 9;
+            const bafpZ = -9;
+            bafp.position.set(bafpX, 50, bafpZ);
+            bafp.userData = { category: 'leg', baseX: bafpX, baseY: 50, baseZ: bafpZ, expX: 0, expY: -35, expZ: 15 };
+            moduleGroup.add(bafp);
+
+            // Front arm right plinth board
+            const farpW = 18;
+            const farpD = hs - 50;
+            const farpGeo = new THREE.BoxGeometry(farpW, 100, farpD);
+            const farp = new THREE.Mesh(farpGeo, bodyMat);
+            farp.castShadow = true;
+            farp.receiveShadow = true;
+            const farpX = -9;
+            const farpZ = (hs - 50) / 2;
+            farp.position.set(farpX, 50, farpZ);
+            farp.userData = { category: 'leg', baseX: farpX, baseY: 50, baseZ: farpZ, expX: 15, expY: -35, expZ: 0 };
+            moduleGroup.add(farp);
+
+            // Front arm front plinth board
+            const fafpW = hs - 18;
+            const fafpD = 18;
+            const fafpGeo = new THREE.BoxGeometry(fafpW, 100, fafpD);
+            const fafp = new THREE.Mesh(fafpGeo, bodyMat);
+            fafp.castShadow = true;
+            fafp.receiveShadow = true;
+            const fafpX = -hs / 2 - 9;
+            const fafpZ = hs - 50;
+            fafp.position.set(fafpX, 50, fafpZ);
+            fafp.userData = { category: 'leg', baseX: fafpX, baseY: 50, baseZ: fafpZ, expX: 0, expY: -35, expZ: 15 };
+            moduleGroup.add(fafp);
           }
 
           // ── OUTER SHELL PANELS ───────────────────────────────────────────────
@@ -1924,12 +2287,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
           // ── COUNTERTOP (L-shaped, two pieces) ────────────────────────────────
           if (isLower && config.countertopType && config.countertopType !== 'none') {
-            const isStone = config.countertopType === 'stone';
-            const ctMat = new THREE.MeshStandardMaterial({
-              color: isStone ? '#e2e8f0' : '#d97706',
-              roughness: isStone ? 0.1 : 0.6,
-              metalness: isStone ? 0.1 : 0.0
-            });
+            const ctMat = getCountertopMaterial(config.countertopType);
             // Back arm countertop (full width, z from -hs to 0)
             addBoard(S, 38, hs+25, 0, height+19, -hs/2+12.5, ctMat, 'Буланд тавцан – Ар', 'Дээд тавиур');
             // Front arm countertop (x from -hs to 0, z from 0 to +hs)
@@ -2109,12 +2467,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           // Render Countertop if active
           const hasCountertop = config.countertopType && config.countertopType !== 'none';
           if (hasCountertop) {
-            const isStone = config.countertopType === 'stone';
-            const ctMat = new THREE.MeshStandardMaterial({
-              color: isStone ? '#e2e8f0' : '#d97706',
-              roughness: isStone ? 0.1 : 0.6,
-              metalness: isStone ? 0.1 : 0.0,
-            });
+            const ctMat = getCountertopMaterial(config.countertopType);
             addBoard(
               width,
               38,
@@ -2199,12 +2552,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           // Render Countertop if active
           const hasCountertop = config.countertopType && config.countertopType !== 'none';
           if (hasCountertop) {
-            const isStone = config.countertopType === 'stone';
-            const ctMat = new THREE.MeshStandardMaterial({
-              color: isStone ? '#e2e8f0' : '#d97706',
-              roughness: isStone ? 0.1 : 0.6,
-              metalness: isStone ? 0.1 : 0.0,
-            });
+            const ctMat = getCountertopMaterial(config.countertopType);
             addBoard(
               width,
               38,

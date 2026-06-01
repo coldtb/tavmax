@@ -1525,6 +1525,37 @@ export const Editor: React.FC = () => {
                           />
                         </div>
                       )}
+
+                      {/* Door Style Selection (Хавтгай vs Классик) */}
+                      {Number(config.doors) > 0 && (
+                        <div className="flex flex-col gap-1.5 mt-1 bg-[#0c0d12]/30 border border-white/5 p-3 rounded-xl">
+                          <label className="text-[11px] text-neutral-400 font-semibold">Хаалганы загвар</label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => updateActiveConfig({ doorStyle: 'flat' })}
+                              className={`py-1.5 px-3 rounded-lg text-center text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer border ${
+                                (config.doorStyle || 'flat') === 'flat'
+                                  ? 'bg-amber-500 text-neutral-950 border-amber-500 shadow-md'
+                                  : 'bg-[#0c0d12]/50 text-neutral-400 border-white/5 hover:text-white hover:bg-white/[0.02]'
+                              }`}
+                            >
+                              Хавтгай (Flat)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => updateActiveConfig({ doorStyle: 'classic' })}
+                              className={`py-1.5 px-3 rounded-lg text-center text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer border ${
+                                config.doorStyle === 'classic'
+                                  ? 'bg-amber-500 text-neutral-950 border-amber-500 shadow-md'
+                                  : 'bg-[#0c0d12]/50 text-neutral-400 border-white/5 hover:text-white hover:bg-white/[0.02]'
+                              }`}
+                            >
+                              Классик (Classic)
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 

@@ -40,6 +40,7 @@ export interface FurnitureConfig {
   hasCooktop?: boolean;
   burnerCount?: 2 | 4;       // Давтан пластикийн тоо (2 эсвэл 4)
   burnerSize?: number;       // Давтан пластикийн радиус мм-ээр (20–80)
+  doorStyle?: 'flat' | 'classic'; // Хаалганы загвар (хавтгай эсвэл сонгодог/хээтэй)
 }
 
 export interface Part {

@@ -956,6 +956,41 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
     }
   }
 
+  // Add plinth/socle boards to carcass parts calculation if hasLegs is enabled
+  if (config.hasLegs) {
+    const plinthHeight = 100;
+    parts.push({
+      id: 'p-plinth-front',
+      name: 'Урд хаалт хавтан (Хөл)',
+      width: plinthHeight,
+      height: width,
+      quantity: 1,
+      materialId,
+      edgeBanding: '1mm',
+      category: 'Хажуу хана'
+    });
+    parts.push({
+      id: 'p-plinth-side',
+      name: 'Хажуу хаалт хавтан (Хөл)',
+      width: plinthHeight,
+      height: Math.max(100, depth - 68),
+      quantity: 2,
+      materialId,
+      edgeBanding: '1mm',
+      category: 'Хажуу хана'
+    });
+    parts.push({
+      id: 'p-plinth-back',
+      name: 'Ар хаалт хавтан (Хөл)',
+      width: plinthHeight,
+      height: Math.max(100, width - 36),
+      quantity: 1,
+      materialId,
+      edgeBanding: 'none',
+      category: 'Хажуу хана'
+    });
+  }
+
   return parts;
 };
 
