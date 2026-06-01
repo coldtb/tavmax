@@ -1077,7 +1077,18 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                 } else {
                   // Internal shelves
                   py = getShelfY(qIdx, quantity, bodyHeight - 36, legHeight, config);
-                  px = 0;
+                  const match = part.id.match(/shelf-(\d+)/);
+                  if (match) {
+                    const sIdx = parseInt(match[1]);
+                    const sections = getCabinetSections(width, config, 'custom');
+                    if (sIdx < sections.length) {
+                      px = sections[sIdx].centerX;
+                    } else {
+                      px = 0;
+                    }
+                  } else {
+                    px = 0;
+                  }
                   pz = 0;
                 }
               } else if (part.category === 'Доод тавиур') {
@@ -1085,7 +1096,17 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                 py = legHeight + 9;
                 pz = 0;
               } else if (part.category === 'Хуваалт') {
-                if (part.id.includes('divider-middle') || part.id.includes('p-c-divider-middle')) {
+                const match = part.id.match(/div-(\d+)/);
+                if (match) {
+                  const idx = parseInt(match[1]);
+                  const dPositions = config.dividerPositions || [];
+                  if (idx < dPositions.length) {
+                    px = -halfW + dPositions[idx];
+                  } else {
+                    const partitionsCount = config.partitions || 1;
+                    px = -halfW + Math.round((idx + 1) * width / (partitionsCount + 1));
+                  }
+                } else if (part.id.includes('divider-middle') || part.id.includes('p-c-divider-middle')) {
                   px = 0;
                 } else if (quantity > 1) {
                   px = -halfW + 18 + (qIdx + 1) * ((width - 36) / (quantity + 1));
@@ -1320,11 +1341,40 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             );
           }
 
+          // Sections Layout using getCabinetSections
+          const sections = getCabinetSections(width, config, 'kitchen_lower');
+          const partitionsCount = sections.length - 1;
+
+          // Retrieve divider positions
+          let dPositions = config.dividerPositions || [];
+          if (dPositions.length !== partitionsCount) {
+            dPositions = [];
+            for (let i = 0; i < partitionsCount; i++) {
+              dPositions.push(Math.round((i + 1) * width / (partitionsCount + 1)));
+            }
+          }
+
+          // Dividers
+          for (let i = 0; i < partitionsCount; i++) {
+            const dx = -halfW + dPositions[i];
+            addBoard(18, bodyHeight - 36, depth - 20, dx, legHeight + bodyHeight / 2, 0, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт');
+          }
+
           // Shelves
           if (shelves > 0) {
-            for (let i = 0; i < shelves; i++) {
-              const sy = getShelfY(i, shelves, bodyHeight - 36, legHeight, config);
-              addBoard(width - 36, 18, depth - 30, 0, sy, 0, bodyMat, `Дотор тавиур ${i + 1}`, 'Дээд тавиур', { shelfIndex: i });
+            if (partitionsCount > 0) {
+              sections.forEach((sec, sIdx) => {
+                const shelvesInSec = Math.floor(shelves / sections.length) + (sIdx < shelves % sections.length ? 1 : 0);
+                for (let i = 0; i < shelvesInSec; i++) {
+                  const sy = getShelfY(i, shelvesInSec, bodyHeight - 36, legHeight, config);
+                  addBoard(sec.width - 2, 18, depth - 30, sec.centerX, sy, 0, bodyMat, `Дотор тавиур (Секц ${sIdx+1}) ${i + 1}`, 'Дээд тавиур');
+                }
+              });
+            } else {
+              for (let i = 0; i < shelves; i++) {
+                const sy = getShelfY(i, shelves, bodyHeight - 36, legHeight, config);
+                addBoard(width - 36, 18, depth - 30, 0, sy, 0, bodyMat, `Дотор тавиур ${i + 1}`, 'Дээд тавиур', { shelfIndex: i });
+              }
             }
           }
 
@@ -1576,11 +1626,40 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           addBoard(width - 36, 18, depth, 0, 9, 0, bodyMat, 'Доод суурь хавтан', 'Доод тавиур');
           addBoard(width, height, 3, 0, height / 2, -halfD + 1.5, hdfMat, 'Ар тал (ХДФ)', 'Ар тал');
 
+          // Sections Layout using getCabinetSections
+          const sections = getCabinetSections(width, config, 'kitchen_upper');
+          const partitionsCount = sections.length - 1;
+
+          // Retrieve divider positions
+          let dPositions = config.dividerPositions || [];
+          if (dPositions.length !== partitionsCount) {
+            dPositions = [];
+            for (let i = 0; i < partitionsCount; i++) {
+              dPositions.push(Math.round((i + 1) * width / (partitionsCount + 1)));
+            }
+          }
+
+          // Dividers
+          for (let i = 0; i < partitionsCount; i++) {
+            const dx = -halfW + dPositions[i];
+            addBoard(18, height - 36, depth - 20, dx, height / 2, 0, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт');
+          }
+
           // Shelves
           if (shelves > 0) {
-            for (let i = 0; i < shelves; i++) {
-              const sy = getShelfY(i, shelves, height - 36, 0, config);
-              addBoard(width - 36, 18, depth - 20, 0, sy, 5, bodyMat, `Дотор тавиур ${i + 1}`, 'Дээд тавиур', { shelfIndex: i });
+            if (partitionsCount > 0) {
+              sections.forEach((sec, sIdx) => {
+                const shelvesInSec = Math.floor(shelves / sections.length) + (sIdx < shelves % sections.length ? 1 : 0);
+                for (let i = 0; i < shelvesInSec; i++) {
+                  const sy = getShelfY(i, shelvesInSec, height - 36, 0, config);
+                  addBoard(sec.width - 2, 18, depth - 20, sec.centerX, sy, 5, bodyMat, `Дотор тавиур (Секц ${sIdx+1}) ${i + 1}`, 'Дээд тавиур');
+                }
+              });
+            } else {
+              for (let i = 0; i < shelves; i++) {
+                const sy = getShelfY(i, shelves, height - 36, 0, config);
+                addBoard(width - 36, 18, depth - 20, 0, sy, 5, bodyMat, `Дотор тавиур ${i + 1}`, 'Дээд тавиур', { shelfIndex: i });
+              }
             }
           }
 

@@ -201,6 +201,24 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
       // HDF Backing
       parts.push({ id: 'p-c-back', name: 'Ар тал (ХДФ)', width: width - 6, height: baseHeight - 6, quantity: 1, materialId: 'mat-7', edgeBanding: 'none', category: 'Ар тал' });
       
+      // Sections & Dividers
+      const sections = getCabinetSections(width, config, 'custom');
+      const partitions = sections.length - 1;
+      const insideHeight = baseHeight - 36;
+      
+      for (let i = 0; i < partitions; i++) {
+        parts.push({
+          id: `p-c-div-${i}`,
+          name: `Дотор босоо хуваалт ${i + 1}`,
+          width: depth - 20,
+          height: insideHeight,
+          quantity: 1,
+          materialId,
+          edgeBanding: '1mm',
+          category: 'Хуваалт'
+        });
+      }
+      
       // Doors configuration
       const hasLeftDoor = config.leftDoor !== undefined ? !!config.leftDoor : (doors === 1 || doors >= 2);
       const hasRightDoor = config.rightDoor !== undefined ? !!config.rightDoor : (doors >= 2);
@@ -208,16 +226,34 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
 
       // Shelves
       if (shelves > 0) {
-        parts.push({ 
-          id: 'p-c-shelf', 
-          name: 'Дотор тавиур хавтан', 
-          width: depth - 20, 
-          height: shelfW, 
-          quantity: shelves, 
-          materialId, 
-          edgeBanding: '1mm', 
-          category: 'Дээд тавиур' 
-        });
+        if (partitions > 0) {
+          sections.forEach((sec, sIdx) => {
+            const qty = Math.floor(shelves / sections.length) + (sIdx < shelves % sections.length ? 1 : 0);
+            if (qty > 0) {
+              parts.push({
+                id: `p-c-shelf-${sIdx}`,
+                name: `Дотор тавиур хавтан (Секц ${sIdx+1})`,
+                width: depth - 20,
+                height: sec.width - 2,
+                quantity: qty,
+                materialId,
+                edgeBanding: '1mm',
+                category: 'Дээд тавиур'
+              });
+            }
+          });
+        } else {
+          parts.push({ 
+            id: 'p-c-shelf', 
+            name: 'Дотор тавиур хавтан', 
+            width: depth - 20, 
+            height: shelfW, 
+            quantity: shelves, 
+            materialId, 
+            edgeBanding: '1mm', 
+            category: 'Дээд тавиур' 
+          });
+        }
       }
 
       // Drawers
@@ -440,8 +476,43 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
         }
       }
 
+      const sections = getCabinetSections(width, config, 'kitchen_lower');
+      const partitions = sections.length - 1;
+      const insideHeight = baseHeight - 36;
+
+      for (let i = 0; i < partitions; i++) {
+        parts.push({
+          id: `p-kl-div-${i}`,
+          name: `Дотор босоо хуваалт ${i + 1}`,
+          width: depth - 20,
+          height: insideHeight,
+          quantity: 1,
+          materialId,
+          edgeBanding: '1mm',
+          category: 'Хуваалт'
+        });
+      }
+
       if (shelves > 0) {
-        parts.push({ id: 'p-kl-shelf', name: 'Дотор тавиур', width: depth - 30, height: width - 38, quantity: shelves, materialId, edgeBanding: '1mm', category: 'Дээд тавиур' });
+        if (partitions > 0) {
+          sections.forEach((sec, sIdx) => {
+            const qty = Math.floor(shelves / sections.length) + (sIdx < shelves % sections.length ? 1 : 0);
+            if (qty > 0) {
+              parts.push({
+                id: `p-kl-shelf-${sIdx}`,
+                name: `Дотор тавиур (Секц ${sIdx+1})`,
+                width: depth - 30,
+                height: sec.width - 2,
+                quantity: qty,
+                materialId,
+                edgeBanding: '1mm',
+                category: 'Дээд тавиур'
+              });
+            }
+          });
+        } else {
+          parts.push({ id: 'p-kl-shelf', name: 'Дотор тавиур', width: depth - 30, height: width - 38, quantity: shelves, materialId, edgeBanding: '1mm', category: 'Дээд тавиур' });
+        }
       }
 
       if (drawers > 0) {
@@ -493,8 +564,43 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
         }
       }
 
+      const sections = getCabinetSections(width, config, 'kitchen_upper');
+      const partitions = sections.length - 1;
+      const insideHeight = height - 36;
+
+      for (let i = 0; i < partitions; i++) {
+        parts.push({
+          id: `p-ku-div-${i}`,
+          name: `Дотор босоо хуваалт ${i + 1}`,
+          width: depth - 20,
+          height: insideHeight,
+          quantity: 1,
+          materialId,
+          edgeBanding: '1mm',
+          category: 'Хуваалт'
+        });
+      }
+
       if (shelves > 0) {
-        parts.push({ id: 'p-ku-shelf', name: 'Дотор тавиур', width: depth - 20, height: insideWidth - 2, quantity: shelves, materialId, edgeBanding: '1mm', category: 'Дээд тавиур' });
+        if (partitions > 0) {
+          sections.forEach((sec, sIdx) => {
+            const qty = Math.floor(shelves / sections.length) + (sIdx < shelves % sections.length ? 1 : 0);
+            if (qty > 0) {
+              parts.push({
+                id: `p-ku-shelf-${sIdx}`,
+                name: `Дотор тавиур (Секц ${sIdx+1})`,
+                width: depth - 20,
+                height: sec.width - 2,
+                quantity: qty,
+                materialId,
+                edgeBanding: '1mm',
+                category: 'Дээд тавиур'
+              });
+            }
+          });
+        } else {
+          parts.push({ id: 'p-ku-shelf', name: 'Дотор тавиур', width: depth - 20, height: insideWidth - 2, quantity: shelves, materialId, edgeBanding: '1mm', category: 'Дээд тавиур' });
+        }
       }
 
       parts.push({ id: 'p-ku-back', name: 'Ар тал (ХДФ)', width: width - 6, height: height - 6, quantity: 1, materialId: 'mat-7', edgeBanding: 'none', category: 'Ар тал' });
@@ -1029,7 +1135,7 @@ export const useProjectStore = create<ProjectState>()(
           const insideHeight = newHeight - legHeight - 36;
           const newPositions = [];
           
-          if (mod.type === 'wardrobe' || mod.type === 'bookshelf') {
+          if (mod.type === 'wardrobe' || mod.type === 'bookshelf' || (newPartitions > 0 && (mod.type === 'custom' || mod.type === 'kitchen_lower' || mod.type === 'kitchen_upper'))) {
             const sections = getCabinetSections(newWidth, updatedConfig, mod.type);
             sections.forEach((sec, sIdx) => {
               const shelvesInSec = Math.floor(newShelves / sections.length) + (sIdx < newShelves % sections.length ? 1 : 0);
