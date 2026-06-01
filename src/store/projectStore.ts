@@ -1023,59 +1023,65 @@ const rebuildPartsFromModules = (modules: CabinetModule[]): Part[] => {
 
 
 const ensureProjectModules = (project: Project): Project => {
-  if (project.modules && project.modules.length > 0) {
-    const populatedModules = project.modules.map((mod) => {
-      if (mod.parts.length === 0) {
+  if (!project) return project;
+  try {
+    if (project.modules && project.modules.length > 0) {
+      const populatedModules = project.modules.map((mod) => {
+        if (!mod) return mod;
+        const freshCarcassParts = calculateDynamicParts(mod.type, mod.config) || [];
+        if (!mod.parts || mod.parts.length === 0) {
+          return {
+            ...mod,
+            parts: freshCarcassParts
+          };
+        }
+        const updatedParts = mod.parts
+          .filter((p) => {
+            if (!p) return false;
+            const isManual = p.id.includes('manual') || p.id.startsWith('p-manual-');
+            const existsInFresh = freshCarcassParts.some((fp) => fp && fp.id === p.id);
+            return isManual || existsInFresh;
+          })
+          .map((p) => {
+            const fresh = freshCarcassParts.find((fp) => fp && fp.id === p.id);
+            if (fresh) {
+              return {
+                ...p,
+                width: fresh.width,
+                height: fresh.height,
+                materialId: fresh.materialId
+              };
+            }
+            return p;
+          });
         return {
           ...mod,
-          parts: calculateDynamicParts(mod.type, mod.config)
+          parts: updatedParts
         };
-      }
-      // If parts exist, regenerate fresh carcass parts and update the sizes of existing ones
-      // to match any newly modified width/overhang rules, while keeping manual additions.
-      const freshCarcassParts = calculateDynamicParts(mod.type, mod.config);
-      const updatedParts = mod.parts
-        .filter((p) => {
-          const isManual = p.id.includes('manual') || p.id.startsWith('p-manual-');
-          const existsInFresh = freshCarcassParts.some((fp) => fp.id === p.id);
-          return isManual || existsInFresh;
-        })
-        .map((p) => {
-          const fresh = freshCarcassParts.find((fp) => fp.id === p.id);
-          if (fresh) {
-            return {
-              ...p,
-              width: fresh.width,
-              height: fresh.height,
-              materialId: fresh.materialId
-            };
-          }
-          return p;
-        });
-      return {
-        ...mod,
-        parts: updatedParts
-      };
-    });
-    const populated = { ...project, modules: populatedModules };
-    populated.parts = rebuildPartsFromModules(populatedModules);
-    return populated;
-  }
+      });
+      const populated = { ...project, modules: populatedModules };
+      populated.parts = rebuildPartsFromModules(populatedModules);
+      return populated;
+    }
 
-  // Legacy: project has no modules yet — create a default single module
-  const defaultModule: CabinetModule = {
-    id: `mod-${project.id}-1`,
-    name: project.name,
-    type: project.furnitureType,
-    config: project.config,
-    parts: calculateDynamicParts(project.furnitureType, project.config),
-    xOffset: 0,
-    yOffset: 0,
-    zOffset: 0
-  };
-  const migratedProject = { ...project, modules: [defaultModule] };
-  migratedProject.parts = rebuildPartsFromModules(migratedProject.modules);
-  return migratedProject;
+    // Legacy: project has no modules yet — create a default single module
+    const defaultModule: CabinetModule = {
+      id: `mod-${project.id}-1`,
+      name: project.name,
+      type: project.furnitureType,
+      config: project.config,
+      parts: calculateDynamicParts(project.furnitureType, project.config) || [],
+      xOffset: 0,
+      yOffset: 0,
+      zOffset: 0
+    };
+    const migratedProject = { ...project, modules: [defaultModule] };
+    migratedProject.parts = rebuildPartsFromModules(migratedProject.modules);
+    return migratedProject;
+  } catch (err) {
+    console.warn("[ensureProjectModules] failed to migrate project:", err);
+    return project; // Return unmigrated fallback rather than crashing
+  }
 };
 
 
@@ -1843,6 +1849,8 @@ export const useProjectStore = create<ProjectState>()(
         activeProject: state.activeProject,
         selectedModuleId: state.selectedModuleId,
         materials: state.materials,
+        savedLayouts: state.savedLayouts,
+        customTemplates: state.customTemplates,
       }),
       onRehydrateStorage: () => (state, error) => {
         if (error) {
@@ -1852,19 +1860,25 @@ export const useProjectStore = create<ProjectState>()(
         if (state) {
           try {
             state.customTemplates = JSON.parse(localStorage.getItem('tavmax-custom-templates') || '[]');
-          } catch {
+          } catch (e) {
+            console.warn("Failed to load custom templates:", e);
             state.customTemplates = [];
           }
           try {
             state.savedLayouts = JSON.parse(localStorage.getItem('tavmax-saved-layouts') || '[]');
-          } catch {
+          } catch (e) {
+            console.warn("Failed to load saved layouts:", e);
             state.savedLayouts = [];
           }
-          if (state.projects) {
-            state.projects = state.projects.map((p) => ensureProjectModules(p));
-          }
-          if (state.activeProject) {
-            state.activeProject = ensureProjectModules(state.activeProject);
+          try {
+            if (state.projects) {
+              state.projects = state.projects.map((p) => p ? ensureProjectModules(p) : p);
+            }
+            if (state.activeProject) {
+              state.activeProject = ensureProjectModules(state.activeProject);
+            }
+          } catch (e) {
+            console.warn("Failed in onRehydrateStorage migration:", e);
           }
         }
       }

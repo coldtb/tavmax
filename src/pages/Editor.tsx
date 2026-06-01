@@ -1717,6 +1717,62 @@ export const Editor: React.FC = () => {
                           className="w-full h-1.5 rounded-full accent-amber-500 cursor-pointer"
                         />
                       </div>
+
+                      {/* Cooktop X Offset */}
+                      <div className="flex flex-col gap-2 border-t border-white/5 pt-2">
+                        <div className="flex justify-between items-center">
+                          <label className="text-xs text-neutral-400">Байршил: Зүүн ⟷ Баруун</label>
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              value={config.cooktopXOffset ?? 0}
+                              onChange={(e) => {
+                                const v = parseInt(e.target.value);
+                                if (!isNaN(v)) updateActiveConfig({ cooktopXOffset: v });
+                              }}
+                              className="w-16 px-2 py-1 rounded-lg text-xs font-bold text-white bg-[#0c0d12] border border-white/10 focus:outline-none focus:border-amber-500/60 transition-all text-center"
+                            />
+                            <span className="text-[10px] text-amber-400 font-semibold">мм</span>
+                          </div>
+                        </div>
+                        <input
+                          type="range"
+                          min={-Math.max(0, Math.round((config.width - (config.cooktopWidth ?? (selectedMod.type === 'cooktop' ? config.width : config.width - 60))) / 2))}
+                          max={Math.max(0, Math.round((config.width - (config.cooktopWidth ?? (selectedMod.type === 'cooktop' ? config.width : config.width - 60))) / 2))}
+                          step={10}
+                          value={config.cooktopXOffset ?? 0}
+                          onChange={(e) => updateActiveConfig({ cooktopXOffset: parseInt(e.target.value) })}
+                          className="w-full h-1.5 rounded-full accent-amber-500 cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Cooktop Z Offset */}
+                      <div className="flex flex-col gap-2">
+                        <div className="flex justify-between items-center">
+                          <label className="text-xs text-neutral-400">Байршил: Хойш ⟷ Урагш</label>
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              value={config.cooktopZOffset ?? 0}
+                              onChange={(e) => {
+                                const v = parseInt(e.target.value);
+                                if (!isNaN(v)) updateActiveConfig({ cooktopZOffset: v });
+                              }}
+                              className="w-16 px-2 py-1 rounded-lg text-xs font-bold text-white bg-[#0c0d12] border border-white/10 focus:outline-none focus:border-amber-500/60 transition-all text-center"
+                            />
+                            <span className="text-[10px] text-amber-400 font-semibold">мм</span>
+                          </div>
+                        </div>
+                        <input
+                          type="range"
+                          min={-Math.max(0, Math.round((config.depth - (config.cooktopDepth ?? (selectedMod.type === 'cooktop' ? config.depth + 20 : config.depth - 40))) / 2))}
+                          max={Math.max(0, Math.round((config.depth - (config.cooktopDepth ?? (selectedMod.type === 'cooktop' ? config.depth + 20 : config.depth - 40))) / 2))}
+                          step={10}
+                          value={config.cooktopZOffset ?? 0}
+                          onChange={(e) => updateActiveConfig({ cooktopZOffset: parseInt(e.target.value) })}
+                          className="w-full h-1.5 rounded-full accent-amber-500 cursor-pointer"
+                        />
+                      </div>
                     </div>
                   )}
 

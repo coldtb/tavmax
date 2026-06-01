@@ -44,6 +44,8 @@ export interface FurnitureConfig {
   countertopThickness?: 25 | 40; // Тавцангийн зузаан (2.5см эсвэл 4.0см)
   cooktopWidth?: number;     // Плиткний өргөн (мм-ээр)
   cooktopDepth?: number;     // Плиткний урт/гүн (мм-ээр)
+  cooktopXOffset?: number;   // Плиткний X тэнхлэгийн оффсет (мм-ээр)
+  cooktopZOffset?: number;   // Плиткний Z тэнхлэгийн оффсет (мм-ээр)
 }
 
 export interface Part {

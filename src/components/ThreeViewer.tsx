@@ -2546,15 +2546,22 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           // Glossy black glass Cooktop Plate
           const cW = config.cooktopWidth ?? width;
           const cD = config.cooktopDepth ?? (depth + 20);
+          
+          const maxOffsetX = Math.max(0, (width - cW) / 2);
+          const xOffset = Math.max(-maxOffsetX, Math.min(maxOffsetX, config.cooktopXOffset ?? 0));
+          
+          const defaultZ = hasCountertop ? 12.5 : 0;
+          const maxOffsetZ = Math.max(0, (depth - cD) / 2);
+          const zOffset = defaultZ + Math.max(-maxOffsetZ, Math.min(maxOffsetZ, config.cooktopZOffset ?? 0));
+
           const cooktopPlateY = hasCountertop ? (height + ctT_cooktop + 5) : (height + 5);
-          const cooktopPlateZ = hasCountertop ? 12.5 : 0;
           const cooktopPlate = addBoard(
             cW,
             10,
             cD,
-            0,
+            xOffset,
             cooktopPlateY,
-            cooktopPlateZ,
+            zOffset,
             new THREE.MeshStandardMaterial({ color: '#171717', roughness: 0.1, metalness: 0.8 }),
             'Шилэн плитк',
             'Дээд тавиур'
@@ -3315,15 +3322,22 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           const cW2 = config.cooktopWidth ?? (width - 60);
           const cD2 = config.cooktopDepth ?? (depth - 40);
           const hasCountertop = config.countertopType && config.countertopType !== 'none';
+          
+          const maxOffsetX2 = Math.max(0, (width - cW2) / 2);
+          const xOffset2 = Math.max(-maxOffsetX2, Math.min(maxOffsetX2, config.cooktopXOffset ?? 0));
+          
+          const defaultZ2 = hasCountertop ? 12.5 : 0;
+          const maxOffsetZ2 = Math.max(0, (depth - cD2) / 2);
+          const zOffset2 = defaultZ2 + Math.max(-maxOffsetZ2, Math.min(maxOffsetZ2, config.cooktopZOffset ?? 0));
+
           const cooktopPlateY = hasCountertop ? (height + 38 + 5) : (height + 5);
-          const cooktopPlateZ = hasCountertop ? 12.5 : 0;
           const cooktopPlate = addBoard(
             cW2,
             10,
             cD2,
-            0,
+            xOffset2,
             cooktopPlateY,
-            cooktopPlateZ,
+            zOffset2,
             new THREE.MeshStandardMaterial({ color: '#171717', roughness: 0.1, metalness: 0.8 }),
             'Шилэн плитк',
             'Дээд тавиур'
