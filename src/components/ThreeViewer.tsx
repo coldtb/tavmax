@@ -1364,17 +1364,17 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
         const getCountertopMaterial = (ctType: string) => {
           if (ctType === 'stone') {
-            // Clean white/grey marble — no texture, no seam
+            const stoneTex = getMarbleTexture();
             return new THREE.MeshStandardMaterial({
-              color: new THREE.Color('#e6e2dc'),
-              roughness: 0.10,
-              metalness: 0.04,
+              map: stoneTex,
+              roughness: 0.15,
+              metalness: 0.05,
             });
           } else {
-            // Warm wood brown — solid, no grain lines
+            const woodTex = getWoodTexture();
             return new THREE.MeshStandardMaterial({
-              color: new THREE.Color('#b8864e'),
-              roughness: 0.30,
+              map: woodTex,
+              roughness: 0.35,
               metalness: 0.0,
             });
           }
