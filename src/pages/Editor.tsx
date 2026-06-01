@@ -714,7 +714,7 @@ export const Editor: React.FC = () => {
             </div>
 
             {/* Stepper Progress Bar */}
-            <div className="grid grid-cols-5 gap-0.5 text-center border-b border-white/5 pb-3 shrink-0 select-none">
+            <div className="grid grid-cols-4 gap-0.5 text-center border-b border-white/5 pb-3 shrink-0 select-none">
               {[
                 { step: 1, label: 'Их бие', title: 'Их биеийн хэмжээсүүд' },
                 { step: 2, label: 'Дотор', title: 'Тавиур, Шургуулга' },
@@ -985,8 +985,8 @@ export const Editor: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Cabinet Partitions / Dividers Config */}
-                  {(selectedMod.type === 'cabinet' || selectedMod.type === 'wardrobe' || selectedMod.type === 'bookshelf') && (
+                  {/* Vertical Partitions / Dividers Config — available for all module types */}
+                  {selectedMod && (
                     <div className="flex flex-col gap-2 border-t border-white/5 pt-3">
                       {(() => {
                         const getDefaultPartitions = (type: string, cfg: any) => {
@@ -1918,310 +1918,8 @@ export const Editor: React.FC = () => {
                 </>
               )}
 
-              {activeStep === 5 && (
-                <>
-                  <div className="text-[9px] text-neutral-500 font-bold uppercase tracking-wider flex items-center gap-1.5 mb-1">
-                    <Info size={11} className="text-amber-500 shrink-0" />
-                    <span>Алхам 5: Гар аргаар нэмэлт хавтан оруулах</span>
-                  </div>
-
-                  <div className="flex flex-col gap-3">
-                    <div className="flex justify-between items-center bg-[#0c0d12]/20 p-2.5 rounded-xl border border-white/5">
-                      <span className="text-xs text-neutral-300 font-semibold">Гар деталь оруулах хэсэг</span>
-                      <button
-                        type="button"
-                        onClick={() => setShowAddPartForm(!showAddPartForm)}
-                        className="px-2 py-1 bg-amber-500/10 hover:bg-amber-500 hover:text-neutral-950 text-amber-400 rounded-lg text-[9px] font-bold uppercase transition-all"
-                      >
-                        {showAddPartForm ? 'Хаах' : 'Шинэ деталь +'}
-                      </button>
-                    </div>
-
-                    {showAddPartForm && (
-                      <form onSubmit={handleAddCustomPart} className="flex flex-col gap-3 bg-[#0c0d12]/40 border border-white/5 p-4 rounded-xl">
-                        <div className="flex flex-col gap-1">
-                          <label className="text-[10px] text-neutral-400 font-semibold">Нэр</label>
-                          <input
-                            type="text"
-                            value={newPartName}
-                            onChange={(e) => setNewPartName(e.target.value)}
-                            className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs outline-none focus:border-amber-500"
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="flex flex-col gap-1">
-                            <label className="text-[10px] text-neutral-400 font-semibold">Өргөн (мм)</label>
-                            <input
-                              type="number"
-                              value={newPartWidth}
-                              onChange={(e) => setNewPartWidth(parseInt(e.target.value) || 0)}
-                              className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs outline-none focus:border-amber-500"
-                            />
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            <label className="text-[10px] text-neutral-400 font-semibold">Өндөр (мм)</label>
-                            <input
-                              type="number"
-                              value={newPartHeight}
-                              onChange={(e) => setNewPartHeight(parseInt(e.target.value) || 0)}
-                              className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs outline-none focus:border-amber-500"
-                            />
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="flex flex-col gap-1">
-                            <label className="text-[10px] text-neutral-400 font-semibold">Ширхэг</label>
-                            <input
-                              type="number"
-                              min={1}
-                              value={newPartQty}
-                              onChange={(e) => setNewPartQty(parseInt(e.target.value) || 1)}
-                              className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs outline-none focus:border-amber-500"
-                            />
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            <label className="text-[10px] text-neutral-400 font-semibold">Ангилал</label>
-                            <select
-                              value={newPartCategory}
-                              onChange={(e) => setNewPartCategory(e.target.value as any)}
-                              className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs outline-none focus:border-amber-500 cursor-pointer"
-                            >
-                              {['Хажуу хана', 'Дээд тавиур', 'Доод тавиур', 'Хаалга', 'Шургуулга', 'Ар тал', 'Хуваалт'].map(cat => (
-                                <option key={cat} value={cat}>{cat}</option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="flex flex-col gap-1">
-                            <label className="text-[10px] text-neutral-400 font-semibold">Ирмэг наалт</label>
-                            <select
-                              value={newPartEdge}
-                              onChange={(e) => setNewPartEdge(e.target.value as any)}
-                              className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs outline-none focus:border-amber-500 cursor-pointer"
-                            >
-                              <option value="none">Байхгүй</option>
-                              <option value="1mm">1мм</option>
-                              <option value="2mm">2мм</option>
-                              <option value="all-sides">4 тал</option>
-                            </select>
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            <label className="text-[10px] text-neutral-400 font-semibold">Материал</label>
-                            <select
-                              value={newPartMaterialId}
-                              onChange={(e) => setNewPartMaterialId(e.target.value)}
-                              className="w-full bg-[#0c0d12] border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs outline-none focus:border-amber-500 cursor-pointer"
-                            >
-                              {materials.map(mat => (
-                                <option key={mat.id} value={mat.id}>{mat.name}</option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-
-                        <div className="border-t border-white/5 pt-2 mt-1">
-                          <span className="text-[9px] text-neutral-500 uppercase font-bold">Эхлэх байршил (3D Офсет)</span>
-                          <div className="grid grid-cols-3 gap-2 mt-1">
-                            <div className="flex flex-col gap-0.5">
-                              <label className="text-[8px] text-neutral-400 font-medium">X (мм)</label>
-                              <input
-                                type="number"
-                                value={newPartXOffset}
-                                onChange={(e) => setNewPartXOffset(parseInt(e.target.value) || 0)}
-                                className="w-full bg-[#0c0d12] border border-white/10 rounded px-1.5 py-1 text-white text-[10px] outline-none"
-                              />
-                            </div>
-                            <div className="flex flex-col gap-0.5">
-                              <label className="text-[8px] text-neutral-400 font-medium">Y (мм)</label>
-                              <input
-                                type="number"
-                                value={newPartYOffset}
-                                onChange={(e) => setNewPartYOffset(parseInt(e.target.value) || 0)}
-                                className="w-full bg-[#0c0d12] border border-white/10 rounded px-1.5 py-1 text-white text-[10px] outline-none"
-                              />
-                            </div>
-                            <div className="flex flex-col gap-0.5">
-                              <label className="text-[8px] text-neutral-400 font-medium">Z (мм)</label>
-                              <input
-                                type="number"
-                                value={newPartZOffset}
-                                onChange={(e) => setNewPartZOffset(parseInt(e.target.value) || 0)}
-                                className="w-full bg-[#0c0d12] border border-white/10 rounded px-1.5 py-1 text-white text-[10px] outline-none"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <button
-                          type="submit"
-                          className="w-full mt-2 py-2 bg-amber-500 hover:bg-amber-600 text-neutral-950 text-xs font-bold rounded-lg cursor-pointer transition-all uppercase tracking-wider"
-                        >
-                          Шүүгээнд нэмэх
-                        </button>
-                      </form>
-                    )}
-
-                    <div className="flex flex-col gap-2.5">
-                      {(() => {
-                        const parts = selectedMod.parts.filter(p => p.id.startsWith('p-manual-') || p.id.includes('manual'));
-                        if (parts.length === 0) {
-                          return (
-                            <div className="text-center text-xs text-neutral-500 py-3 bg-[#0c0d12]/20 border border-dashed border-white/5 rounded-xl">
-                              Одоогоор гар аргаар нэмсэн деталь байхгүй байна.
-                            </div>
-                          );
-                        }
-                        return parts.map((part) => {
-                          const isExp = expandedPartId === part.id;
-                          return (
-                            <div key={part.id} className="flex flex-col border border-white/5 bg-[#0c0d12]/30 rounded-xl overflow-hidden">
-                              <div
-                                onClick={() => setExpandedPartId(isExp ? null : part.id)}
-                                className="flex justify-between items-center px-3 py-2 hover:bg-white/3 cursor-pointer transition-colors"
-                              >
-                                <div className="flex flex-col">
-                                  <span className="text-xs font-semibold text-white">{part.name}</span>
-                                  <span className="text-[9px] text-neutral-500">
-                                    {part.width}x{part.height} | {part.quantity}ш | {part.category}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                                  <button
-                                    type="button"
-                                    onClick={() => removePartFromActive(part.id)}
-                                    className="p-1 text-neutral-500 hover:text-red-400 transition-colors cursor-pointer"
-                                  >
-                                    <Trash2 size={11} />
-                                  </button>
-                                  <span className="text-[10px] text-amber-500 font-bold leading-none select-none">
-                                    {isExp ? '▲' : '▼'}
-                                  </span>
-                                </div>
-                              </div>
-
-                              {isExp && (
-                                <div className="px-3 pb-3 pt-2 border-t border-white/5 flex flex-col gap-3 bg-[#0c0d12]/60">
-                                  <div className="flex flex-col gap-1">
-                                    <div className="flex justify-between text-[9px] text-neutral-350">
-                                      <span>X байршил (Зүүн - Баруун)</span>
-                                      <span className="text-amber-500 font-bold">{part.xOffset ?? 0} мм</span>
-                                    </div>
-                                    <input
-                                      type="range"
-                                      min={-Math.round(selectedMod.config.width / 2)}
-                                      max={Math.round(selectedMod.config.width / 2)}
-                                      step={10}
-                                      value={part.xOffset ?? 0}
-                                      onChange={(e) => updateActiveParts(
-                                        selectedMod.parts.map(p => p.id === part.id ? { ...p, xOffset: parseInt(e.target.value) } : p)
-                                      )}
-                                      className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                                    />
-                                  </div>
-                                  <div className="flex flex-col gap-1">
-                                    <div className="flex justify-between text-[9px] text-neutral-350">
-                                      <span>Y байршил (Дээш - Доош)</span>
-                                      <span className="text-amber-500 font-bold">{part.yOffset ?? 0} мм</span>
-                                    </div>
-                                    <input
-                                      type="range"
-                                      min={0}
-                                      max={selectedMod.config.height}
-                                      step={10}
-                                      value={part.yOffset ?? 0}
-                                      onChange={(e) => updateActiveParts(
-                                        selectedMod.parts.map(p => p.id === part.id ? { ...p, yOffset: parseInt(e.target.value) } : p)
-                                      )}
-                                      className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                                    />
-                                  </div>
-                                  <div className="flex flex-col gap-1">
-                                    <div className="flex justify-between text-[9px] text-neutral-350">
-                                      <span>Z байршил (Урагш - Хойш)</span>
-                                      <span className="text-amber-500 font-bold">{part.zOffset ?? 0} мм</span>
-                                    </div>
-                                    <input
-                                      type="range"
-                                      min={-Math.round(selectedMod.config.depth / 2)}
-                                      max={Math.round(selectedMod.config.depth / 2)}
-                                      step={10}
-                                      value={part.zOffset ?? 0}
-                                      onChange={(e) => updateActiveParts(
-                                        selectedMod.parts.map(p => p.id === part.id ? { ...p, zOffset: parseInt(e.target.value) } : p)
-                                      )}
-                                      className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                                    />
-                                  </div>
-                                  <div className="flex flex-col gap-1">
-                                    <div className="flex justify-between text-[9px] text-neutral-350">
-                                      <span>Өндөр (Хэмжээ 1)</span>
-                                      <span className="text-amber-500 font-bold">{part.height} мм</span>
-                                    </div>
-                                    <input
-                                      type="range"
-                                      min={50}
-                                      max={2800}
-                                      step={10}
-                                      value={part.height}
-                                      onChange={(e) => updateActiveParts(
-                                        selectedMod.parts.map(p => p.id === part.id ? { ...p, height: parseInt(e.target.value) } : p)
-                                      )}
-                                      className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                                    />
-                                  </div>
-                                  <div className="flex flex-col gap-1">
-                                    <div className="flex justify-between text-[9px] text-neutral-350">
-                                      <span>Өргөн (Хэмжээ 2)</span>
-                                      <span className="text-amber-500 font-bold">{part.width} мм</span>
-                                    </div>
-                                    <input
-                                      type="range"
-                                      min={50}
-                                      max={2800}
-                                      step={10}
-                                      value={part.width}
-                                      onChange={(e) => updateActiveParts(
-                                        selectedMod.parts.map(p => p.id === part.id ? { ...p, width: parseInt(e.target.value) } : p)
-                                      )}
-                                      className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                                    />
-                                  </div>
-                                  <div className="flex items-center justify-between text-[9px] text-neutral-350">
-                                    <span>Тоо ширхэг</span>
-                                    <div className="flex items-center gap-1 bg-[#0c0d12] border border-white/10 rounded-lg p-0.5">
-                                      <button
-                                        type="button"
-                                        onClick={() => updateActiveParts(
-                                          selectedMod.parts.map(p => p.id === part.id ? { ...p, quantity: Math.max(1, p.quantity - 1) } : p)
-                                        )}
-                                        className="px-1.5 py-0.2 bg-neutral-800 text-white rounded font-bold"
-                                      >
-                                        -
-                                      </button>
-                                      <span className="px-1 text-white font-bold">{part.quantity}</span>
-                                      <button
-                                        type="button"
-                                        onClick={() => updateActiveParts(
-                                          selectedMod.parts.map(p => p.id === part.id ? { ...p, quantity: p.quantity + 1 } : p)
-                                        )}
-                                        className="px-1.5 py-0.2 bg-neutral-800 text-white rounded font-bold"
-                                      >
-                                        +
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        });
-                      })()}
-                    </div>
-                  </div>
-                </>
-              )}
             </div>
+
 
             {/* Stepper Navigation Footer */}
             <div className="flex justify-between items-center border-t border-white/5 pt-3.5 mt-1 shrink-0 select-none">
@@ -2235,11 +1933,11 @@ export const Editor: React.FC = () => {
                 <span>Өмнөх</span>
               </button>
               <span className="text-[9px] font-semibold text-neutral-500 uppercase tracking-wider">
-                Алхам {activeStep} / 5
+                Алхам {activeStep} / 4
               </span>
               <button
-                onClick={() => setActiveStep(prev => Math.min(5, prev + 1))}
-                disabled={activeStep === 5}
+                onClick={() => setActiveStep(prev => Math.min(4, prev + 1))}
+                disabled={activeStep === 4}
                 className="flex items-center gap-1 px-3 py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-30 disabled:hover:bg-amber-500 disabled:cursor-not-allowed text-neutral-950 font-bold text-[10px] uppercase rounded-xl transition-all cursor-pointer shadow-md shadow-amber-500/5"
                 type="button"
               >
