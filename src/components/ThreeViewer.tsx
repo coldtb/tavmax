@@ -1402,6 +1402,10 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           const isDoorOrDrawer = category === 'Хаалга' || isDrawerFront;
           const isClassicDoor = isDoorOrDrawer && config.doorStyle === 'classic' && !name.includes('шил') && !name.includes('Шил');
           
+          if (isDoorOrDrawer) {
+            console.log(`[ThreeViewer:addBoard] name="${name}" category="${category}" isDrawerFront=${isDrawerFront} doorStyle="${config?.doorStyle}" isClassicDoor=${isClassicDoor}`);
+          }
+          
           let geom: THREE.BufferGeometry;
           let mesh: THREE.Mesh;
 
