@@ -1422,149 +1422,114 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           };
           
           if (isClassicDoor) {
-            // BASE BOARD — darker background for deep groove shadow effect
+            // BASE BOARD — the main door board (will be used for animation)
             geom = new THREE.BoxGeometry(w, h, 18);
-            mesh = new THREE.Mesh(geom, getDarkerMaterial(mat, 0.72));
+            mesh = new THREE.Mesh(geom, getDarkerMaterial(mat, 0.75));
             
-            // Override add to adjust external child positions (e.g. handles)
-            const originalAdd = mesh.add.bind(mesh);
-            mesh.add = function (...objects: THREE.Object3D[]) {
-              objects.forEach((obj) => {
-                if (obj.userData && obj.userData.isInternalClassicPart) {
-                  originalAdd(obj);
-                } else {
-                  // External child like a handle — push forward past the frame
-                  obj.position.z += 6;
-                  originalAdd(obj);
-                }
-              });
-              return mesh;
-            };
-            
-            // Frame width: min 80mm or 22% of door width
-            const fW = Math.max(60, Math.min(90, w * 0.22));
-            // Frame molding THICKNESS — 12mm so it casts real shadow into the groove
-            const fT = 12;
-            // Frame sits flush with front face of base board (z= 9 + fT/2 = 15)
-            const fZ = 9 + fT / 2;
-
-            // Use a BRIGHTER version of the door material for the frame moldings
-            const getBrighterMaterial = (baseMat: THREE.Material, factor: number) => {
-              const cloned = baseMat.clone();
-              if ((cloned as any).color) {
-                (cloned as any).color.multiplyScalar(factor);
-              }
+            // Helper: brighter version of door material
+            const getBrighter = (factor: number) => {
+              const cloned = mat.clone() as THREE.MeshStandardMaterial;
+              if (cloned.color) cloned.color.multiplyScalar(factor);
               return cloned;
             };
-            const frameMat2 = getBrighterMaterial(mat, 1.12);
             
+            // Frame dimensions
+            const fW = Math.max(55, Math.min(85, w * 0.20));
+            const fT = 10;   // frame molding protrusion beyond base board front
+            // Base board front face is at local z = +9 (half of 18mm)
+            // Frame sits on top of that: center at z = 9 + fT/2 = 14
+            const fZ = 9 + fT / 2;
+            const frameMat = getBrighter(1.18);
+
             // LEFT stile
-            const leftGeo = new THREE.BoxGeometry(fW, h, fT);
-            const leftMesh = new THREE.Mesh(leftGeo, frameMat2);
-            leftMesh.castShadow = true;
-            leftMesh.receiveShadow = true;
-            leftMesh.position.set(-w / 2 + fW / 2, 0, fZ);
-            leftMesh.userData = { isInternalClassicPart: true };
-            addOutline(leftMesh, leftGeo);
-            mesh.add(leftMesh);
-            
+            const lGeo = new THREE.BoxGeometry(fW, h, fT);
+            const lMesh = new THREE.Mesh(lGeo, frameMat);
+            lMesh.position.set(-w / 2 + fW / 2, 0, fZ);
+            lMesh.userData = { isInternalClassicPart: true };
+            lMesh.castShadow = true; lMesh.receiveShadow = true;
+            addOutline(lMesh, lGeo);
+            mesh.add(lMesh);
+
             // RIGHT stile
-            const rightGeo = new THREE.BoxGeometry(fW, h, fT);
-            const rightMesh = new THREE.Mesh(rightGeo, frameMat2);
-            rightMesh.castShadow = true;
-            rightMesh.receiveShadow = true;
-            rightMesh.position.set(w / 2 - fW / 2, 0, fZ);
-            rightMesh.userData = { isInternalClassicPart: true };
-            addOutline(rightMesh, rightGeo);
-            mesh.add(rightMesh);
-            
+            const rGeo = new THREE.BoxGeometry(fW, h, fT);
+            const rMesh = new THREE.Mesh(rGeo, frameMat);
+            rMesh.position.set(w / 2 - fW / 2, 0, fZ);
+            rMesh.userData = { isInternalClassicPart: true };
+            rMesh.castShadow = true; rMesh.receiveShadow = true;
+            addOutline(rMesh, rGeo);
+            mesh.add(rMesh);
+
             // TOP rail
             const railW = w - 2 * fW;
-            const topGeo = new THREE.BoxGeometry(railW, fW, fT);
-            const topMesh = new THREE.Mesh(topGeo, frameMat2);
-            topMesh.castShadow = true;
-            topMesh.receiveShadow = true;
-            topMesh.position.set(0, h / 2 - fW / 2, fZ);
-            topMesh.userData = { isInternalClassicPart: true };
-            addOutline(topMesh, topGeo);
-            mesh.add(topMesh);
-            
+            const tGeo = new THREE.BoxGeometry(railW, fW, fT);
+            const tMesh = new THREE.Mesh(tGeo, frameMat);
+            tMesh.position.set(0, h / 2 - fW / 2, fZ);
+            tMesh.userData = { isInternalClassicPart: true };
+            tMesh.castShadow = true; tMesh.receiveShadow = true;
+            addOutline(tMesh, tGeo);
+            mesh.add(tMesh);
+
             // BOTTOM rail
-            const botGeo = new THREE.BoxGeometry(railW, fW, fT);
-            const botMesh = new THREE.Mesh(botGeo, frameMat2);
-            botMesh.castShadow = true;
-            botMesh.receiveShadow = true;
-            botMesh.position.set(0, -h / 2 + fW / 2, fZ);
-            botMesh.userData = { isInternalClassicPart: true };
-            addOutline(botMesh, botGeo);
-            mesh.add(botMesh);
+            const bGeo = new THREE.BoxGeometry(railW, fW, fT);
+            const bMesh = new THREE.Mesh(bGeo, frameMat);
+            bMesh.position.set(0, -h / 2 + fW / 2, fZ);
+            bMesh.userData = { isInternalClassicPart: true };
+            bMesh.castShadow = true; bMesh.receiveShadow = true;
+            addOutline(bMesh, bGeo);
+            mesh.add(bMesh);
 
-            // MIDDLE rail (only for tall doors > 900mm)
-            if (h > 900) {
-              const midGeo = new THREE.BoxGeometry(railW, fW * 0.85, fT);
-              const midMesh = new THREE.Mesh(midGeo, frameMat2);
-              midMesh.castShadow = true;
-              midMesh.receiveShadow = true;
-              midMesh.position.set(0, 0, fZ);
-              midMesh.userData = { isInternalClassicPart: true };
-              addOutline(midMesh, midGeo);
-              mesh.add(midMesh);
+            // MIDDLE rail for tall doors (>850mm)
+            const hasMidRail = h > 850;
+            if (hasMidRail) {
+              const mGeo = new THREE.BoxGeometry(railW, fW * 0.8, fT);
+              const mMesh = new THREE.Mesh(mGeo, frameMat);
+              mMesh.position.set(0, 0, fZ);
+              mMesh.userData = { isInternalClassicPart: true };
+              mMesh.castShadow = true; mMesh.receiveShadow = true;
+              addOutline(mMesh, mGeo);
+              mesh.add(mMesh);
             }
-            
-            // RAISED PANELS — recessed sunken field inside the frame opening
-            // Panel is INSIDE the opening: x from (-w/2+fW) to (w/2-fW), y from (-h/2+fW) to (h/2-fW)
-            const innerW = w - 2 * fW;
-            const innerH = h > 900 ? (h - 2 * fW - fW * 0.85) / 2 - 6 : (h - 2 * fW - 12);
 
-            const buildPanel = (panelCenterY: number) => {
-              if (innerW < 20 || innerH < 20) return;
+            // RECESSED PANELS inside the frame opening
+            const panelInnerW = w - 2 * fW;
+            const fullInnerH = h - 2 * fW;
+            const panelCount = hasMidRail ? 2 : 1;
+            const midRailH = hasMidRail ? fW * 0.8 : 0;
+            const singlePanelH = hasMidRail
+              ? (fullInnerH - midRailH - 8) / 2
+              : fullInnerH - 8;
 
-              // Outer stepped border of the panel (chamfer ring) — slightly darker
-              const pBorderGeo = new THREE.BoxGeometry(innerW - 4, innerH - 4, 6);
-              const pBorder = new THREE.Mesh(pBorderGeo, getDarkerMaterial(mat, 0.82));
-              pBorder.castShadow = true;
-              pBorder.receiveShadow = true;
-              pBorder.position.set(0, panelCenterY, 9 + 3);
-              pBorder.userData = { isInternalClassicPart: true };
-              addOutline(pBorder, pBorderGeo);
-              mesh.add(pBorder);
+            const addPanel = (centerY: number, pH: number) => {
+              if (panelInnerW < 20 || pH < 20) return;
+              // Dark groove recess area
+              const grooveGeo = new THREE.BoxGeometry(panelInnerW - 2, pH - 2, 5);
+              const grooveMesh = new THREE.Mesh(grooveGeo, getDarkerMaterial(mat, 0.68));
+              grooveMesh.position.set(0, centerY, 9 + 2.5);
+              grooveMesh.userData = { isInternalClassicPart: true };
+              grooveMesh.castShadow = true; grooveMesh.receiveShadow = true;
+              addOutline(grooveMesh, grooveGeo);
+              mesh.add(grooveMesh);
 
-              // Inner chamfer step — medium
-              const pMidW = innerW - 20;
-              const pMidH = innerH - 20;
-              if (pMidW > 10 && pMidH > 10) {
-                const pMidGeo = new THREE.BoxGeometry(pMidW, pMidH, 5);
-                const pMid = new THREE.Mesh(pMidGeo, getDarkerMaterial(mat, 0.90));
-                pMid.castShadow = true;
-                pMid.receiveShadow = true;
-                pMid.position.set(0, panelCenterY, 9 + 5);
-                pMid.userData = { isInternalClassicPart: true };
-                addOutline(pMid, pMidGeo);
-                mesh.add(pMid);
-              }
-
-              // Flat centre field — nearly full brightness
-              const pTopW = innerW - 36;
-              const pTopH = innerH - 36;
-              if (pTopW > 5 && pTopH > 5) {
-                const pTopGeo = new THREE.BoxGeometry(pTopW, pTopH, 4);
-                const pTop = new THREE.Mesh(pTopGeo, getDarkerMaterial(mat, 0.97));
-                pTop.castShadow = true;
-                pTop.receiveShadow = true;
-                pTop.position.set(0, panelCenterY, 9 + 7.5);
-                pTop.userData = { isInternalClassicPart: true };
-                addOutline(pTop, pTopGeo);
-                mesh.add(pTop);
+              // Raised centre field
+              const rfW = panelInnerW - 20;
+              const rfH = pH - 20;
+              if (rfW > 8 && rfH > 8) {
+                const rfGeo = new THREE.BoxGeometry(rfW, rfH, 8);
+                const rfMesh = new THREE.Mesh(rfGeo, getBrighter(1.05));
+                rfMesh.position.set(0, centerY, 9 + 8);
+                rfMesh.userData = { isInternalClassicPart: true };
+                rfMesh.castShadow = true; rfMesh.receiveShadow = true;
+                addOutline(rfMesh, rfGeo);
+                mesh.add(rfMesh);
               }
             };
 
-            if (h > 900) {
-              // Two panels split by middle rail
-              const panelOffset = innerH / 2 + fW * 0.425 + 3;
-              buildPanel(panelOffset);
-              buildPanel(-panelOffset);
+            if (panelCount === 2) {
+              const offset = singlePanelH / 2 + midRailH / 2 + 4;
+              addPanel(offset, singlePanelH);
+              addPanel(-offset, singlePanelH);
             } else {
-              buildPanel(0);
+              addPanel(0, singlePanelH);
             }
 
           } else {
