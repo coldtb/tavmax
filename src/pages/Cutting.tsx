@@ -42,25 +42,31 @@ export const Cutting: React.FC = () => {
     Object.entries(partsByMaterial).forEach(([matId, parts]) => {
       const isCountertopMat = COUNTERTOP_MAT_IDS.has(matId);
 
-      // Countertop sheets: 4000mm long x 600mm wide, no rotation
-      const nestSheetW = isCountertopMat ? 4000 : sheetDimensions.width;
+      // Countertop sheets: 4600mm long x 600mm wide, no rotation
+      const nestSheetW = isCountertopMat ? 4600 : sheetDimensions.width;
       const nestSheetH = isCountertopMat ? 600 : sheetDimensions.height;
       const nestRotation = isCountertopMat ? false : allowRotation;
 
-      const partsInput: NestingPartInput[] = parts.map((p) => ({
-        id: p.id,
-        name: p.name,
-        width: p.width,
-        height: p.height,
-        quantity: p.quantity,
-        materialId: p.materialId,
-      }));
+      const partsInput: NestingPartInput[] = parts.map((p) => {
+        // Countertop parts are defined with width=600 and height=module_width in projectStore.
+        // Orient them lengthwise (longer dimension as width, 600mm width as height) to lay flat.
+        const partW = isCountertopMat ? Math.max(p.width, p.height) : p.width;
+        const partH = isCountertopMat ? Math.min(p.width, p.height) : p.height;
+        return {
+          id: p.id,
+          name: p.name,
+          width: partW,
+          height: partH,
+          quantity: p.quantity,
+          materialId: p.materialId,
+        };
+      });
 
       const sheets = runNestingOptimizer(partsInput, {
         sheetWidth: nestSheetW,
         sheetHeight: nestSheetH,
         kerf,
-        margin,
+        margin: isCountertopMat ? 0 : margin,
         allowRotation: nestRotation,
       });
 

@@ -57,12 +57,30 @@ export const Pricing: React.FC = () => {
 
     materialGroups.forEach((groupParts, matId) => {
       const mat = materials.find((m) => m.id === matId) || materials[0];
-      const sheets = runNestingOptimizer(groupParts, {
-        sheetWidth: 2750,
-        sheetHeight: 1830,
+      const isCountertopMat = matId === 'mat-ct-wood' || matId === 'mat-ct-stone';
+
+      const nestSheetW = isCountertopMat ? 4600 : 2750;
+      const nestSheetH = isCountertopMat ? 600 : 1830;
+      const nestRotation = isCountertopMat ? false : true;
+      const nestMargin = isCountertopMat ? 0 : 10;
+
+      const groupPartsInput = groupParts.map((p) => {
+        // Orient countertop parts lengthwise (width=longer, height=600mm)
+        const partW = isCountertopMat ? Math.max(p.width, p.height) : p.width;
+        const partH = isCountertopMat ? Math.min(p.width, p.height) : p.height;
+        return {
+          ...p,
+          width: partW,
+          height: partH,
+        };
+      });
+
+      const sheets = runNestingOptimizer(groupPartsInput, {
+        sheetWidth: nestSheetW,
+        sheetHeight: nestSheetH,
         kerf: 4,
-        margin: 10,
-        allowRotation: true,
+        margin: nestMargin,
+        allowRotation: nestRotation,
       });
       totalBoardCost += sheets.length * mat.price;
     });
@@ -218,24 +236,60 @@ export const Pricing: React.FC = () => {
   };
 
   const handleTriggerPDF = () => {
-    // Generate nesting first
-    const partsInput: NestingPartInput[] = activeProject.parts.map((p) => ({
-      id: p.id,
-      name: p.name,
-      width: p.width,
-      height: p.height,
-      quantity: p.quantity,
-      materialId: p.materialId,
-    }));
-    const sheets = runNestingOptimizer(partsInput, {
-      sheetWidth: 2750,
-      sheetHeight: 1830,
-      kerf: 4,
-      margin: 10,
-      allowRotation: true,
+    // Group parts by material to find specific sheets required, matching the exact pricing calculations
+    const partsByMaterial: { [matId: string]: NestingPartInput[] } = {};
+    activeProject.parts.forEach((p) => {
+      if (!partsByMaterial[p.materialId]) {
+        partsByMaterial[p.materialId] = [];
+      }
+      partsByMaterial[p.materialId].push({
+        id: p.id,
+        name: p.name,
+        width: p.width,
+        height: p.height,
+        quantity: p.quantity,
+        materialId: p.materialId,
+      });
     });
 
-    exportProjectToPDF({ ...activeProject, price: calculations.total }, materials, sheets);
+    const allSheets: any[] = [];
+    let globalSheetId = 1;
+
+    Object.entries(partsByMaterial).forEach(([matId, groupParts]) => {
+      const isCountertopMat = matId === 'mat-ct-wood' || matId === 'mat-ct-stone';
+      const nestSheetW = isCountertopMat ? 4600 : 2750;
+      const nestSheetH = isCountertopMat ? 600 : 1830;
+      const nestRotation = isCountertopMat ? false : true;
+      const nestMargin = isCountertopMat ? 0 : 10;
+
+      const groupPartsInput = groupParts.map((p) => {
+        const partW = isCountertopMat ? Math.max(p.width, p.height) : p.width;
+        const partH = isCountertopMat ? Math.min(p.width, p.height) : p.height;
+        return {
+          ...p,
+          width: partW,
+          height: partH,
+        };
+      });
+
+      const sheets = runNestingOptimizer(groupPartsInput, {
+        sheetWidth: nestSheetW,
+        sheetHeight: nestSheetH,
+        kerf: 4,
+        margin: nestMargin,
+        allowRotation: nestRotation,
+      });
+
+      sheets.forEach((sheet) => {
+        allSheets.push({
+          ...sheet,
+          sheetId: globalSheetId++,
+          materialId: matId,
+        });
+      });
+    });
+
+    exportProjectToPDF({ ...activeProject, price: calculations.total }, materials, allSheets);
   };
 
   const handleTriggerDXF = () => {
