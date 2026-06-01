@@ -15,6 +15,7 @@ interface ThreeViewerProps {
   viewMode: 'perspective' | 'front' | 'top' | 'side';
   enableSnapping?: boolean;
   measureMode?: boolean; // A-B measurement mode
+  onRightClickModule?: (moduleId: string, clientX: number, clientY: number) => void;
 }
 
 const getShelfY = (
@@ -41,6 +42,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
   viewMode,
   enableSnapping = true,
   measureMode = false,
+  onRightClickModule,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -64,6 +66,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
   const selectedModuleId = useProjectStore((s) => s.selectedModuleId);
   const updateModulePosition = useProjectStore((s) => s.updateModulePosition);
   const setSelectedModuleId = useProjectStore((s) => s.setSelectedModuleId);
+  const updateActiveConfig = useProjectStore((s) => s.updateActiveConfig);
 
   // React state to capture and display engine runtime crashes
   const [engineError, setEngineError] = useState<string | null>(null);
@@ -131,6 +134,12 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
     const dragOffset = new THREE.Vector3();
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
+
+    // Shelf drag-and-drop state variables
+    let isDraggingShelf = false;
+    let draggedShelfMesh: THREE.Mesh | null = null;
+    let parentModuleGroup: THREE.Group | null = null;
+    let draggedShelfIndex = -1;
 
     try {
       // 1. Scene setup
@@ -340,8 +349,52 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
         const intersects = raycaster.intersectObjects(furnitureGroup.children, true);
 
         if (intersects.length > 0) {
+          const hitObj = intersects[0].object;
+
+          // Check if we hit an interior shelf to drag it vertically
+          if (hitObj.userData.category === 'Дээд тавиур' && hitObj.userData.shelfIndex !== undefined && hitObj instanceof THREE.Mesh) {
+            isDraggingShelf = true;
+            draggedShelfMesh = hitObj;
+            draggedShelfIndex = hitObj.userData.shelfIndex;
+
+            // Find parent module group
+            let obj: THREE.Object3D | null = hitObj;
+            let group: THREE.Group | null = null;
+            while (obj && obj !== scene) {
+              if (obj.parent === furnitureGroup) {
+                group = obj as THREE.Group;
+                break;
+              }
+              obj = obj.parent;
+            }
+            parentModuleGroup = group;
+
+            if (group) {
+              setSelectedModuleId(group.name); // Select this module in store
+              controlsRef.current.enabled = false; // Disable camera panning/orbiting
+
+              // Glow shelf drag effect (warm amber/yellow glow)
+              if (hitObj.material && !Array.isArray(hitObj.material)) {
+                const mat = hitObj.material as any;
+                if (mat.emissive) {
+                  mat.emissive.setHex(0x3f320b); // warm amber glow
+                }
+              }
+
+              // Set drag projection plane perpendicular to camera direction facing the shelf
+              const camDir = new THREE.Vector3();
+              cameraRef.current.getWorldDirection(camDir);
+              const planeNormal = new THREE.Vector3(camDir.x, 0, camDir.z).normalize();
+              const worldPos = new THREE.Vector3();
+              hitObj.getWorldPosition(worldPos);
+              dragPlane.setFromNormalAndCoplanarPoint(planeNormal, worldPos);
+            }
+            return;
+          }
+
+          // Otherwise drag the entire module
           // Trace up to find top-level group directly under furnitureGroup
-          let obj: THREE.Object3D | null = intersects[0].object;
+          let obj: THREE.Object3D | null = hitObj;
           let group: THREE.Group | null = null;
           while (obj && obj !== scene) {
             if (obj.parent === furnitureGroup) {
@@ -459,6 +512,55 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           return;
         }
 
+        // ── SHELF DRAG MODE ──
+        if (isDraggingShelf && draggedShelfMesh && parentModuleGroup) {
+          raycaster.setFromCamera(mouse, cameraRef.current);
+          if (raycaster.ray.intersectPlane(dragPlane, dragIntersection)) {
+            const currentModuleId = parentModuleGroup.name;
+            const activeMod = projectRef.current.modules || [];
+            const activeModItem = activeMod.find(m => m.id === currentModuleId);
+            if (activeModItem) {
+              const config = activeModItem.config;
+              const sPositions = config.shelfPositions || [];
+              const legHeight = config.hasLegs ? 100 : 0;
+              const insideHeight = config.height - legHeight - 36;
+              const localShelfIdx = draggedShelfMesh.userData.shelfIndex;
+
+              // Calculate Y position relative to cabinet floor (legHeight + 18)
+              let relativeY = dragIntersection.y - parentModuleGroup.position.y - legHeight - 18;
+
+              // Neighbor limits to prevent overlapping
+              const minVal = localShelfIdx === 0 ? 50 : (sPositions[localShelfIdx - 1] || 0) + 50;
+              const maxVal = localShelfIdx === sPositions.length - 1 ? insideHeight - 50 : (sPositions[localShelfIdx + 1] || insideHeight) - 50;
+
+              const clampedY = Math.max(minVal, Math.min(maxVal, relativeY));
+
+              // Update the 3D mesh Y position visually
+              draggedShelfMesh.position.y = legHeight + 18 + clampedY;
+
+              // Update the userData.baseY so that it stays in place during render loop interpolation
+              draggedShelfMesh.userData.baseY = legHeight + 18 + clampedY;
+            }
+          }
+          return;
+        }
+
+        // Set cursor to ns-resize when hovering over a draggable shelf
+        if (!isDragging && !isDraggingShelf && !measureModeRef.current) {
+          raycaster.setFromCamera(mouse, cameraRef.current);
+          const intersects = raycaster.intersectObjects(furnitureGroup.children, true);
+          let hoverShelf = false;
+          if (intersects.length > 0) {
+            const hitObj = intersects[0].object;
+            if (hitObj.userData.category === 'Дээд тавиур' && hitObj.userData.shelfIndex !== undefined) {
+              hoverShelf = true;
+            }
+          }
+          if (rendererRef.current?.domElement) {
+            rendererRef.current.domElement.style.cursor = hoverShelf ? 'ns-resize' : 'default';
+          }
+        }
+
         // ── NORMAL DRAG MODE ──
         if (!isDragging || !draggedGroup) return;
 
@@ -540,6 +642,42 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
       };
 
       const onPointerUp = () => {
+        // Handle shelf dragging commit
+        if (isDraggingShelf && draggedShelfMesh && parentModuleGroup) {
+          isDraggingShelf = false;
+          if (controlsRef.current) controlsRef.current.enabled = true; // Re-enable camera orbiting
+
+          // Clear highlight glow
+          if (draggedShelfMesh.material && !Array.isArray(draggedShelfMesh.material)) {
+            const mat = draggedShelfMesh.material as any;
+            if (mat.emissive) {
+              mat.emissive.setHex(0x000000);
+            }
+          }
+
+          // Commit Y height change to the store
+          const currentModuleId = parentModuleGroup.name;
+          const activeMod = projectRef.current.modules || [];
+          const activeModItem = activeMod.find(m => m.id === currentModuleId);
+          if (activeModItem) {
+            const config = activeModItem.config;
+            const sPositions = config.shelfPositions || [];
+            const legHeight = config.hasLegs ? 100 : 0;
+            
+            // Calculate final relative position
+            const finalY = draggedShelfMesh.position.y - legHeight - 18;
+            
+            const newPos = [...sPositions];
+            newPos[draggedShelfIndex] = Math.round(finalY);
+            updateActiveConfig({ shelfPositions: newPos });
+          }
+
+          draggedShelfMesh = null;
+          parentModuleGroup = null;
+          draggedShelfIndex = -1;
+          return;
+        }
+
         // Stop measure sphere dragging
         if (measureDragging) {
           measureDragging = null;
@@ -569,11 +707,46 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
         }
       };
 
+      const onContextMenu = (event: MouseEvent) => {
+        event.preventDefault(); // prevent browser default context menu
+
+        if (!rendererRef.current || !cameraRef.current) return;
+
+        const rect = rendererRef.current.domElement.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, cameraRef.current);
+        const intersects = raycaster.intersectObjects(furnitureGroup.children, true);
+
+        if (intersects.length > 0) {
+          // Trace up to find top-level group directly under furnitureGroup
+          let obj: THREE.Object3D | null = intersects[0].object;
+          let group: THREE.Group | null = null;
+          while (obj && obj !== scene) {
+            if (obj.parent === furnitureGroup) {
+              group = obj as THREE.Group;
+              break;
+            }
+            obj = obj.parent;
+          }
+
+          if (group && group.name) {
+            setSelectedModuleId(group.name);
+            if (onRightClickModule) {
+              // Call parent callback with moduleId and absolute click position on page
+              onRightClickModule(group.name, event.clientX, event.clientY);
+            }
+          }
+        }
+      };
+
       // Add pointer listeners for dragging
       renderer.domElement.addEventListener('pointerdown', onPointerDown);
       renderer.domElement.addEventListener('pointermove', onPointerMove);
       renderer.domElement.addEventListener('pointerup', onPointerUp);
       renderer.domElement.addEventListener('pointerleave', onPointerUp);
+      renderer.domElement.addEventListener('contextmenu', onContextMenu);
 
       // 5. Grid/Floor plane — 10m × 10m with 100mm cells
       const gridHelper = new THREE.GridHelper(10000, 100, '#3a4040', '#2e3535');
@@ -626,6 +799,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           renderer.domElement.removeEventListener('pointermove', onPointerMove);
           renderer.domElement.removeEventListener('pointerup', onPointerUp);
           renderer.domElement.removeEventListener('pointerleave', onPointerUp);
+          renderer.domElement.removeEventListener('contextmenu', onContextMenu);
           if (container && container.contains(renderer.domElement)) {
             container.removeChild(renderer.domElement);
           }
@@ -1009,7 +1183,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                   const step = insideHeight / (shelvesInSec + 1);
                   sy = legHeight + 18 + (i + 1) * step;
                 }
-                addBoard(sec.width - 4, 18, depth - 10, secDx, sy, 5, bodyMat, `Дунд тавиур ${shelfIdx + 1}`, 'Дээд тавиур');
+                addBoard(sec.width - 4, 18, depth - 10, secDx, sy, 5, bodyMat, `Дунд тавиур ${shelfIdx + 1}`, 'Дээд тавиур', { shelfIndex: shelfIdx });
                 shelfIdx++;
               }
             });
@@ -1059,7 +1233,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                   const step = insideHeight / (shelvesInSec + 1);
                   sy = legHeight + 18 + (i + 1) * step;
                 }
-                addBoard(sec.width - 4, 18, depth - 25, secDx, sy, 10, bodyMat, `Хэвтээ тавиур`, 'Дээд тавиур');
+                addBoard(sec.width - 4, 18, depth - 25, secDx, sy, 10, bodyMat, `Хэвтээ тавиур`, 'Дээд тавиур', { shelfIndex: shelfIdx });
                 shelfIdx++;
               }
             });
@@ -1150,7 +1324,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           if (shelves > 0) {
             for (let i = 0; i < shelves; i++) {
               const sy = getShelfY(i, shelves, bodyHeight - 36, legHeight, config);
-              addBoard(width - 36, 18, depth - 30, 0, sy, 0, bodyMat, `Дотор тавиур ${i + 1}`, 'Дээд тавиур');
+              addBoard(width - 36, 18, depth - 30, 0, sy, 0, bodyMat, `Дотор тавиур ${i + 1}`, 'Дээд тавиур', { shelfIndex: i });
             }
           }
 
@@ -1406,7 +1580,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           if (shelves > 0) {
             for (let i = 0; i < shelves; i++) {
               const sy = getShelfY(i, shelves, height - 36, 0, config);
-              addBoard(width - 36, 18, depth - 20, 0, sy, 5, bodyMat, `Дотор тавиур ${i + 1}`, 'Дээд тавиур');
+              addBoard(width - 36, 18, depth - 20, 0, sy, 5, bodyMat, `Дотор тавиур ${i + 1}`, 'Дээд тавиур', { shelfIndex: i });
             }
           }
 
@@ -2221,7 +2395,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               if (shelves > 0) {
                 for (let s = 0; s < shelves; s++) {
                   const sy = getShelfY(s, shelves, bodyHeight - 36, legHeight, config);
-                  addBoard(sec.width - 4, 18, depth - 25, secDx, sy, 10, bodyMat, 'Дотор тавиур хавтан', 'Дээд тавиур');
+                  addBoard(sec.width - 4, 18, depth - 25, secDx, sy, 10, bodyMat, 'Дотор тавиур хавтан', 'Дээд тавиур', { shelfIndex: s });
                 }
               }
             } else {
@@ -2229,7 +2403,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               if (shelves > 0) {
                 for (let s = 0; s < shelves; s++) {
                   const sy = getShelfY(s, shelves, bodyHeight - 36, legHeight, config);
-                  addBoard(sec.width - 4, 18, depth - 25, secDx, sy, 10, bodyMat, 'Дотор тавиур хавтан', 'Дээд тавиур');
+                  addBoard(sec.width - 4, 18, depth - 25, secDx, sy, 10, bodyMat, 'Дотор тавиур хавтан', 'Дээд тавиур', { shelfIndex: s });
                 }
               }
             }
@@ -2247,7 +2421,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           if (shelves > 0) {
             for (let i = 0; i < shelves; i++) {
               const sy = getShelfY(i, shelves, bodyHeight - 36, legHeight, config);
-              addBoard(width - 36, 18, depth - 10, 0, sy, 0, bodyMat, `Тавиур ${i + 1}`, 'Дээд тавиур');
+              addBoard(width - 36, 18, depth - 10, 0, sy, 0, bodyMat, `Тавиур ${i + 1}`, 'Дээд тавиур', { shelfIndex: i });
             }
           }
 

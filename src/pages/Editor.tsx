@@ -84,6 +84,14 @@ export const Editor: React.FC = () => {
   const [selectedTemplateCategory, setSelectedTemplateCategory] = useState<'all' | 'kitchen' | 'living' | 'bedroom' | 'other'>('all');
   const [activeStep, setActiveStep] = useState<number>(1);
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
+  const [contextMenu, setContextMenu] = useState<{ moduleId: string; x: number; y: number } | null>(null);
+  const [showFloatingConfig, setShowFloatingConfig] = useState<boolean>(false);
+
+  useEffect(() => {
+    const closeMenu = () => setContextMenu(null);
+    window.addEventListener('click', closeMenu);
+    return () => window.removeEventListener('click', closeMenu);
+  }, []);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -667,557 +675,10 @@ export const Editor: React.FC = () => {
     return getCategoryByType(tpl.type, tpl.id) === selectedTemplateCategory;
   });
 
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-12">
-      {/* Mobile Tab Switcher */}
-      <div className="lg:hidden col-span-1 flex gap-1 bg-[#12141c] p-1 rounded-xl border border-white/5 shrink-0">
-        <button
-          onClick={() => setMobileTab('3d')}
-          className={`flex-1 py-2.5 text-[10px] uppercase tracking-wider font-bold rounded-lg transition-all cursor-pointer ${
-            mobileTab === '3d'
-              ? 'bg-amber-500 text-neutral-950 font-extrabold shadow'
-              : 'text-neutral-400 hover:text-white'
-          }`}
-        >
-          👁️ 3D Загвар
-        </button>
-        <button
-          onClick={() => setMobileTab('settings')}
-          className={`flex-1 py-2.5 text-[10px] uppercase tracking-wider font-bold rounded-lg transition-all cursor-pointer ${
-            mobileTab === 'settings'
-              ? 'bg-amber-500 text-neutral-950 font-extrabold shadow'
-              : 'text-neutral-400 hover:text-white'
-          }`}
-        >
-          ⚙️ Тохиргоо
-        </button>
-        <button
-          onClick={() => setMobileTab('templates')}
-          className={`flex-1 py-2.5 text-[10px] uppercase tracking-wider font-bold rounded-lg transition-all cursor-pointer ${
-            mobileTab === 'templates'
-              ? 'bg-amber-500 text-neutral-950 font-extrabold shadow'
-              : 'text-neutral-400 hover:text-white'
-          }`}
-        >
-          📦 Загварууд
-        </button>
-      </div>
-
-      {/* LEFT COLUMN: Static Built-in & Custom templates sidebar (col-span-3 on desktop) */}
-      <div
-        className={`lg:col-span-3 flex flex-col bg-[#12141c] border border-white/5 rounded-2xl overflow-hidden shadow-2xl ${
-          isMobile
-            ? mobileTab === 'templates'
-              ? 'flex h-[75vh]'
-              : 'hidden'
-            : 'flex max-h-[920px]'
-        }`}
-      >
-        <div className="flex flex-col h-full overflow-y-auto w-full">
-          {/* Header */}
-          <div className="flex items-center gap-2 px-4 py-3.5 border-b border-white/5 bg-[#12141c] sticky top-0 z-10">
-            <Box size={13} className="text-amber-500 shrink-0" />
-            <span className="font-bold text-white text-xs">Бэлэн загварууд</span>
-            <span className="ml-auto text-[9px] text-neutral-500 font-semibold bg-neutral-800 px-1.5 py-0.5 rounded">{filteredBuiltInTemplates.length}</span>
-          </div>
-
-          {/* Category Filters */}
-          <div className="px-3 py-2 border-b border-white/5 bg-[#12141c]/45 flex gap-1 overflow-x-auto scrollbar-none whitespace-nowrap sticky top-[45px] z-10 shrink-0">
-            {[
-              { id: 'all', label: 'Бүгд' },
-              { id: 'kitchen', label: 'Гал тогоо' },
-              { id: 'living', label: 'Зочны өрөө' },
-              { id: 'bedroom', label: 'Унтлага' },
-              { id: 'other', label: 'Бусад' }
-            ].map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedTemplateCategory(cat.id as any)}
-                className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                  selectedTemplateCategory === cat.id
-                    ? 'bg-amber-500 text-neutral-950 font-extrabold shadow'
-                    : 'bg-neutral-800/80 text-neutral-400 hover:text-white hover:bg-neutral-750'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Module list */}
-          <div className="px-3 py-3 border-b border-white/5">
-            <div className="text-[9px] text-neutral-500 uppercase font-bold px-1 mb-1.5">Төслийн хайрцагнууд</div>
-            <div className="flex flex-col gap-1">
-              {(activeProject.modules || []).map((mod) => {
-                const isAct = selectedModuleId === mod.id;
-                return (
-                  <div
-                    key={mod.id}
-                    onClick={() => setSelectedModuleId(mod.id)}
-                    className={`flex items-center justify-between px-2 py-1.5 rounded-lg border text-[10px] cursor-pointer transition-all ${
-                      isAct ? 'border-amber-500/50 bg-amber-500/8 text-amber-400' : 'border-white/5 text-neutral-400 hover:text-white hover:bg-white/3'
-                    }`}
-                  >
-                    <span className="truncate font-semibold">{mod.name}</span>
-                    <div className="flex gap-0.5 ml-1 shrink-0">
-                      <button onClick={(e) => { e.stopPropagation(); duplicateModule(mod.id); }} className="p-1 hover:text-amber-400 cursor-pointer"><Copy size={9}/></button>
-                      {(activeProject.modules||[]).length > 1 && (
-                        <button onClick={(e) => { e.stopPropagation(); if(confirm(`"${mod.name}" устгах уу?`)) removeModuleFromActive(mod.id); }} className="p-1 hover:text-red-400 cursor-pointer"><Trash2 size={9}/></button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <button onClick={() => resetModulePositions()} className="mt-1.5 w-full text-[9px] text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 rounded-lg py-1 font-bold uppercase tracking-wider transition-all cursor-pointer">Тэгшлэх</button>
-          </div>
-
-          {/* Custom Templates Section — always visible */}
-          <div className="px-3 py-3 border-b border-white/5 bg-amber-500/5">
-            <div className="text-[9px] text-amber-500 uppercase font-bold px-1 mb-2 flex items-center justify-between">
-              <span>💾 Миний хадгалсан загвар</span>
-              {filteredCustomTemplates && filteredCustomTemplates.length > 0 && (
-                <span className="text-[9px] text-amber-400 font-semibold bg-amber-500/15 px-1.5 py-0.5 rounded">{filteredCustomTemplates.length}</span>
-              )}
-            </div>
-            {(!filteredCustomTemplates || filteredCustomTemplates.length === 0) ? (
-              <div className="flex flex-col items-center justify-center py-4 gap-1.5 opacity-50">
-                <span className="text-xl">📭</span>
-                <span className="text-[9px] text-neutral-500 text-center leading-tight">Хадгалсан загвар алга байна.<br/>Хайрцаг сонгоод хадгалах боломжтой.</span>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-1.5 max-h-[220px] overflow-y-auto pr-1">
-                {filteredCustomTemplates.map((tpl) => (
-                  <div
-                    key={tpl.id}
-                    draggable
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData('text/plain', `custom-${tpl.id}`);
-                      const ghost = document.createElement('div');
-                      ghost.style.cssText = [
-                        'position:fixed',
-                        'left:-9999px',
-                        'top:-9999px',
-                        'width:100px',
-                        'height:72px',
-                        'background:#1a1c26',
-                        'border:1.5px solid #f59e0b',
-                        'border-radius:10px',
-                        'display:flex',
-                        'flex-direction:column',
-                        'align-items:center',
-                        'justify-content:center',
-                        'gap:4px',
-                        'color:#f59e0b',
-                        'font-size:9px',
-                        'font-weight:700',
-                        'font-family:system-ui,sans-serif',
-                        'padding:6px',
-                        'text-align:center',
-                        'box-shadow:0 4px 20px rgba(245,158,11,0.3)',
-                        'pointer-events:none',
-                      ].join(';');
-                      ghost.innerHTML = `<div style="font-size:18px">📦</div><div style="max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tpl.name}</div>`;
-                      document.body.appendChild(ghost);
-                      e.dataTransfer.setDragImage(ghost, 50, 36);
-                      setTimeout(() => document.body.removeChild(ghost), 0);
-                    }}
-                    className="group flex flex-col border border-amber-500/10 bg-[#0c0e18] hover:border-amber-500/50 rounded-xl overflow-hidden cursor-grab active:cursor-grabbing transition-all shadow-lg relative"
-                    title="Чирж 3D руу оруулах"
-                  >
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm(`"${tpl.name}" загварыг устгах уу?`)) {
-                          deleteCustomTemplate(tpl.id);
-                        }
-                      }}
-                      className="absolute top-1 right-1 z-10 p-1 rounded bg-black/60 hover:bg-red-500/80 text-neutral-400 hover:text-white transition-all cursor-pointer opacity-0 group-hover:opacity-100"
-                      title="Загвар устгах"
-                    >
-                      <Trash2 size={10} />
-                    </button>
-                    <div className="w-full aspect-[4/3] overflow-hidden relative">
-                      <TemplateThumbnail type={tpl.type} config={tpl.config} name={tpl.name} />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-1.5 pointer-events-none">
-                        <span className="text-[8px] font-bold text-white leading-tight drop-shadow">{tpl.name}</span>
-                      </div>
-                      <div className="absolute inset-0 bg-amber-500/0 group-hover:bg-amber-500/5 transition-all pointer-events-none" />
-                    </div>
-                    <button
-                      onClick={() => {
-                        addModuleToActive(tpl.type, tpl.config, tpl.name);
-                        if (isMobile) setMobileTab('3d');
-                      }}
-                      className="w-full py-1 bg-neutral-800/80 hover:bg-amber-500 hover:text-neutral-950 text-neutral-300 font-bold text-[8px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-0.5"
-                    >
-                      <Plus size={8} /> Нэмэх
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Saved Layouts Section — full layout snapshots */}
-          <div className="px-3 py-3 border-b border-white/5 bg-cyan-500/5">
-            <div className="text-[9px] text-cyan-400 uppercase font-bold px-1 mb-2 flex items-center justify-between">
-              <span>🏗️ Бүтэн лайаут</span>
-              {savedLayouts && savedLayouts.length > 0 && (
-                <span className="text-[9px] text-cyan-400 font-semibold bg-cyan-500/15 px-1.5 py-0.5 rounded">{savedLayouts.length}</span>
-              )}
-            </div>
-            {(!savedLayouts || savedLayouts.length === 0) ? (
-              <div className="flex flex-col items-center justify-center py-4 gap-1.5 opacity-50">
-                <span className="text-xl">🗭️</span>
-                <span className="text-[9px] text-neutral-500 text-center leading-tight">Хадгалсан лайаут алга байна.<br/>Доод хадгалах товчийг ашиглана уу.</span>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-1.5 max-h-[200px] overflow-y-auto pr-1">
-                {savedLayouts.map((layout) => (
-                  <div
-                    key={layout.id}
-                    className="group flex items-center gap-1.5 px-2 py-2 rounded-xl border border-cyan-500/10 bg-[#0c0e18] hover:border-cyan-500/40 transition-all"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[9px] font-bold text-white truncate">{layout.name}</div>
-                      <div className="text-[8px] text-neutral-500">{layout.moduleCount} хайрцаг</div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        if (confirm(`“${layout.name}” лайаутыг ачнаа оруулах уу? Одоо лайаут солигдоно.`)) loadLayout(layout.id);
-                      }}
-                      className="px-2 py-1 bg-cyan-500/15 hover:bg-cyan-500/30 text-cyan-400 font-bold text-[8px] rounded-lg transition-all cursor-pointer uppercase tracking-wide"
-                      title="Лайаут ачнах"
-                    >
-                      Ачнах
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (confirm(`“${layout.name}” устгах уу?`)) deleteLayout(layout.id);
-                      }}
-                      className="p-1 rounded bg-black/40 hover:bg-red-500/80 text-neutral-500 hover:text-white transition-all cursor-pointer opacity-0 group-hover:opacity-100"
-                      title="Устгах"
-                    >
-                      <Trash2 size={9} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="px-3 py-3 flex-1">
-            <div className="text-[9px] text-neutral-500 uppercase font-bold px-1 mb-2">Чирж нэмэх</div>
-            <div className="grid grid-cols-2 gap-1.5">
-              {filteredBuiltInTemplates.map((tpl) => {
-                return (
-                  <div
-                    key={tpl.id}
-                    draggable
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData('text/plain', tpl.id);
-                      // Custom drag ghost — small amber box with name
-                      const ghost = document.createElement('div');
-                      ghost.style.cssText = [
-                        'position:fixed',
-                        'left:-9999px',
-                        'top:-9999px',
-                        'width:100px',
-                        'height:72px',
-                        'background:#1a1c26',
-                        'border:1.5px solid #f59e0b',
-                        'border-radius:10px',
-                        'display:flex',
-                        'flex-direction:column',
-                        'align-items:center',
-                        'justify-content:center',
-                        'gap:4px',
-                        'color:#f59e0b',
-                        'font-size:9px',
-                        'font-weight:700',
-                        'font-family:system-ui,sans-serif',
-                        'padding:6px',
-                        'text-align:center',
-                        'box-shadow:0 4px 20px rgba(245,158,11,0.3)',
-                        'pointer-events:none',
-                      ].join(';');
-                      ghost.innerHTML = `<div style="font-size:18px">📦</div><div style="max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tpl.name}</div>`;
-                      document.body.appendChild(ghost);
-                      e.dataTransfer.setDragImage(ghost, 50, 36);
-                      setTimeout(() => document.body.removeChild(ghost), 0);
-                    }}
-                    className="group flex flex-col border border-white/8 bg-[#0c0e18] hover:border-amber-500/50 rounded-xl overflow-hidden cursor-grab active:cursor-grabbing transition-all shadow-lg hover:shadow-amber-500/10"
-                    title="Чирж 3D руу оруулах"
-                  >
-                    <div className="w-full aspect-[4/3] overflow-hidden relative">
-                      <TemplateThumbnail type={tpl.type} config={tpl.config} name={tpl.name} />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-1.5 pointer-events-none">
-                        <span className="text-[8px] font-bold text-white leading-tight drop-shadow">{tpl.name}</span>
-                      </div>
-                      <div className="absolute inset-0 bg-amber-500/0 group-hover:bg-amber-500/5 transition-all pointer-events-none" />
-                    </div>
-                    <button
-                      onClick={() => {
-                        addModuleToActive(tpl.type, tpl.config, tpl.name);
-                        if (isMobile) setMobileTab('3d');
-                      }}
-                      className="w-full py-1 bg-neutral-800/80 hover:bg-amber-500 hover:text-neutral-950 text-neutral-300 font-bold text-[8px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-0.5"
-                    >
-                      <Plus size={8} /> Нэмэх
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* MIDDLE COLUMN: 3D Visualizer Canvas (col-span-6 on desktop, h-[920px]) */}
-      <div className={`lg:col-span-6 flex flex-col gap-4 ${isMobile ? (mobileTab === '3d' ? 'flex h-[55vh]' : 'hidden') : 'flex h-[920px]'}`}>
-        {/* Visualizer HUD controls */}
-        <div className="flex justify-between items-center gap-4 bg-[#12141c] border border-white/5 px-4 py-3 rounded-xl overflow-x-auto scrollbar-none whitespace-nowrap">
-          <div className="flex gap-2 shrink-0">
-            <button
-              onClick={() => setShowHelpModal(true)}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-neutral-950 font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-amber-500/15"
-              title="Ашиглах зааварчилгаа нээх"
-            >
-              <HelpCircle size={11} className="shrink-0" />
-              <span>💡 Тусламж</span>
-            </button>
-            <div className="w-px h-5 bg-white/10 mx-0.5 self-center" />
-            <button
-              onClick={() => setViewMode('perspective')}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
-                viewMode === 'perspective' ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-800 text-neutral-400 hover:text-white'
-              }`}
-              title="3D орон зайд чөлөөтэй эргүүлж харах"
-            >
-              3D Харагдац
-            </button>
-            <button
-              onClick={() => setViewMode('front')}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
-                viewMode === 'front' ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-800 text-neutral-400 hover:text-white'
-              }`}
-              title="Тавилгыг яг урдаас нь тэгш харах"
-            >
-              Урдаас
-            </button>
-            <button
-              onClick={() => setViewMode('top')}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
-                viewMode === 'top' ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-800 text-neutral-400 hover:text-white'
-              }`}
-              title="Тавилгыг дээрээс нь тэгш харах"
-            >
-              Дээрээс
-            </button>
-            <button
-              onClick={() => setViewMode('side')}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
-                viewMode === 'side' ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-800 text-neutral-400 hover:text-white'
-              }`}
-              title="Тавилгыг хажуу талаас нь тэгш харах"
-            >
-              Хажуугаас
-            </button>
-          </div>
-          <div className="flex gap-1.5 shrink-0">
-            <button
-              onClick={() => setExplode(!explode)}
-              className={`p-2 rounded-lg transition-all cursor-pointer ${
-                explode ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-neutral-800 text-neutral-400 border border-transparent'
-              }`}
-              title="Задрах харагдац: Хавтангуудыг салгаж бүтцийг нь харах"
-            >
-              <Layers size={16} />
-            </button>
-            <button
-              onClick={() => setOpenDoors(!openDoors)}
-              className={`p-2 rounded-lg transition-all cursor-pointer ${
-                openDoors ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-neutral-800 text-neutral-400 border border-transparent'
-              }`}
-              title="Хаалга болон шургуулгуудыг онгойлгох / хаах"
-            >
-              <Eye size={16} />
-            </button>
-            <button
-              onClick={() => setShowDimensions(!showDimensions)}
-              className={`p-2 rounded-lg transition-all cursor-pointer ${
-                showDimensions ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-neutral-800 text-neutral-400 border border-transparent'
-              }`}
-              title="Тавилгын гаднах хэмжээсийг харуулах / нуух"
-            >
-              <Grid size={16} />
-            </button>
-            <button
-              onClick={() => setMeasureMode(!measureMode)}
-              className={`p-2 rounded-lg transition-all cursor-pointer ${
-                measureMode ? 'bg-amber-500 text-neutral-950 border border-amber-600' : 'bg-neutral-800 text-neutral-400 border border-transparent hover:text-white'
-              }`}
-              title="Зай хэмжигч метр: 3D дээр хоёр цэг сонгож зайг хэмжих"
-            >
-              <Ruler size={16} />
-            </button>
-            <button
-              onClick={() => setSnapping(!snapping)}
-              className={`p-2 rounded-lg transition-all cursor-pointer ${
-                snapping ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-neutral-800 text-neutral-400 border border-transparent'
-              }`}
-              title="Соронзон наалдац: Шүүгээнүүдийг автомат зэрэгцүүлэн нааж тэгшлэх"
-            >
-              <Magnet size={16} />
-            </button>
-            <div className="w-px h-5 bg-white/10 mx-0.5 self-center" />
-            <button
-              onClick={() => {
-                if ((activeProject.modules || []).length === 0) return;
-                if (confirm('3D дэлгэцийн бүх хайрцгийг устгах уу?')) {
-                  clearAllModules();
-                }
-              }}
-              className="p-2 rounded-lg transition-all cursor-pointer bg-neutral-800 text-neutral-400 border border-transparent hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30"
-              title="Бүх хайрцгуудыг дэлгэцээс арилгах"
-            >
-              <Trash2 size={16} />
-            </button>
-          </div>
-        </div>
-
-        {/* 3D Canvas element wrapper */}
-        <div
-          className={`flex-1 rounded-2xl overflow-hidden border transition-all relative ${
-            isDragOver ? 'border-amber-500 shadow-lg shadow-amber-500/10' : 'border-transparent hover:border-amber-500/30'
-          }`}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDragOver(true);
-          }}
-          onDragEnter={(e) => {
-            e.preventDefault();
-            setIsDragOver(true);
-          }}
-          onDragLeave={(e) => {
-            e.preventDefault();
-            setIsDragOver(false);
-          }}
-          onDrop={(e) => {
-            e.preventDefault();
-            setIsDragOver(false);
-            
-            // 1. Try template drop (add new module)
-            const tplId = e.dataTransfer.getData('text/plain');
-            if (tplId) {
-              if (tplId.startsWith('custom-')) {
-                const realId = tplId.replace('custom-', '');
-                const tpl = customTemplates.find((t) => t.id === realId);
-                if (tpl) {
-                  addModuleToActive(tpl.type, tpl.config, tpl.name);
-                  return;
-                }
-              } else {
-                const tpl = templates.find((t) => t.id === tplId);
-                if (tpl) {
-                  addModuleToActive(tpl.type, tpl.config, tpl.name);
-                  return;
-                }
-              }
-            }
-
-            // 2. Try part drop
-            const partJson = e.dataTransfer.getData('part-data');
-            if (partJson) {
-              try {
-                const partData = JSON.parse(partJson);
-                addPartToActive(partData);
-              } catch (err) {
-                console.error(err);
-              }
-            }
-          }}
-        >
-          {/* Drag Overlay visual cue */}
-          <div
-            className={`absolute inset-0 bg-amber-500/5 backdrop-blur-[2px] pointer-events-none transition-all flex items-center justify-center border-2 border-dashed border-amber-500/40 rounded-2xl z-10 ${
-              isDragOver ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
-            }`}
-          >
-            <span className="bg-[#12141c] border border-white/10 px-4 py-2 rounded-xl text-xs font-semibold text-amber-400 shadow-xl">
-              Загварыг энд чирч тавина уу (Drop to load)
-            </span>
-          </div>
-
-          {measureMode && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-amber-500 text-neutral-950 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg border border-amber-600 animate-pulse uppercase tracking-wider">
-              Метр горим идэвхтэй: 3D орон зайд дараад хэмжинэ үү (A-B цэг сонгох)
-            </div>
-          )}
-
-          <ThreeViewer
-            project={activeProject}
-            materials={materials}
-            explode={explode}
-            showDimensions={showDimensions}
-            openDoors={openDoors}
-            viewMode={viewMode}
-            enableSnapping={snapping}
-            measureMode={measureMode}
-          />
-        </div>
-      </div>
-
-      {/* RIGHT COLUMN: Configuration sliders side panel (col-span-2) */}
-      <div className={`lg:col-span-3 flex flex-col gap-6 max-h-[920px] overflow-y-auto pr-2 ${isMobile ? (mobileTab === 'settings' ? 'flex' : 'hidden') : 'flex'}`}>
-        {/* Project info card */}
-        <div className="bg-[#12141c] border border-white/5 rounded-2xl p-5 flex flex-col gap-1">
-          <span className="text-[10px] text-amber-500 uppercase tracking-wider font-bold">Идэвхтэй төсөл</span>
-          <h2 className="font-display font-bold text-white text-lg">{activeProject.name}</h2>
-          <p className="text-neutral-400 text-xs">
-            Захиалагч: {activeProject.customerName} ({activeProject.customerPhone})
-          </p>
-        </div>
-
-        {/* AI Furniture Prompt Generator Form */}
-        <div className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/10 rounded-2xl p-5 flex flex-col gap-3">
-          <div className="flex items-center gap-1.5 text-amber-400 text-sm font-semibold">
-            <Sparkles size={16} />
-            <h4>AI Тавилга Зурагч</h4>
-          </div>
-          <form onSubmit={handleAiPromptSubmit} className="relative">
-            <input
-              type="text"
-              placeholder="Бичнэ үү: 'цагаан модерн гал тогоо'..."
-              value={aiPrompt}
-              onChange={(e) => setAiPrompt(e.target.value)}
-              className="w-full bg-[#0c0d12] border border-white/10 rounded-xl pl-4 pr-12 py-3.5 outline-none text-white text-xs placeholder:text-neutral-500 focus:border-amber-500"
-            />
-            <button
-              type="submit"
-              disabled={aiLoading}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-amber-500 hover:bg-amber-600 disabled:bg-neutral-800 text-neutral-950 disabled:text-neutral-600 rounded-lg transition-all cursor-pointer"
-            >
-              {aiLoading ? <RefreshCw className="animate-spin" size={14} /> : <Send size={14} />}
-            </button>
-          </form>
-          {aiSuccess && (
-            <div className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
-              <Check size={12} /> AI тавилгыг амжилттай үүсгэлээ!
-            </div>
-          )}
-        </div>
-
-        {/* Dimension parameters sliders panel - RESTRUCTURED AS WIZARD */}
-        {!selectedMod ? (
-          <div className="flex flex-col items-center justify-center p-6 text-center bg-[#12141c] border border-white/5 rounded-2xl min-h-[350px]">
-            <Box size={36} className="text-neutral-500 mb-3 animate-pulse" />
-            <span className="text-xs font-bold text-white">Шүүгээ сонгоогүй байна</span>
-            <p className="text-[10px] text-neutral-500 mt-1 leading-normal max-w-[200px]">
-              Зүүн талын цэснээс бэлэн загварыг 3D дэлгэц рүү чирж оруулах эсвэл "Нэмэх" товчлуурыг дарж ажиллана уу.
-            </p>
-          </div>
-        ) : (
+  
+  const renderConfigurator = (isFloating = false) => {
+    if (!selectedMod) return null;
+    return (
           <div className="bg-[#12141c] border border-white/5 rounded-2xl p-5 flex flex-col gap-5">
             {/* Wizard Header */}
             <div className="flex justify-between items-center border-b border-white/5 pb-3">
@@ -1229,15 +690,27 @@ export const Editor: React.FC = () => {
                   </span>
                 </h3>
               </div>
-              <button
-                onClick={() => setShowPrintModal(true)}
-                className="flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500 hover:text-neutral-950 border border-amber-500/20 rounded-lg text-amber-400 text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer"
-                title="Тохиргооны хэвлэмэл хуудас"
-                type="button"
-              >
-                <Printer size={10} />
-                <span>Хэвлэх</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowPrintModal(true)}
+                  className="flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500 hover:text-neutral-950 border border-amber-500/20 rounded-lg text-amber-400 text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                  title="Тохиргооны хэвлэмэл хуудас"
+                  type="button"
+                >
+                  <Printer size={10} />
+                  <span>Хэвлэх</span>
+                </button>
+                {isFloating && (
+                  <button
+                    onClick={() => setShowFloatingConfig(false)}
+                    className="p-1 hover:bg-white/10 rounded-lg text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                    title="Хаах"
+                    type="button"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Stepper Progress Bar */}
@@ -2775,7 +2248,632 @@ export const Editor: React.FC = () => {
               </button>
             </div>
           </div>
-        )}
+        );
+  };
+
+return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-12">
+      {/* Mobile Tab Switcher */}
+      <div className="lg:hidden col-span-1 flex gap-1 bg-[#12141c] p-1 rounded-xl border border-white/5 shrink-0">
+        <button
+          onClick={() => setMobileTab('3d')}
+          className={`flex-1 py-2.5 text-[10px] uppercase tracking-wider font-bold rounded-lg transition-all cursor-pointer ${
+            mobileTab === '3d'
+              ? 'bg-amber-500 text-neutral-950 font-extrabold shadow'
+              : 'text-neutral-400 hover:text-white'
+          }`}
+        >
+          👁️ 3D Загвар
+        </button>
+        <button
+          onClick={() => setMobileTab('settings')}
+          className={`flex-1 py-2.5 text-[10px] uppercase tracking-wider font-bold rounded-lg transition-all cursor-pointer ${
+            mobileTab === 'settings'
+              ? 'bg-amber-500 text-neutral-950 font-extrabold shadow'
+              : 'text-neutral-400 hover:text-white'
+          }`}
+        >
+          ⚙️ Тохиргоо
+        </button>
+        <button
+          onClick={() => setMobileTab('templates')}
+          className={`flex-1 py-2.5 text-[10px] uppercase tracking-wider font-bold rounded-lg transition-all cursor-pointer ${
+            mobileTab === 'templates'
+              ? 'bg-amber-500 text-neutral-950 font-extrabold shadow'
+              : 'text-neutral-400 hover:text-white'
+          }`}
+        >
+          📦 Загварууд
+        </button>
+      </div>
+
+      {/* LEFT COLUMN: Static Built-in & Custom templates sidebar (col-span-3 on desktop) */}
+      <div
+        className={`lg:col-span-3 flex flex-col bg-[#12141c] border border-white/5 rounded-2xl overflow-hidden shadow-2xl ${
+          isMobile
+            ? mobileTab === 'templates'
+              ? 'flex h-[75vh]'
+              : 'hidden'
+            : 'flex max-h-[920px]'
+        }`}
+      >
+        <div className="flex flex-col h-full overflow-y-auto w-full">
+          {/* Header */}
+          <div className="flex items-center gap-2 px-4 py-3.5 border-b border-white/5 bg-[#12141c] sticky top-0 z-10">
+            <Box size={13} className="text-amber-500 shrink-0" />
+            <span className="font-bold text-white text-xs">Бэлэн загварууд</span>
+            <span className="ml-auto text-[9px] text-neutral-500 font-semibold bg-neutral-800 px-1.5 py-0.5 rounded">{filteredBuiltInTemplates.length}</span>
+          </div>
+
+          {/* Category Filters */}
+          <div className="px-3 py-2 border-b border-white/5 bg-[#12141c]/45 flex gap-1 overflow-x-auto scrollbar-none whitespace-nowrap sticky top-[45px] z-10 shrink-0">
+            {[
+              { id: 'all', label: 'Бүгд' },
+              { id: 'kitchen', label: 'Гал тогоо' },
+              { id: 'living', label: 'Зочны өрөө' },
+              { id: 'bedroom', label: 'Унтлага' },
+              { id: 'other', label: 'Бусад' }
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedTemplateCategory(cat.id as any)}
+                className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                  selectedTemplateCategory === cat.id
+                    ? 'bg-amber-500 text-neutral-950 font-extrabold shadow'
+                    : 'bg-neutral-800/80 text-neutral-400 hover:text-white hover:bg-neutral-750'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Module list */}
+          <div className="px-3 py-3 border-b border-white/5">
+            <div className="text-[9px] text-neutral-500 uppercase font-bold px-1 mb-1.5">Төслийн хайрцагнууд</div>
+            <div className="flex flex-col gap-1">
+              {(activeProject.modules || []).map((mod) => {
+                const isAct = selectedModuleId === mod.id;
+                return (
+                  <div
+                    key={mod.id}
+                    onClick={() => setSelectedModuleId(mod.id)}
+                    className={`flex items-center justify-between px-2 py-1.5 rounded-lg border text-[10px] cursor-pointer transition-all ${
+                      isAct ? 'border-amber-500/50 bg-amber-500/8 text-amber-400' : 'border-white/5 text-neutral-400 hover:text-white hover:bg-white/3'
+                    }`}
+                  >
+                    <span className="truncate font-semibold">{mod.name}</span>
+                    <div className="flex gap-0.5 ml-1 shrink-0">
+                      <button onClick={(e) => { e.stopPropagation(); duplicateModule(mod.id); }} className="p-1 hover:text-amber-400 cursor-pointer"><Copy size={9}/></button>
+                      {(activeProject.modules||[]).length > 1 && (
+                        <button onClick={(e) => { e.stopPropagation(); if(confirm(`"${mod.name}" устгах уу?`)) removeModuleFromActive(mod.id); }} className="p-1 hover:text-red-400 cursor-pointer"><Trash2 size={9}/></button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <button onClick={() => resetModulePositions()} className="mt-1.5 w-full text-[9px] text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 rounded-lg py-1 font-bold uppercase tracking-wider transition-all cursor-pointer">Тэгшлэх</button>
+          </div>
+
+          {/* Custom Templates Section — always visible */}
+          <div className="px-3 py-3 border-b border-white/5 bg-amber-500/5">
+            <div className="text-[9px] text-amber-500 uppercase font-bold px-1 mb-2 flex items-center justify-between">
+              <span>💾 Миний хадгалсан загвар</span>
+              {filteredCustomTemplates && filteredCustomTemplates.length > 0 && (
+                <span className="text-[9px] text-amber-400 font-semibold bg-amber-500/15 px-1.5 py-0.5 rounded">{filteredCustomTemplates.length}</span>
+              )}
+            </div>
+            {(!filteredCustomTemplates || filteredCustomTemplates.length === 0) ? (
+              <div className="flex flex-col items-center justify-center py-4 gap-1.5 opacity-50">
+                <span className="text-xl">📭</span>
+                <span className="text-[9px] text-neutral-500 text-center leading-tight">Хадгалсан загвар алга байна.<br/>Хайрцаг сонгоод хадгалах боломжтой.</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-1.5 max-h-[220px] overflow-y-auto pr-1">
+                {filteredCustomTemplates.map((tpl) => (
+                  <div
+                    key={tpl.id}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('text/plain', `custom-${tpl.id}`);
+                      const ghost = document.createElement('div');
+                      ghost.style.cssText = [
+                        'position:fixed',
+                        'left:-9999px',
+                        'top:-9999px',
+                        'width:100px',
+                        'height:72px',
+                        'background:#1a1c26',
+                        'border:1.5px solid #f59e0b',
+                        'border-radius:10px',
+                        'display:flex',
+                        'flex-direction:column',
+                        'align-items:center',
+                        'justify-content:center',
+                        'gap:4px',
+                        'color:#f59e0b',
+                        'font-size:9px',
+                        'font-weight:700',
+                        'font-family:system-ui,sans-serif',
+                        'padding:6px',
+                        'text-align:center',
+                        'box-shadow:0 4px 20px rgba(245,158,11,0.3)',
+                        'pointer-events:none',
+                      ].join(';');
+                      ghost.innerHTML = `<div style="font-size:18px">📦</div><div style="max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tpl.name}</div>`;
+                      document.body.appendChild(ghost);
+                      e.dataTransfer.setDragImage(ghost, 50, 36);
+                      setTimeout(() => document.body.removeChild(ghost), 0);
+                    }}
+                    className="group flex flex-col border border-amber-500/10 bg-[#0c0e18] hover:border-amber-500/50 rounded-xl overflow-hidden cursor-grab active:cursor-grabbing transition-all shadow-lg relative"
+                    title="Чирж 3D руу оруулах"
+                  >
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm(`"${tpl.name}" загварыг устгах уу?`)) {
+                          deleteCustomTemplate(tpl.id);
+                        }
+                      }}
+                      className="absolute top-1 right-1 z-10 p-1 rounded bg-black/60 hover:bg-red-500/80 text-neutral-400 hover:text-white transition-all cursor-pointer opacity-0 group-hover:opacity-100"
+                      title="Загвар устгах"
+                    >
+                      <Trash2 size={10} />
+                    </button>
+                    <div className="w-full aspect-[4/3] overflow-hidden relative">
+                      <TemplateThumbnail type={tpl.type} config={tpl.config} name={tpl.name} />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-1.5 pointer-events-none">
+                        <span className="text-[8px] font-bold text-white leading-tight drop-shadow">{tpl.name}</span>
+                      </div>
+                      <div className="absolute inset-0 bg-amber-500/0 group-hover:bg-amber-500/5 transition-all pointer-events-none" />
+                    </div>
+                    <button
+                      onClick={() => {
+                        addModuleToActive(tpl.type, tpl.config, tpl.name);
+                        if (isMobile) setMobileTab('3d');
+                      }}
+                      className="w-full py-1 bg-neutral-800/80 hover:bg-amber-500 hover:text-neutral-950 text-neutral-300 font-bold text-[8px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-0.5"
+                    >
+                      <Plus size={8} /> Нэмэх
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Saved Layouts Section — full layout snapshots */}
+          <div className="px-3 py-3 border-b border-white/5 bg-cyan-500/5">
+            <div className="text-[9px] text-cyan-400 uppercase font-bold px-1 mb-2 flex items-center justify-between">
+              <span>🏗️ Бүтэн лайаут</span>
+              {savedLayouts && savedLayouts.length > 0 && (
+                <span className="text-[9px] text-cyan-400 font-semibold bg-cyan-500/15 px-1.5 py-0.5 rounded">{savedLayouts.length}</span>
+              )}
+            </div>
+            {(!savedLayouts || savedLayouts.length === 0) ? (
+              <div className="flex flex-col items-center justify-center py-4 gap-1.5 opacity-50">
+                <span className="text-xl">🗭️</span>
+                <span className="text-[9px] text-neutral-500 text-center leading-tight">Хадгалсан лайаут алга байна.<br/>Доод хадгалах товчийг ашиглана уу.</span>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1.5 max-h-[200px] overflow-y-auto pr-1">
+                {savedLayouts.map((layout) => (
+                  <div
+                    key={layout.id}
+                    className="group flex items-center gap-1.5 px-2 py-2 rounded-xl border border-cyan-500/10 bg-[#0c0e18] hover:border-cyan-500/40 transition-all"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[9px] font-bold text-white truncate">{layout.name}</div>
+                      <div className="text-[8px] text-neutral-500">{layout.moduleCount} хайрцаг</div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (confirm(`“${layout.name}” лайаутыг ачнаа оруулах уу? Одоо лайаут солигдоно.`)) loadLayout(layout.id);
+                      }}
+                      className="px-2 py-1 bg-cyan-500/15 hover:bg-cyan-500/30 text-cyan-400 font-bold text-[8px] rounded-lg transition-all cursor-pointer uppercase tracking-wide"
+                      title="Лайаут ачнах"
+                    >
+                      Ачнах
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm(`“${layout.name}” устгах уу?`)) deleteLayout(layout.id);
+                      }}
+                      className="p-1 rounded bg-black/40 hover:bg-red-500/80 text-neutral-500 hover:text-white transition-all cursor-pointer opacity-0 group-hover:opacity-100"
+                      title="Устгах"
+                    >
+                      <Trash2 size={9} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="px-3 py-3 flex-1">
+            <div className="text-[9px] text-neutral-500 uppercase font-bold px-1 mb-2">Чирж нэмэх</div>
+            <div className="grid grid-cols-2 gap-1.5">
+              {filteredBuiltInTemplates.map((tpl) => {
+                return (
+                  <div
+                    key={tpl.id}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('text/plain', tpl.id);
+                      // Custom drag ghost — small amber box with name
+                      const ghost = document.createElement('div');
+                      ghost.style.cssText = [
+                        'position:fixed',
+                        'left:-9999px',
+                        'top:-9999px',
+                        'width:100px',
+                        'height:72px',
+                        'background:#1a1c26',
+                        'border:1.5px solid #f59e0b',
+                        'border-radius:10px',
+                        'display:flex',
+                        'flex-direction:column',
+                        'align-items:center',
+                        'justify-content:center',
+                        'gap:4px',
+                        'color:#f59e0b',
+                        'font-size:9px',
+                        'font-weight:700',
+                        'font-family:system-ui,sans-serif',
+                        'padding:6px',
+                        'text-align:center',
+                        'box-shadow:0 4px 20px rgba(245,158,11,0.3)',
+                        'pointer-events:none',
+                      ].join(';');
+                      ghost.innerHTML = `<div style="font-size:18px">📦</div><div style="max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tpl.name}</div>`;
+                      document.body.appendChild(ghost);
+                      e.dataTransfer.setDragImage(ghost, 50, 36);
+                      setTimeout(() => document.body.removeChild(ghost), 0);
+                    }}
+                    className="group flex flex-col border border-white/8 bg-[#0c0e18] hover:border-amber-500/50 rounded-xl overflow-hidden cursor-grab active:cursor-grabbing transition-all shadow-lg hover:shadow-amber-500/10"
+                    title="Чирж 3D руу оруулах"
+                  >
+                    <div className="w-full aspect-[4/3] overflow-hidden relative">
+                      <TemplateThumbnail type={tpl.type} config={tpl.config} name={tpl.name} />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-1.5 pointer-events-none">
+                        <span className="text-[8px] font-bold text-white leading-tight drop-shadow">{tpl.name}</span>
+                      </div>
+                      <div className="absolute inset-0 bg-amber-500/0 group-hover:bg-amber-500/5 transition-all pointer-events-none" />
+                    </div>
+                    <button
+                      onClick={() => {
+                        addModuleToActive(tpl.type, tpl.config, tpl.name);
+                        if (isMobile) setMobileTab('3d');
+                      }}
+                      className="w-full py-1 bg-neutral-800/80 hover:bg-amber-500 hover:text-neutral-950 text-neutral-300 font-bold text-[8px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-0.5"
+                    >
+                      <Plus size={8} /> Нэмэх
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* MIDDLE COLUMN: 3D Visualizer Canvas (col-span-6 on desktop, h-[920px]) */}
+      <div className={`lg:col-span-6 flex flex-col gap-4 ${isMobile ? (mobileTab === '3d' ? 'flex h-[55vh]' : 'hidden') : 'flex h-[920px]'}`}>
+        {/* Visualizer HUD controls */}
+        <div className="flex justify-between items-center gap-4 bg-[#12141c] border border-white/5 px-4 py-3 rounded-xl overflow-x-auto scrollbar-none whitespace-nowrap">
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={() => setShowHelpModal(true)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-neutral-950 font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-amber-500/15"
+              title="Ашиглах зааварчилгаа нээх"
+            >
+              <HelpCircle size={11} className="shrink-0" />
+              <span>💡 Тусламж</span>
+            </button>
+            <div className="w-px h-5 bg-white/10 mx-0.5 self-center" />
+            <button
+              onClick={() => setViewMode('perspective')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                viewMode === 'perspective' ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-800 text-neutral-400 hover:text-white'
+              }`}
+              title="3D орон зайд чөлөөтэй эргүүлж харах"
+            >
+              3D Харагдац
+            </button>
+            <button
+              onClick={() => setViewMode('front')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                viewMode === 'front' ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-800 text-neutral-400 hover:text-white'
+              }`}
+              title="Тавилгыг яг урдаас нь тэгш харах"
+            >
+              Урдаас
+            </button>
+            <button
+              onClick={() => setViewMode('top')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                viewMode === 'top' ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-800 text-neutral-400 hover:text-white'
+              }`}
+              title="Тавилгыг дээрээс нь тэгш харах"
+            >
+              Дээрээс
+            </button>
+            <button
+              onClick={() => setViewMode('side')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                viewMode === 'side' ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-800 text-neutral-400 hover:text-white'
+              }`}
+              title="Тавилгыг хажуу талаас нь тэгш харах"
+            >
+              Хажуугаас
+            </button>
+          </div>
+          <div className="flex gap-1.5 shrink-0">
+            <button
+              onClick={() => setExplode(!explode)}
+              className={`p-2 rounded-lg transition-all cursor-pointer ${
+                explode ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-neutral-800 text-neutral-400 border border-transparent'
+              }`}
+              title="Задрах харагдац: Хавтангуудыг салгаж бүтцийг нь харах"
+            >
+              <Layers size={16} />
+            </button>
+            <button
+              onClick={() => setOpenDoors(!openDoors)}
+              className={`p-2 rounded-lg transition-all cursor-pointer ${
+                openDoors ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-neutral-800 text-neutral-400 border border-transparent'
+              }`}
+              title="Хаалга болон шургуулгуудыг онгойлгох / хаах"
+            >
+              <Eye size={16} />
+            </button>
+            <button
+              onClick={() => setShowDimensions(!showDimensions)}
+              className={`p-2 rounded-lg transition-all cursor-pointer ${
+                showDimensions ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-neutral-800 text-neutral-400 border border-transparent'
+              }`}
+              title="Тавилгын гаднах хэмжээсийг харуулах / нуух"
+            >
+              <Grid size={16} />
+            </button>
+            <button
+              onClick={() => setMeasureMode(!measureMode)}
+              className={`p-2 rounded-lg transition-all cursor-pointer ${
+                measureMode ? 'bg-amber-500 text-neutral-950 border border-amber-600' : 'bg-neutral-800 text-neutral-400 border border-transparent hover:text-white'
+              }`}
+              title="Зай хэмжигч метр: 3D дээр хоёр цэг сонгож зайг хэмжих"
+            >
+              <Ruler size={16} />
+            </button>
+            <button
+              onClick={() => setSnapping(!snapping)}
+              className={`p-2 rounded-lg transition-all cursor-pointer ${
+                snapping ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-neutral-800 text-neutral-400 border border-transparent'
+              }`}
+              title="Соронзон наалдац: Шүүгээнүүдийг автомат зэрэгцүүлэн нааж тэгшлэх"
+            >
+              <Magnet size={16} />
+            </button>
+            <div className="w-px h-5 bg-white/10 mx-0.5 self-center" />
+            <button
+              onClick={() => {
+                if ((activeProject.modules || []).length === 0) return;
+                if (confirm('3D дэлгэцийн бүх хайрцгийг устгах уу?')) {
+                  clearAllModules();
+                }
+              }}
+              className="p-2 rounded-lg transition-all cursor-pointer bg-neutral-800 text-neutral-400 border border-transparent hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30"
+              title="Бүх хайрцгуудыг дэлгэцээс арилгах"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        </div>
+
+        {/* 3D Canvas element wrapper */}
+        <div
+          className={`flex-1 rounded-2xl overflow-hidden border transition-all relative ${
+            isDragOver ? 'border-amber-500 shadow-lg shadow-amber-500/10' : 'border-transparent hover:border-amber-500/30'
+          }`}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragOver(true);
+          }}
+          onDragEnter={(e) => {
+            e.preventDefault();
+            setIsDragOver(true);
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            setIsDragOver(false);
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragOver(false);
+            
+            // 1. Try template drop (add new module)
+            const tplId = e.dataTransfer.getData('text/plain');
+            if (tplId) {
+              if (tplId.startsWith('custom-')) {
+                const realId = tplId.replace('custom-', '');
+                const tpl = customTemplates.find((t) => t.id === realId);
+                if (tpl) {
+                  addModuleToActive(tpl.type, tpl.config, tpl.name);
+                  return;
+                }
+              } else {
+                const tpl = templates.find((t) => t.id === tplId);
+                if (tpl) {
+                  addModuleToActive(tpl.type, tpl.config, tpl.name);
+                  return;
+                }
+              }
+            }
+
+            // 2. Try part drop
+            const partJson = e.dataTransfer.getData('part-data');
+            if (partJson) {
+              try {
+                const partData = JSON.parse(partJson);
+                addPartToActive(partData);
+              } catch (err) {
+                console.error(err);
+              }
+            }
+          }}
+        >
+          {/* Drag Overlay visual cue */}
+          <div
+            className={`absolute inset-0 bg-amber-500/5 backdrop-blur-[2px] pointer-events-none transition-all flex items-center justify-center border-2 border-dashed border-amber-500/40 rounded-2xl z-10 ${
+              isDragOver ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+            }`}
+          >
+            <span className="bg-[#12141c] border border-white/10 px-4 py-2 rounded-xl text-xs font-semibold text-amber-400 shadow-xl">
+              Загварыг энд чирч тавина уу (Drop to load)
+            </span>
+          </div>
+
+          {measureMode && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-amber-500 text-neutral-950 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg border border-amber-600 animate-pulse uppercase tracking-wider">
+              Метр горим идэвхтэй: 3D орон зайд дараад хэмжинэ үү (A-B цэг сонгох)
+            </div>
+          )}
+
+          <ThreeViewer
+            project={activeProject}
+            materials={materials}
+            explode={explode}
+            showDimensions={showDimensions}
+            openDoors={openDoors}
+            viewMode={viewMode}
+            enableSnapping={snapping}
+            measureMode={measureMode}
+            onRightClickModule={(moduleId, x, y) => {
+              setContextMenu({ moduleId, x, y });
+            }}
+          />
+
+          {contextMenu && (
+            <div
+              className="fixed z-[100] min-w-[160px] bg-[#12141c]/95 border border-white/10 rounded-xl shadow-2xl p-1.5 backdrop-blur-md flex flex-col gap-1 text-[11px] font-semibold text-neutral-300"
+              style={{ left: contextMenu.x, top: contextMenu.y }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => {
+                  setSelectedModuleId(contextMenu.moduleId);
+                  setShowFloatingConfig(true);
+                  setContextMenu(null);
+                }}
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-amber-500 hover:text-neutral-950 transition-colors flex items-center gap-2 cursor-pointer"
+                type="button"
+              >
+                <Box size={14} />
+                <span>⚙️ Шүүгээ тохируулах</span>
+              </button>
+              <button
+                onClick={() => {
+                  duplicateModule(contextMenu.moduleId);
+                  setContextMenu(null);
+                }}
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-800 hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
+                type="button"
+              >
+                <Copy size={14} />
+                <span>👯 Хувилах</span>
+              </button>
+              <div className="h-px bg-white/5 my-1" />
+              <button
+                onClick={() => {
+                  if (confirm("Уг шүүгээг устгах уу?")) {
+                    removeModuleFromActive(contextMenu.moduleId);
+                  }
+                  setContextMenu(null);
+                }}
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-500/20 hover:text-red-400 transition-colors flex items-center gap-2 cursor-pointer"
+                type="button"
+              >
+                <Trash2 size={14} className="text-red-400" />
+                <span>❌ Устгах</span>
+              </button>
+            </div>
+          )}
+
+          {showFloatingConfig && selectedMod && (
+            <div className="absolute top-4 right-4 z-20 w-80 max-h-[90%] bg-[#12141c]/95 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-2xl overflow-y-auto flex flex-col gap-4" style={{ scrollbarWidth: 'thin' }}>
+              {renderConfigurator(true)}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* RIGHT COLUMN: Configuration sliders side panel (col-span-2) */}
+      <div className={`lg:col-span-3 flex flex-col gap-6 max-h-[920px] overflow-y-auto pr-2 ${isMobile ? (mobileTab === 'settings' ? 'flex' : 'hidden') : 'flex'}`}>
+        {/* Project info card */}
+        <div className="bg-[#12141c] border border-white/5 rounded-2xl p-5 flex flex-col gap-1">
+          <span className="text-[10px] text-amber-500 uppercase tracking-wider font-bold">Идэвхтэй төсөл</span>
+          <h2 className="font-display font-bold text-white text-lg">{activeProject.name}</h2>
+          <p className="text-neutral-400 text-xs">
+            Захиалагч: {activeProject.customerName} ({activeProject.customerPhone})
+          </p>
+        </div>
+
+        {/* AI Furniture Prompt Generator Form */}
+        <div className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/10 rounded-2xl p-5 flex flex-col gap-3">
+          <div className="flex items-center gap-1.5 text-amber-400 text-sm font-semibold">
+            <Sparkles size={16} />
+            <h4>AI Тавилга Зурагч</h4>
+          </div>
+          <form onSubmit={handleAiPromptSubmit} className="relative">
+            <input
+              type="text"
+              placeholder="Бичнэ үү: 'цагаан модерн гал тогоо'..."
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              className="w-full bg-[#0c0d12] border border-white/10 rounded-xl pl-4 pr-12 py-3.5 outline-none text-white text-xs placeholder:text-neutral-500 focus:border-amber-500"
+            />
+            <button
+              type="submit"
+              disabled={aiLoading}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-amber-500 hover:bg-amber-600 disabled:bg-neutral-800 text-neutral-950 disabled:text-neutral-600 rounded-lg transition-all cursor-pointer"
+            >
+              {aiLoading ? <RefreshCw className="animate-spin" size={14} /> : <Send size={14} />}
+            </button>
+          </form>
+          {aiSuccess && (
+            <div className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+              <Check size={12} /> AI тавилгыг амжилттай үүсгэлээ!
+            </div>
+          )}
+        </div>
+
+        {/* Dimension parameters sliders panel - RESTRUCTURED AS WIZARD */}
+        {showFloatingConfig ? (
+              <div className="flex flex-col items-center justify-center p-6 text-center bg-[#12141c] border border-white/5 rounded-2xl min-h-[350px]">
+                <Sparkles size={36} className="text-amber-500 mb-3 animate-pulse" />
+                <span className="text-xs font-bold text-white">Хөвөгч тохиргоо идэвхтэй</span>
+                <p className="text-[10px] text-neutral-500 mt-2 leading-normal max-w-[200px]">
+                  Шүүгээний тохиргоо 3D дэлгэц дээр хөвөгч байдлаар нээлттэй байна. Та тэндээс засварлана уу.
+                </p>
+                <button
+                  onClick={() => setShowFloatingConfig(false)}
+                  className="mt-4 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-[10px] font-bold uppercase rounded-xl transition-all cursor-pointer border border-white/5"
+                  type="button"
+                >
+                  Хажуугийн цонхонд шилжүүлэх
+                </button>
+              </div>
+            ) : !selectedMod ? (
+              <div className="flex flex-col items-center justify-center p-6 text-center bg-[#12141c] border border-white/5 rounded-2xl min-h-[350px]">
+                <Box size={36} className="text-neutral-500 mb-3 animate-pulse" />
+                <span className="text-xs font-bold text-white">Шүүгээ сонгоогүй байна</span>
+                <p className="text-[10px] text-neutral-500 mt-1 leading-normal max-w-[200px]">
+                  Зүүн талын цэснээс бэлэн загварыг 3D дэлгэц рүү чирж оруулах эсвэл "Нэмэх" товчлуурыг дарж ажиллана уу.
+                </p>
+              </div>
+            ) : (
+              renderConfigurator(false)
+            )}
       </div>
       {/* ═══════════ PRINT SPEC SHEET MODAL ═══════════ */}
       {showPrintModal && (() => {
