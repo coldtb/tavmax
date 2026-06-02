@@ -14,7 +14,9 @@ export const exportProjectToPDF = (
   });
 
   const primaryMaterial = materials.find((m) => m.id === project.config.materialId) || materials[0];
-  const doorMaterial = materials.find((m) => m.id === project.config.doorMaterialId) || materials[0];
+  const doorMaterial = project.config.doorStyle === 'classic'
+    ? (materials.find((m) => m.id === 'mat-9') || materials[0])
+    : (materials.find((m) => m.id === project.config.doorMaterialId) || materials[0]);
 
   // Helper: Draw Premium Border
   const drawPageBorder = () => {

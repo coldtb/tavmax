@@ -180,7 +180,11 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
   const shelves = Number(config.shelves) || 0;
   const drawers = Number(config.drawers) || 0;
   const doors = Number(config.doors) || 0;
-  const { materialId, doorMaterialId } = config;
+  const { materialId } = config;
+  let doorMaterialId = config.doorMaterialId;
+  if (config.doorStyle === 'classic') {
+    doorMaterialId = 'mat-9';
+  }
   const parts: Part[] = [];
   const edge = '2mm';
 
@@ -1932,6 +1936,19 @@ export const useProjectStore = create<ProjectState>()(
             }
           } catch (e) {
             console.warn("Failed in onRehydrateStorage migration:", e);
+          }
+          try {
+            if (state.materials) {
+              DEFAULT_MATERIALS.forEach((defaultMat) => {
+                if (!state.materials.some((m) => m.id === defaultMat.id)) {
+                  state.materials.push(defaultMat);
+                }
+              });
+            } else {
+              state.materials = DEFAULT_MATERIALS;
+            }
+          } catch (e) {
+            console.warn("Failed to sync materials:", e);
           }
         }
       }
