@@ -2857,7 +2857,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           const tvStandMat = new THREE.MeshStandardMaterial({ color: '#1a1c23', roughness: 0.8, metalness: 0.1 });
 
           // Screen (Front face display panel)
-          addBoard(width - 10, height - 10, 5, 0, height / 2, 2.5, tvScreenMat, 'ТВ Дэлгэц', 'Хаалга');
+          addBoard(width - 10, height - 10, 5, 0, height / 2, 2.5, tvScreenMat, 'ТВ Дэлгэц', 'Дэлгэц');
 
           // TV Frame (Cabinet bezel/housing)
           addBoard(width, height, 30, 0, height / 2, -15, tvFrameMat, 'ТВ Хүрээ / Их бие', 'Хажуу хана');

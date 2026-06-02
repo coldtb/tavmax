@@ -1824,12 +1824,14 @@ export const useProjectStore = create<ProjectState>()(
 
     const modules = state.activeProject.modules || [];
 
-    // Separate modules into lower (floor-level) and upper (wall-mounted)
+    // Separate modules into lower, upper, and TV
+    const isTV = (m: CabinetModule) => m.type === 'tv_unit';
     const isUpper = (m: CabinetModule) =>
       m.type === 'kitchen_upper' || m.type === 'hood' || m.type === 'built_in_hood' || m.type === 'microwave';
 
-    const lowerMods = modules.filter((m) => !isUpper(m));
-    const upperMods = modules.filter((m) => isUpper(m));
+    const lowerMods = modules.filter((m) => !isUpper(m) && !isTV(m));
+    const upperMods = modules.filter((m) => isUpper(m) && !isTV(m));
+    const tvMods = modules.filter(isTV);
 
     // Split lower row: first half → front wall (along X), second half → side wall (along Z)
     const frontCount = Math.ceil(lowerMods.length / 2);
@@ -1866,9 +1868,37 @@ export const useProjectStore = create<ProjectState>()(
       return { ...mod, xOffset: xOff, yOffset: 1400, zOffset: 0 };
     });
 
+    // Snap TVs to their closest cabinet/furniture module
+    const alignedTVs = tvMods.map((tv) => {
+      let closestCabinet = null;
+      let minDistance = Infinity;
+      lowerMods.forEach((cab) => {
+        const dist = Math.abs(tv.xOffset - cab.xOffset);
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestCabinet = cab;
+        }
+      });
+      if (closestCabinet) {
+        const alignedCabinet = updatedLower.find((c) => c.id === closestCabinet.id);
+        if (alignedCabinet) {
+          const xDiff = tv.xOffset - closestCabinet.xOffset;
+          const yDiff = tv.yOffset - closestCabinet.config.height;
+          const zDiff = tv.zOffset - closestCabinet.zOffset;
+          return {
+            ...tv,
+            xOffset: alignedCabinet.xOffset + xDiff,
+            yOffset: alignedCabinet.config.height + yDiff,
+            zOffset: alignedCabinet.zOffset + zDiff
+          };
+        }
+      }
+      return tv;
+    });
+
     const updatedModules = [
       ...modules.map((m) => {
-        const found = [...updatedLower, ...updatedUpper].find((u) => u.id === m.id);
+        const found = [...updatedLower, ...updatedUpper, ...alignedTVs].find((u) => u.id === m.id);
         return found || m;
       })
     ];
@@ -1890,12 +1920,14 @@ export const useProjectStore = create<ProjectState>()(
 
     const modules = state.activeProject.modules || [];
 
-    // Separate modules into lower (floor-level) and upper (wall-mounted)
+    // Separate modules into lower, upper, and TV
+    const isTV = (m: CabinetModule) => m.type === 'tv_unit';
     const isUpper = (m: CabinetModule) =>
       m.type === 'kitchen_upper' || m.type === 'hood' || m.type === 'built_in_hood' || m.type === 'microwave';
 
-    const lowerMods = modules.filter((m) => !isUpper(m));
-    const upperMods = modules.filter((m) => isUpper(m));
+    const lowerMods = modules.filter((m) => !isUpper(m) && !isTV(m));
+    const upperMods = modules.filter((m) => isUpper(m) && !isTV(m));
+    const tvMods = modules.filter(isTV);
 
     // Sort lower modules by current xOffset
     const sortedLower = [...lowerMods].sort((a, b) => a.xOffset - b.xOffset);
@@ -1933,8 +1965,36 @@ export const useProjectStore = create<ProjectState>()(
       };
     });
 
+    // Snap TVs to their closest cabinet/furniture module
+    const alignedTVs = tvMods.map((tv) => {
+      let closestCabinet = null;
+      let minDistance = Infinity;
+      lowerMods.forEach((cab) => {
+        const dist = Math.abs(tv.xOffset - cab.xOffset);
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestCabinet = cab;
+        }
+      });
+      if (closestCabinet) {
+        const alignedCabinet = alignedLower.find((c) => c.id === closestCabinet.id);
+        if (alignedCabinet) {
+          const xDiff = tv.xOffset - closestCabinet.xOffset;
+          const yDiff = tv.yOffset - closestCabinet.config.height;
+          const zDiff = tv.zOffset - closestCabinet.zOffset;
+          return {
+            ...tv,
+            xOffset: alignedCabinet.xOffset + xDiff,
+            yOffset: alignedCabinet.config.height + yDiff,
+            zOffset: alignedCabinet.zOffset + zDiff
+          };
+        }
+      }
+      return tv;
+    });
+
     const updatedModules = modules.map((m) => {
-      const found = [...alignedLower, ...alignedUpper].find((u) => u.id === m.id);
+      const found = [...alignedLower, ...alignedUpper, ...alignedTVs].find((u) => u.id === m.id);
       return found || m;
     });
 
