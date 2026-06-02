@@ -1397,6 +1397,9 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             roughness: mat.category === 'Acrylic' ? 0.05 : (isWoodMat ? 0.35 : 0.6),
             metalness: mat.category === 'Acrylic' ? 0.1 : 0.0,
             bumpScale: 0.05,
+            polygonOffset: true,
+            polygonOffsetFactor: 1,
+            polygonOffsetUnits: 1
           });
         };
 
@@ -1407,6 +1410,9 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               map: stoneTex,
               roughness: 0.15,
               metalness: 0.05,
+              polygonOffset: true,
+              polygonOffsetFactor: 1,
+              polygonOffsetUnits: 1
             });
           } else {
             const woodTex = getWoodTexture();
@@ -1415,6 +1421,9 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               color: new THREE.Color('#d97706'), // Warm wood brown tint
               roughness: 0.35,
               metalness: 0.0,
+              polygonOffset: true,
+              polygonOffsetFactor: 1,
+              polygonOffsetUnits: 1
             });
           }
         };
@@ -2510,7 +2519,10 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             const glassPaneMat = new THREE.MeshStandardMaterial({
               color: glassColor, transparent: true, opacity: glassOpacity,
               roughness: config.glassType === 'frosted' ? 0.7 : 0.05,
-              metalness: 0.08, side: THREE.DoubleSide
+              metalness: 0.08, side: THREE.DoubleSide,
+              polygonOffset: true,
+              polygonOffsetFactor: 1,
+              polygonOffsetUnits: 1
             });
 
             if (config.customDoors) {
@@ -3124,12 +3136,18 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             opacity: 0.35,
             roughness: 0.1,
             metalness: 0.2,
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
+            polygonOffset: true,
+            polygonOffsetFactor: 1,
+            polygonOffsetUnits: 1
           });
           const metalFrameMat = new THREE.MeshStandardMaterial({
             color: '#171717', // dark slate/black aluminum
             roughness: 0.4,
-            metalness: 0.8
+            metalness: 0.8,
+            polygonOffset: true,
+            polygonOffsetFactor: 1,
+            polygonOffsetUnits: 1
           });
 
           // Left Side Panel
