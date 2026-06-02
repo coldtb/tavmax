@@ -1907,23 +1907,6 @@ export const Editor: React.FC = () => {
                     <span>Алхам 4: 3D орон зай дахь байрлал болон хадгалалт</span>
                   </div>
 
-                  {/* X coordinate */}
-                  <div className="flex flex-col gap-2">
-                    <div className="flex justify-between text-xs font-semibold text-neutral-300">
-                      <span>Зүүн - Баруун байршил (X тэнхлэг)</span>
-                      <span className="text-amber-500 font-bold">{selectedMod.xOffset} мм</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={-5000}
-                      max={5000}
-                      step={50}
-                      value={selectedMod.xOffset}
-                      onChange={(e) => updateModulePosition(selectedMod.id, parseInt(e.target.value), selectedMod.yOffset, selectedMod.zOffset)}
-                      className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                    />
-                  </div>
-
                   {/* Y coordinate */}
                   <div className="flex flex-col gap-2">
                     <div className="flex justify-between text-xs font-semibold text-neutral-300">
@@ -1937,23 +1920,6 @@ export const Editor: React.FC = () => {
                       step={50}
                       value={selectedMod.yOffset}
                       onChange={(e) => updateModulePosition(selectedMod.id, selectedMod.xOffset, parseInt(e.target.value), selectedMod.zOffset)}
-                      className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                    />
-                  </div>
-
-                  {/* Z coordinate */}
-                  <div className="flex flex-col gap-2">
-                    <div className="flex justify-between text-xs font-semibold text-neutral-300">
-                      <span>Урагш - Хойш байршил (Z тэнхлэг)</span>
-                      <span className="text-amber-500 font-bold">{selectedMod.zOffset} мм</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={-4000}
-                      max={4000}
-                      step={50}
-                      value={selectedMod.zOffset}
-                      onChange={(e) => updateModulePosition(selectedMod.id, selectedMod.xOffset, selectedMod.yOffset, parseInt(e.target.value))}
                       className="w-full h-1.5 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
                     />
                   </div>
@@ -2607,51 +2573,109 @@ return (
             }}
           />
 
-          {contextMenu && (
-            <div
-              className="fixed z-[100] min-w-[160px] bg-[#12141c]/95 border border-white/10 rounded-xl shadow-2xl p-1.5 backdrop-blur-md flex flex-col gap-1 text-[11px] font-semibold text-neutral-300"
-              style={{ left: contextMenu.x, top: contextMenu.y }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={() => {
-                  setSelectedModuleId(contextMenu.moduleId);
-                  setShowFloatingConfig(true);
-                  setContextMenu(null);
-                }}
-                className="w-full text-left px-3 py-2 rounded-lg hover:bg-amber-500 hover:text-neutral-950 transition-colors flex items-center gap-2 cursor-pointer"
-                type="button"
+          {contextMenu && (() => {
+            const contextMod = activeProject.modules.find(m => m.id === contextMenu.moduleId);
+            if (!contextMod) return null;
+            return (
+              <div
+                className="fixed z-[100] w-[220px] bg-[#12141c]/95 border border-white/10 rounded-xl shadow-2xl p-1.5 backdrop-blur-md flex flex-col gap-1 text-[11px] font-semibold text-neutral-300 animate-in fade-in zoom-in-95 duration-100"
+                style={{ left: contextMenu.x, top: contextMenu.y }}
+                onClick={(e) => e.stopPropagation()}
               >
-                <Box size={14} />
-                <span>⚙️ Шүүгээ тохируулах</span>
-              </button>
-              <button
-                onClick={() => {
-                  duplicateModule(contextMenu.moduleId);
-                  setContextMenu(null);
-                }}
-                className="w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-800 hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
-                type="button"
-              >
-                <Copy size={14} />
-                <span>👯 Хувилах</span>
-              </button>
-              <div className="h-px bg-white/5 my-1" />
-              <button
-                onClick={() => {
-                  if (confirm("Уг шүүгээг устгах уу?")) {
-                    removeModuleFromActive(contextMenu.moduleId);
-                  }
-                  setContextMenu(null);
-                }}
-                className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-500/20 hover:text-red-400 transition-colors flex items-center gap-2 cursor-pointer"
-                type="button"
-              >
-                <Trash2 size={14} className="text-red-400" />
-                <span>❌ Устгах</span>
-              </button>
-            </div>
-          )}
+                <button
+                  onClick={() => {
+                    setSelectedModuleId(contextMenu.moduleId);
+                    setShowFloatingConfig(true);
+                    setContextMenu(null);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-amber-500 hover:text-neutral-950 transition-colors flex items-center gap-2 cursor-pointer"
+                  type="button"
+                >
+                  <Box size={14} />
+                  <span>⚙️ Шүүгээ тохируулах</span>
+                </button>
+                <button
+                  onClick={() => {
+                    duplicateModule(contextMenu.moduleId);
+                    setContextMenu(null);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-800 hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
+                  type="button"
+                >
+                  <Copy size={14} />
+                  <span>👯 Хувилах</span>
+                </button>
+                <div className="h-px bg-white/5 my-1" />
+                <button
+                  onClick={() => {
+                    if (confirm("Уг шүүгээг устгах уу?")) {
+                      removeModuleFromActive(contextMenu.moduleId);
+                    }
+                    setContextMenu(null);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-500/20 hover:text-red-400 transition-colors flex items-center gap-2 cursor-pointer"
+                  type="button"
+                >
+                  <Trash2 size={14} className="text-red-400" />
+                  <span>❌ Устгах</span>
+                </button>
+
+                <div className="h-px bg-white/5 my-1" />
+
+                {/* Y-coordinate (height) slider inside menu */}
+                <div className="px-2.5 py-1.5 flex flex-col gap-1.5">
+                  <div className="flex justify-between text-[10px] text-neutral-400 font-bold">
+                    <span>Өндөр / Давхарлах (Y тэнхлэг)</span>
+                    <span className="text-amber-500 font-bold">{contextMod.yOffset} мм</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={2500}
+                    step={50}
+                    value={contextMod.yOffset}
+                    onChange={(e) => updateModulePosition(contextMod.id, contextMod.xOffset, parseInt(e.target.value), contextMod.zOffset)}
+                    className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                  />
+                </div>
+
+                {/* Y rotation slider and buttons inside menu */}
+                <div className="px-2.5 py-1.5 flex flex-col gap-1.5 border-t border-white/5">
+                  <div className="flex justify-between text-[10px] text-neutral-400 font-bold">
+                    <span>Эргэлт ⟳ (Y тэнхлэг)</span>
+                    <span className="text-amber-500 font-bold">
+                      {Math.round(((contextMod.rotation ?? 0) * 180) / Math.PI)}°
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={360}
+                    step={1}
+                    value={Math.round(((contextMod.rotation ?? 0) * 180) / Math.PI)}
+                    onChange={(e) => updateModuleRotation(contextMod.id, parseInt(e.target.value))}
+                    className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                  />
+                  <div className="flex gap-1 mt-0.5">
+                    {[0, 90, 180, 270].map((deg) => (
+                      <button
+                        key={deg}
+                        type="button"
+                        onClick={() => updateModuleRotation(contextMod.id, deg)}
+                        className={`flex-1 py-1 rounded-md text-[9px] font-bold transition-all cursor-pointer ${
+                          Math.round(((contextMod.rotation ?? 0) * 180) / Math.PI) === deg
+                            ? 'bg-amber-500 text-neutral-950'
+                            : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700'
+                        }`}
+                      >
+                        {deg}°
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {showFloatingConfig && selectedMod && (
             <>
