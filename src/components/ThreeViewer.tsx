@@ -2031,40 +2031,39 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             addBoard(18, bodyHeight - 36, depth - 20, dx, legHeight + bodyHeight / 2, 0, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт', { partitionIndex: i });
           }
 
-          // Shelves
-          if (shelves > 0) {
-            if (partitionsCount > 0) {
-              sections.forEach((sec, sIdx) => {
-                const shelvesInSec = Math.floor(shelves / sections.length) + (sIdx < shelves % sections.length ? 1 : 0);
-                for (let i = 0; i < shelvesInSec; i++) {
-                  const sy = getShelfY(i, shelvesInSec, bodyHeight - 36, legHeight, config);
-                  addBoard(sec.width - 2, 18, depth - 30, sec.centerX, sy, 0, bodyMat, `Дотор тавиур (Секц ${sIdx+1}) ${i + 1}`, 'Дээд тавиур');
-                }
-              });
-            } else {
-              for (let i = 0; i < shelves; i++) {
-                const sy = getShelfY(i, shelves, bodyHeight - 36, legHeight, config);
-                addBoard(width - 36, 18, depth - 30, 0, sy, 0, bodyMat, `Дотор тавиур ${i + 1}`, 'Дээд тавиур', { shelfIndex: i });
-              }
-            }
-          }
-
-          // Drawers & Doors
+          // Shelves, Drawers & Doors
           const panels = getCabinetFrontPanels(width, config);
           if (sections.length > 1) {
             const numSections = sections.length;
-            const drawerSecIdx = drawers > 0 ? numSections - 1 : -1;
-            const numDoorSections = drawers > 0 ? numSections - 1 : numSections;
+            const hasBoth = doors > 0 && drawers > 0;
 
             for (let j = 0; j < numSections; j++) {
               const sec = sections[j];
               const panel = panels[j];
               const dx = panel.centerX;
 
-              if (j === drawerSecIdx && drawers > 0) {
-                // Drawers (Stacked vertically in the last section, taking full height of section)
-                const drH = (bodyHeight - 10) / drawers;
-                for (let i = 0; i < drawers; i++) {
+              let secDrawers = 0;
+              let secDoors = 0;
+
+              if (hasBoth) {
+                if (j === numSections - 1) {
+                  secDrawers = drawers;
+                } else {
+                  const numDoorSections = numSections - 1;
+                  secDoors = Math.floor(doors / numDoorSections) + (j < doors % numDoorSections ? 1 : 0);
+                }
+              } else {
+                if (drawers > 0) {
+                  secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
+                }
+                if (doors > 0) {
+                  secDoors = Math.floor(doors / numSections) + (j < doors % numSections ? 1 : 0);
+                }
+              }
+
+              if (secDrawers > 0) {
+                const drH = (bodyHeight - 10) / secDrawers;
+                for (let i = 0; i < secDrawers; i++) {
                   const dy = legHeight + drH / 2 + 5 + i * drH;
                   const drawerMesh = addBoard(panel.width, drH - 6, 18, dx, dy, halfD + 9, doorMat, `Шургуулганы нүүр ${i + 1}`, 'Шургуулга');
 
@@ -2077,33 +2076,44 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                     drawerMesh.add(handle);
                   }
                 }
-              } else if (j < numDoorSections) {
-                // Door(s) in this section
-                const secDoors = Math.floor(doors / numDoorSections) + (j < doors % numDoorSections ? 1 : 0);
-                if (secDoors > 0) {
-                  const doorW = (panel.width - 4 * (secDoors - 1)) / secDoors;
-                  const doorH = bodyHeight - 10;
-                  const doorY = legHeight + bodyHeight / 2;
+              }
 
-                  for (let i = 0; i < secDoors; i++) {
-                    const doorX = dx - panel.width / 2 + doorW / 2 + i * (doorW + 4);
-                    const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга');
+              if (secDoors > 0) {
+                const doorW = (panel.width - 4 * (secDoors - 1)) / secDoors;
+                const doorH = bodyHeight - 10;
+                const doorY = legHeight + bodyHeight / 2;
 
-                    // Handle
-                    if (handleType !== 'none') {
-                      const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
-                      const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
-                      const handle = new THREE.Mesh(handleGeom, handleMat);
-                      handle.rotation.x = Math.PI / 2;
-                      const handleSide = i % 2 === 0 ? 1 : -1;
-                      handle.position.set(handleSide * (doorW / 2 - 25), doorH / 2 - 60, 12);
-                      doorMesh.add(handle);
-                    }
+                for (let i = 0; i < secDoors; i++) {
+                  const doorX = dx - panel.width / 2 + doorW / 2 + i * (doorW + 4);
+                  const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга');
+
+                  if (handleType !== 'none') {
+                    const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
+                    const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
+                    const handle = new THREE.Mesh(handleGeom, handleMat);
+                    handle.rotation.x = Math.PI / 2;
+                    const handleSide = i % 2 === 0 ? 1 : -1;
+                    handle.position.set(handleSide * (doorW / 2 - 25), doorH / 2 - 60, 12);
+                    doorMesh.add(handle);
                   }
+                }
+              }
+
+              if (shelves > 0 && secDrawers === 0) {
+                const shelvesInSec = Math.floor(shelves / sections.length) + (j < shelves % sections.length ? 1 : 0);
+                for (let i = 0; i < shelvesInSec; i++) {
+                  const sy = getShelfY(i, shelvesInSec, bodyHeight - 36, legHeight, config);
+                  addBoard(sec.width - 2, 18, depth - 30, sec.centerX, sy, 0, bodyMat, `Дотор тавиур (Секц ${j+1}) ${i + 1}`, 'Дээд тавиур');
                 }
               }
             }
           } else {
+            if (shelves > 0 && drawers === 0) {
+              for (let i = 0; i < shelves; i++) {
+                const sy = getShelfY(i, shelves, bodyHeight - 36, legHeight, config);
+                addBoard(width - 36, 18, depth - 30, 0, sy, 0, bodyMat, `Дотор тавиур ${i + 1}`, 'Дээд тавиур', { shelfIndex: i });
+              }
+            }
             if (drawers > 0 && doors === 0) {
               const drH = (bodyHeight - 10) / drawers;
               for (let i = 0; i < drawers; i++) {
@@ -3225,8 +3235,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
           // Distribute doors, drawers, shelves across sections
           const numSections = sections.length;
-          const drawerSecIdx = drawers > 0 ? numSections - 1 : -1;
-          const numDoorSections = drawers > 0 ? numSections - 1 : numSections;
+          const hasBoth = doors > 0 && drawers > 0;
 
           for (let j = 0; j < numSections; j++) {
             const sec = sections[j];
@@ -3234,10 +3243,28 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             const dx = panel.centerX;
             const secDx = sec.centerX;
 
-            if (j === drawerSecIdx && drawers > 0) {
-              // Drawers (Stacked in the last section)
-              const drH = (bodyHeight - 10) / drawers;
-              for (let i = 0; i < drawers; i++) {
+            let secDrawers = 0;
+            let secDoors = 0;
+
+            if (hasBoth) {
+              if (j === numSections - 1) {
+                secDrawers = drawers;
+              } else {
+                const numDoorSections = numSections - 1;
+                secDoors = Math.floor(doors / numDoorSections) + (j < doors % numDoorSections ? 1 : 0);
+              }
+            } else {
+              if (drawers > 0) {
+                secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
+              }
+              if (doors > 0) {
+                secDoors = Math.floor(doors / numSections) + (j < doors % numSections ? 1 : 0);
+              }
+            }
+
+            if (secDrawers > 0) {
+              const drH = (bodyHeight - 10) / secDrawers;
+              for (let i = 0; i < secDrawers; i++) {
                 const dy = legHeight + drH / 2 + 5 + i * drH;
                 const drawerMesh = addBoard(panel.width, drH - 6, 18, dx, dy, halfD + 9, doorMat, `Шургуулганы нүүр ${i + 1}`, 'Шургуулга');
 
@@ -3250,43 +3277,32 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                   drawerMesh.add(handle);
                 }
               }
-            } else if (j < numDoorSections) {
-              // Distribute doors inside this section
-              const secDoors = Math.floor(doors / numDoorSections) + (j < doors % numDoorSections ? 1 : 0);
-              if (secDoors > 0) {
-                const doorW = (panel.width - 4 * (secDoors - 1)) / secDoors;
-                const doorH = bodyHeight - 10;
-                const doorY = legHeight + bodyHeight / 2;
+            }
 
-                for (let i = 0; i < secDoors; i++) {
-                  const doorX = dx - panel.width / 2 + doorW / 2 + i * (doorW + 4);
-                  const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'ТВ тавиурын доошоо онгойх хаалга', 'Хаалга', { id: `${mod.id}-door-downward-${j}-${i}`, isDownward: true });
+            if (secDoors > 0) {
+              const doorW = (panel.width - 4 * (secDoors - 1)) / secDoors;
+              const doorH = bodyHeight - 10;
+              const doorY = legHeight + bodyHeight / 2;
 
-                  if (handleType !== 'none') {
-                    const handleGeom = new THREE.CylinderGeometry(4, 4, Math.min(80, (doorW - 4) * 0.4), 8);
-                    const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
-                    const handle = new THREE.Mesh(handleGeom, handleMat);
-                    handle.rotation.z = Math.PI / 2;
-                    handle.position.set(0, doorH / 2 - 25, 12);
-                    doorMesh.add(handle);
-                  }
+              for (let i = 0; i < secDoors; i++) {
+                const doorX = dx - panel.width / 2 + doorW / 2 + i * (doorW + 4);
+                const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'ТВ тавиурын доошоо онгойх хаалга', 'Хаалга', { id: `${mod.id}-door-downward-${j}-${i}`, isDownward: true });
+
+                if (handleType !== 'none') {
+                  const handleGeom = new THREE.CylinderGeometry(4, 4, Math.min(80, (doorW - 4) * 0.4), 8);
+                  const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
+                  const handle = new THREE.Mesh(handleGeom, handleMat);
+                  handle.rotation.z = Math.PI / 2;
+                  handle.position.set(0, doorH / 2 - 25, 12);
+                  doorMesh.add(handle);
                 }
               }
+            }
 
-              // Shelves inside door sections
-              if (shelves > 0) {
-                for (let s = 0; s < shelves; s++) {
-                  const sy = getShelfY(s, shelves, bodyHeight - 36, legHeight, config);
-                  addBoard(sec.width - 4, 18, depth - 25, secDx, sy, 10, bodyMat, 'Дотор тавиур хавтан', 'Дээд тавиур', { shelfIndex: s });
-                }
-              }
-            } else {
-              // Open section shelves
-              if (shelves > 0) {
-                for (let s = 0; s < shelves; s++) {
-                  const sy = getShelfY(s, shelves, bodyHeight - 36, legHeight, config);
-                  addBoard(sec.width - 4, 18, depth - 25, secDx, sy, 10, bodyMat, 'Дотор тавиур хавтан', 'Дээд тавиур', { shelfIndex: s });
-                }
+            if (shelves > 0 && secDrawers === 0) {
+              for (let s = 0; s < shelves; s++) {
+                const sy = getShelfY(s, shelves, bodyHeight - 36, legHeight, config);
+                addBoard(sec.width - 4, 18, depth - 25, secDx, sy, 10, bodyMat, 'Дотор тавиур хавтан', 'Дээд тавиур', { shelfIndex: s });
               }
             }
           }
