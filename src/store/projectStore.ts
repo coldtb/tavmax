@@ -1198,9 +1198,26 @@ export const useProjectStore = create<ProjectState>()(
       };
     }
     
+    const globalKeys = ['materialId', 'doorMaterialId', 'doorStyle', 'color', 'bodyColor'] as const;
+    const globalUpdates: Partial<FurnitureConfig> = {};
+    globalKeys.forEach((key) => {
+      if (config[key] !== undefined) {
+        globalUpdates[key] = config[key] as any;
+      }
+    });
+    const hasGlobalUpdates = Object.keys(globalUpdates).length > 0;
+
     // Find and update the target module
     const updatedModules = (state.activeProject.modules || []).map((mod) => {
-      if (mod.id === targetModuleId) {
+      const isTarget = mod.id === targetModuleId;
+      
+      if (!isTarget && !hasGlobalUpdates) {
+        return mod;
+      }
+
+      let updatedConfig: FurnitureConfig;
+
+      if (isTarget) {
         const getDefaultPartitions = (type: string, cfg: any) => {
           if (type === 'wardrobe') return cfg.doors > 1 ? cfg.doors - 1 : 0;
           if (type === 'cabinet') return cfg.doors > 0 ? (cfg.drawers > 0 ? cfg.doors : cfg.doors - 1) : 0;
@@ -1220,7 +1237,7 @@ export const useProjectStore = create<ProjectState>()(
         const oldShelves = mod.config.shelves !== undefined ? Number(mod.config.shelves) : 0;
         const newShelves = config.shelves !== undefined ? Number(config.shelves) : oldShelves;
 
-        let updatedConfig = { ...mod.config, ...config };
+        updatedConfig = { ...mod.config, ...config };
 
         // Handle partition count changes
         if (newPartitions !== oldPartitions) {
@@ -1271,27 +1288,25 @@ export const useProjectStore = create<ProjectState>()(
           const ratio = newInside / oldInside;
           updatedConfig.shelfPositions = mod.config.shelfPositions.map(pos => Math.max(10, Math.round(pos * ratio)));
         }
-
-
-
-        // For custom modules, regenerate carcass parts to match new sizes, but preserve manual additions.
-        // For dynamic modules, recalculate all parts.
-        let updatedParts: Part[];
-        if (mod.type === 'custom') {
-          const carcassParts = calculateDynamicParts(mod.type, updatedConfig);
-          const manualParts = mod.parts.filter(p => p.id.includes('manual') || p.id.startsWith('p-manual-'));
-          updatedParts = [...carcassParts, ...manualParts];
-        } else {
-          updatedParts = calculateDynamicParts(mod.type, updatedConfig);
-        }
-          
-        return {
-          ...mod,
-          config: updatedConfig,
-          parts: updatedParts
-        };
+      } else {
+        updatedConfig = { ...mod.config, ...globalUpdates };
       }
-      return mod;
+
+      // Rebuild parts list
+      let updatedParts: Part[];
+      if (mod.type === 'custom') {
+        const carcassParts = calculateDynamicParts(mod.type, updatedConfig);
+        const manualParts = mod.parts.filter(p => p.id.includes('manual') || p.id.startsWith('p-manual-'));
+        updatedParts = [...carcassParts, ...manualParts];
+      } else {
+        updatedParts = calculateDynamicParts(mod.type, updatedConfig);
+      }
+        
+      return {
+        ...mod,
+        config: updatedConfig,
+        parts: updatedParts
+      };
     });
 
     const combinedParts = rebuildPartsFromModules(updatedModules);
@@ -1499,8 +1514,18 @@ export const useProjectStore = create<ProjectState>()(
     };
   }),
 
-  changeActiveFurnitureType: (type, newConfig) => set((state) => {
+  changeActiveFurnitureType: (type, incomingConfig) => set((state) => {
     if (!state.activeProject) return {};
+
+    const projectConfig = state.activeProject.config || {};
+    const newConfig = {
+      ...incomingConfig,
+      materialId: projectConfig.materialId !== undefined ? projectConfig.materialId : incomingConfig.materialId,
+      doorMaterialId: projectConfig.doorMaterialId !== undefined ? projectConfig.doorMaterialId : incomingConfig.doorMaterialId,
+      doorStyle: projectConfig.doorStyle !== undefined ? projectConfig.doorStyle : incomingConfig.doorStyle,
+      color: projectConfig.color !== undefined ? projectConfig.color : incomingConfig.color,
+      bodyColor: projectConfig.bodyColor !== undefined ? projectConfig.bodyColor : incomingConfig.bodyColor,
+    };
 
     const targetModuleId = state.selectedModuleId || (state.activeProject.modules && state.activeProject.modules[0]?.id);
     if (!targetModuleId) return {};
@@ -1535,9 +1560,18 @@ export const useProjectStore = create<ProjectState>()(
     };
   }),
 
-  // Multi-module layout operations
-  addModuleToActive: (type, config, name) => set((state) => {
+  addModuleToActive: (type, incomingConfig, name) => set((state) => {
     if (!state.activeProject) return {};
+
+    const projectConfig = state.activeProject.config || {};
+    const config = {
+      ...incomingConfig,
+      materialId: projectConfig.materialId !== undefined ? projectConfig.materialId : incomingConfig.materialId,
+      doorMaterialId: projectConfig.doorMaterialId !== undefined ? projectConfig.doorMaterialId : incomingConfig.doorMaterialId,
+      doorStyle: projectConfig.doorStyle !== undefined ? projectConfig.doorStyle : incomingConfig.doorStyle,
+      color: projectConfig.color !== undefined ? projectConfig.color : incomingConfig.color,
+      bodyColor: projectConfig.bodyColor !== undefined ? projectConfig.bodyColor : incomingConfig.bodyColor,
+    };
 
     const modules = state.activeProject.modules || [];
     let initialX: number;
