@@ -88,6 +88,29 @@ export const Editor: React.FC = () => {
   const [contextMenu, setContextMenu] = useState<{ moduleId: string; x: number; y: number } | null>(null);
   const [showFloatingConfig, setShowFloatingConfig] = useState<boolean>(false);
 
+  const [savedColors, setSavedColors] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('tavmax-custom-colors') || '[]');
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const addSavedColor = (color: string) => {
+    if (!color) return;
+    const hex = color.toLowerCase();
+    if (savedColors.includes(hex)) return;
+    const updated = [...savedColors, hex];
+    setSavedColors(updated);
+    localStorage.setItem('tavmax-custom-colors', JSON.stringify(updated));
+  };
+
+  const removeSavedColor = (color: string) => {
+    const updated = savedColors.filter(c => c !== color.toLowerCase());
+    setSavedColors(updated);
+    localStorage.setItem('tavmax-custom-colors', JSON.stringify(updated));
+  };
+
   useEffect(() => {
     const closeMenu = () => setContextMenu(null);
     window.addEventListener('click', closeMenu);
@@ -1813,6 +1836,17 @@ export const Editor: React.FC = () => {
                               ✕ Арилгах
                             </button>
                           )}
+                          <button
+                            onClick={() => {
+                              const activeColor = config.bodyColor || (materials.find(m => m.id === config.materialId)?.color || '#ffffff');
+                              addSavedColor(activeColor);
+                            }}
+                            className="text-[8px] text-neutral-400 hover:text-amber-500 transition-all cursor-pointer px-1.5 py-0.5 bg-neutral-850 hover:bg-neutral-800 rounded flex items-center gap-1 border border-white/5 font-semibold"
+                            title="Энэ өнгийг хадгалах"
+                            type="button"
+                          >
+                            + Хадгалах
+                          </button>
                           <div className="relative flex items-center gap-1 bg-[#0c0d12] border border-white/10 px-2 py-0.5 rounded-lg">
                             <span className="text-[8px] text-neutral-400 font-bold uppercase">Сонгох</span>
                             <input
@@ -1841,6 +1875,41 @@ export const Editor: React.FC = () => {
                           );
                         })}
                       </div>
+
+                      {savedColors.length > 0 && (
+                        <div className="flex flex-col gap-1.5 mt-2 border-t border-white/5 pt-2">
+                          <span className="text-[9px] text-neutral-500 font-bold uppercase tracking-wider">Миний хадгалсан өнгөнүүд:</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {savedColors.map((color) => {
+                              const isActive = config.bodyColor?.toLowerCase() === color.toLowerCase();
+                              return (
+                                <div key={color} className="relative group">
+                                  <button
+                                    onClick={() => updateActiveConfig({ bodyColor: color })}
+                                    className={`w-6 h-6 rounded-full border transition-all cursor-pointer hover:scale-110 active:scale-95 ${
+                                      isActive ? 'border-white ring-1 ring-amber-500 scale-105 shadow' : 'border-transparent hover:border-white/20'
+                                    }`}
+                                    style={{ backgroundColor: color }}
+                                    title={color}
+                                    type="button"
+                                  />
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      removeSavedColor(color);
+                                    }}
+                                    className="absolute -top-1 -right-1 hidden group-hover:flex w-3.5 h-3.5 items-center justify-center bg-red-600 text-white rounded-full text-[8px] border border-black cursor-pointer font-bold"
+                                    title="Устгах"
+                                    type="button"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1870,14 +1939,26 @@ export const Editor: React.FC = () => {
                   <div className="flex flex-col gap-3 border-t border-white/5 pt-3">
                     <div className="flex justify-between items-center">
                       <span className="text-xs text-neutral-400 font-semibold">Хаалга / Нүүрний өнгө:</span>
-                      <div className="relative flex items-center gap-1 bg-[#0c0d12] border border-white/10 px-2 py-0.5 rounded-lg">
-                        <span className="text-[8px] text-neutral-400 font-bold uppercase">Сонгох</span>
-                        <input
-                          type="color"
-                          value={config.color || '#ffffff'}
-                          onChange={(e) => updateActiveConfig({ color: e.target.value })}
-                          className="w-3.5 h-3.5 border-0 p-0 bg-transparent cursor-pointer rounded outline-none"
-                        />
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => {
+                            addSavedColor(config.color || '#ffffff');
+                          }}
+                          className="text-[8px] text-neutral-400 hover:text-amber-500 transition-all cursor-pointer px-1.5 py-0.5 bg-neutral-850 hover:bg-neutral-800 rounded flex items-center gap-1 border border-white/5 font-semibold"
+                          title="Энэ өнгийг хадгалах"
+                          type="button"
+                        >
+                          + Хадгалах
+                        </button>
+                        <div className="relative flex items-center gap-1 bg-[#0c0d12] border border-white/10 px-2 py-0.5 rounded-lg">
+                          <span className="text-[8px] text-neutral-400 font-bold uppercase">Сонгох</span>
+                          <input
+                            type="color"
+                            value={config.color || '#ffffff'}
+                            onChange={(e) => updateActiveConfig({ color: e.target.value })}
+                            className="w-3.5 h-3.5 border-0 p-0 bg-transparent cursor-pointer rounded outline-none"
+                          />
+                        </div>
                       </div>
                     </div>
                     <div className="grid grid-cols-6 gap-1.5">
@@ -1897,6 +1978,41 @@ export const Editor: React.FC = () => {
                         );
                       })}
                     </div>
+
+                    {savedColors.length > 0 && (
+                      <div className="flex flex-col gap-1.5 mt-2 border-t border-white/5 pt-2">
+                        <span className="text-[9px] text-neutral-500 font-bold uppercase tracking-wider">Миний хадгалсан өнгөнүүд:</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {savedColors.map((color) => {
+                            const isActive = config.color?.toLowerCase() === color.toLowerCase();
+                            return (
+                              <div key={color} className="relative group">
+                                <button
+                                  onClick={() => updateActiveConfig({ color })}
+                                  className={`w-6 h-6 rounded-full border transition-all cursor-pointer hover:scale-110 active:scale-95 ${
+                                    isActive ? 'border-white ring-1 ring-amber-500 scale-105 shadow' : 'border-transparent hover:border-white/20'
+                                  }`}
+                                  style={{ backgroundColor: color }}
+                                  title={color}
+                                  type="button"
+                                />
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeSavedColor(color);
+                                  }}
+                                  className="absolute -top-1 -right-1 hidden group-hover:flex w-3.5 h-3.5 items-center justify-center bg-red-600 text-white rounded-full text-[8px] border border-black cursor-pointer font-bold"
+                                  title="Устгах"
+                                  type="button"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
