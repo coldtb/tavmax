@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useProjectStore } from '../store/projectStore';
 import { runNestingOptimizer } from '../utils/nesting';
 import type { NestingPartInput } from '../utils/nesting';
@@ -8,11 +8,64 @@ import { Play, Settings, Ruler, Info, Layers } from 'lucide-react';
 export const Cutting: React.FC = () => {
   const { activeProject, materials } = useProjectStore();
 
-  // Nesting options states
-  const [sheetSize, setSheetSize] = useState<'2750x1830' | '2440x1220' | '3050x1830'>('2750x1830');
-  const [kerf, setKerf] = useState(4); // 4mm kerf blade
-  const [margin, setMargin] = useState(10); // 10mm trim margin
-  const [allowRotation, setAllowRotation] = useState(true);
+  // Nesting options states with localStorage persistence
+  const [sheetSize, setSheetSize] = useState<'2750x1830' | '2440x1220' | '3050x1830'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('tavmax-nesting-sheet-size');
+      if (saved === '2750x1830' || saved === '2440x1220' || saved === '3050x1830') {
+        return saved;
+      }
+    }
+    return '2440x1220'; // Default is now 2440x1220 (Жижиг фанер)
+  });
+
+  const [kerf, setKerf] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('tavmax-nesting-kerf');
+      if (saved) return parseInt(saved);
+    }
+    return 4;
+  });
+
+  const [margin, setMargin] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('tavmax-nesting-margin');
+      if (saved) return parseInt(saved);
+    }
+    return 10;
+  });
+
+  const [allowRotation, setAllowRotation] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('tavmax-nesting-allow-rotation');
+      if (saved !== null) return saved === 'true';
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('tavmax-nesting-sheet-size', sheetSize);
+    }
+  }, [sheetSize]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('tavmax-nesting-kerf', kerf.toString());
+    }
+  }, [kerf]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('tavmax-nesting-margin', margin.toString());
+    }
+  }, [margin]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('tavmax-nesting-allow-rotation', allowRotation.toString());
+    }
+  }, [allowRotation]);
 
   // Parse width and height from sheetSize string selection
   const sheetDimensions = useMemo(() => {
@@ -155,8 +208,8 @@ export const Cutting: React.FC = () => {
               onChange={(e) => setSheetSize(e.target.value as any)}
               className="w-full bg-[#0c0d12] border border-white/10 rounded-xl px-3 py-3 text-white text-xs outline-none focus:border-amber-500"
             >
-              <option value="2750x1830">2750 x 1830 мм (Стандарт Egger)</option>
               <option value="2440x1220">2440 x 1220 мм (Жижиг фанер)</option>
+              <option value="2750x1830">2750 x 1830 мм (Стандарт Egger)</option>
               <option value="3050x1830">3050 x 1830 мм (Том формат)</option>
             </select>
           </div>
