@@ -1237,7 +1237,7 @@ export const useProjectStore = create<ProjectState>()(
       };
     }
     
-    const globalKeys = ['materialId', 'doorMaterialId', 'doorStyle', 'color', 'bodyColor'] as const;
+    const globalKeys = [] as const;
     const globalUpdates: Partial<FurnitureConfig> = {};
     globalKeys.forEach((key) => {
       if (config[key] !== undefined) {
