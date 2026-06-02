@@ -330,56 +330,80 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
     // 4. Shelves spacing
     if (shelves > 0) {
       if (partitions > 0) {
+        let shelfIdx = 0;
+        const storedSecCounts: number[] | undefined = (config as any).sectionShelfCounts;
+        const hasValidSecCounts = storedSecCounts && storedSecCounts.length === sections.length && storedSecCounts.reduce((a: number, b: number) => a + b, 0) === shelves;
         sections.forEach((sec, sIdx) => {
-          const shelvesInSec = Math.floor(shelves / sections.length) + (sIdx < shelves % sections.length ? 1 : 0);
+          const shelvesInSec = hasValidSecCounts ? storedSecCounts![sIdx] : (Math.floor(shelves / sections.length) + (sIdx < shelves % sections.length ? 1 : 0));
           if (shelvesInSec > 0) {
-            const step = insideHeight / (shelvesInSec + 1);
+            const getSectionShelfCenterY = (secShelfOffsetIdx: number) => {
+              const globalIdx = shelfIdx + secShelfOffsetIdx;
+              if (config.shelfPositions && config.shelfPositions.length === shelves) {
+                const secPositions = [];
+                for (let j = 0; j < shelvesInSec; j++) {
+                  secPositions.push(config.shelfPositions[shelfIdx + j]);
+                }
+                secPositions.sort((a, b) => a - b);
+                return legHeight + 18 + secPositions[secShelfOffsetIdx];
+              } else {
+                const step = insideHeight / (shelvesInSec + 1);
+                return legHeight + 18 + (secShelfOffsetIdx + 1) * step;
+              }
+            };
+
             for (let i = 0; i <= shelvesInSec; i++) {
-              const gapH = Math.round(step - (i === shelvesInSec ? 0 : 18));
+              let startY: number;
+              let endY: number;
+              if (i === 0) {
+                startY = legHeight + 18;
+                endY = getSectionShelfCenterY(0) - 9;
+              } else if (i === shelvesInSec) {
+                startY = getSectionShelfCenterY(shelvesInSec - 1) + 9;
+                endY = legHeight + 18 + insideHeight;
+              } else {
+                startY = getSectionShelfCenterY(i - 1) + 9;
+                endY = getSectionShelfCenterY(i) - 9;
+              }
+              const gapH = Math.round(endY - startY);
               labels.push({
                 text: `${gapH}мм`,
-                pos3d: localToWorld(sec.centerX, legHeight + 18 + i * step + step / 2, 0),
+                pos3d: localToWorld(sec.centerX, (startY + endY) / 2, 0),
                 styleClass: 'border-blue-500/20 text-blue-300 bg-[#12141c]/90'
               });
             }
+            shelfIdx += shelvesInSec;
           }
         });
       } else {
         const sortedY = [...(config.shelfPositions || [])].sort((a, b) => a - b);
-        if (sortedY.length === shelves) {
-          // Bottom space
+        const getShelfCenterY = (idx: number) => {
+          if (sortedY.length === shelves) {
+            return legHeight + 18 + sortedY[idx];
+          } else {
+            const step = insideHeight / (shelves + 1);
+            return legHeight + 18 + (idx + 1) * step;
+          }
+        };
+
+        for (let i = 0; i <= shelves; i++) {
+          let startY: number;
+          let endY: number;
+          if (i === 0) {
+            startY = legHeight + 18;
+            endY = getShelfCenterY(0) - 9;
+          } else if (i === shelves) {
+            startY = getShelfCenterY(shelves - 1) + 9;
+            endY = legHeight + 18 + insideHeight;
+          } else {
+            startY = getShelfCenterY(i - 1) + 9;
+            endY = getShelfCenterY(i) - 9;
+          }
+          const gapH = Math.round(endY - startY);
           labels.push({
-            text: `${Math.round(sortedY[0])}мм`,
-            pos3d: localToWorld(0, legHeight + 18 + sortedY[0] / 2, 0),
+            text: `${gapH}мм`,
+            pos3d: localToWorld(0, (startY + endY) / 2, 0),
             styleClass: 'border-blue-500/20 text-blue-300 bg-[#12141c]/90'
           });
-          // Middle spaces
-          for (let i = 1; i < shelves; i++) {
-            const gapH = Math.round(sortedY[i] - sortedY[i - 1] - 18);
-            labels.push({
-              text: `${gapH}мм`,
-              pos3d: localToWorld(0, legHeight + 18 + (sortedY[i - 1] + sortedY[i]) / 2, 0),
-              styleClass: 'border-blue-500/20 text-blue-300 bg-[#12141c]/90'
-            });
-          }
-          // Top space
-          const topGapH = Math.round(insideHeight - sortedY[shelves - 1] - 18);
-          labels.push({
-            text: `${topGapH}мм`,
-            pos3d: localToWorld(0, legHeight + 18 + sortedY[shelves - 1] + 18 + topGapH / 2, 0),
-            styleClass: 'border-blue-500/20 text-blue-300 bg-[#12141c]/90'
-          });
-        } else {
-          // Fallback equal spacing
-          const step = insideHeight / (shelves + 1);
-          for (let i = 0; i <= shelves; i++) {
-            const gapH = Math.round(step - (i === shelves ? 0 : 18));
-            labels.push({
-              text: `${gapH}мм`,
-              pos3d: localToWorld(0, legHeight + 18 + i * step + step / 2, 0),
-              styleClass: 'border-blue-500/20 text-blue-300 bg-[#12141c]/90'
-            });
-          }
         }
       }
     }
@@ -492,12 +516,12 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
       // 2. Camera Setup
       const width = containerRef.current.clientWidth;
       const height = containerRef.current.clientHeight || 500;
-      const camera = new THREE.PerspectiveCamera(45, width / height, 10, 25000);
+      const camera = new THREE.PerspectiveCamera(45, width / height, 50, 25000);
       camera.position.set(2200, 1800, 3200);
       cameraRef.current = camera;
 
       // 3. Renderer Setup
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, logarithmicDepthBuffer: true });
       renderer.setSize(width, height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.shadowMap.enabled = true;
@@ -1470,7 +1494,10 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             const lineMat = new THREE.LineBasicMaterial({
               color: 0x0a0a0e,
               transparent: true,
-              opacity: 0.55
+              opacity: 0.55,
+              polygonOffset: true,
+              polygonOffsetFactor: -1,
+              polygonOffsetUnits: -1
             });
             const line = new THREE.LineSegments(edges, lineMat);
             m.add(line);
@@ -3546,7 +3573,13 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             offset: THREE.Vector3
           ) => {
             const lineGeo = new THREE.BufferGeometry().setFromPoints([start, end]);
-            const lineMat = new THREE.LineBasicMaterial({ color: '#f59e0b', linewidth: 2 });
+            const lineMat = new THREE.LineBasicMaterial({
+              color: '#f59e0b',
+              linewidth: 2,
+              polygonOffset: true,
+              polygonOffsetFactor: -1,
+              polygonOffsetUnits: -1
+            });
             const line = new THREE.Line(lineGeo, lineMat);
             dimsGroup.add(line);
 
@@ -3599,53 +3632,74 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           if (shelves > 0) {
             const sTick = localToWorld(10, 0, 0).sub(localToWorld(0, 0, 0));
             if (partitions > 0) {
+              let shelfIdx = 0;
+              const storedSecCounts: number[] | undefined = (config as any).sectionShelfCounts;
+              const hasValidSecCounts = storedSecCounts && storedSecCounts.length === sections.length && storedSecCounts.reduce((a: number, b: number) => a + b, 0) === shelves;
               sections.forEach((sec, sIdx) => {
-                const shelvesInSec = Math.floor(shelves / sections.length) + (sIdx < shelves % sections.length ? 1 : 0);
+                const shelvesInSec = hasValidSecCounts ? storedSecCounts![sIdx] : (Math.floor(shelves / sections.length) + (sIdx < shelves % sections.length ? 1 : 0));
                 if (shelvesInSec > 0) {
-                  const step = insideHeight / (shelvesInSec + 1);
+                  const getSectionShelfCenterY = (secShelfOffsetIdx: number) => {
+                    const globalIdx = shelfIdx + secShelfOffsetIdx;
+                    if (config.shelfPositions && config.shelfPositions.length === shelves) {
+                      const secPositions = [];
+                      for (let j = 0; j < shelvesInSec; j++) {
+                        secPositions.push(config.shelfPositions[shelfIdx + j]);
+                      }
+                      secPositions.sort((a, b) => a - b);
+                      return legHeight + 18 + secPositions[secShelfOffsetIdx];
+                    } else {
+                      const step = insideHeight / (shelvesInSec + 1);
+                      return legHeight + 18 + (secShelfOffsetIdx + 1) * step;
+                    }
+                  };
+
                   for (let i = 0; i <= shelvesInSec; i++) {
-                    const startY = legHeight + 18 + i * step;
-                    const endY = legHeight + 18 + (i + 1) * step - (i === shelvesInSec ? 0 : 18);
+                    let startY: number;
+                    let endY: number;
+                    if (i === 0) {
+                      startY = legHeight + 18;
+                      endY = getSectionShelfCenterY(0) - 9;
+                    } else if (i === shelvesInSec) {
+                      startY = getSectionShelfCenterY(shelvesInSec - 1) + 9;
+                      endY = legHeight + 18 + insideHeight;
+                    } else {
+                      startY = getSectionShelfCenterY(i - 1) + 9;
+                      endY = getSectionShelfCenterY(i) - 9;
+                    }
                     const sStart = localToWorld(sec.centerX, startY, 0);
                     const sEnd = localToWorld(sec.centerX, endY, 0);
                     drawDimensionLine(sStart, sEnd, '', sTick);
                   }
+                  shelfIdx += shelvesInSec;
                 }
               });
             } else {
               const sortedY = [...(config.shelfPositions || [])].sort((a, b) => a - b);
-              if (sortedY.length === shelves) {
-                // Bottom
-                drawDimensionLine(
-                  localToWorld(0, legHeight + 18, 0),
-                  localToWorld(0, legHeight + 18 + sortedY[0], 0),
-                  '', sTick
-                );
-                // Middles
-                for (let i = 1; i < shelves; i++) {
-                  drawDimensionLine(
-                    localToWorld(0, legHeight + 18 + sortedY[i - 1] + 18, 0),
-                    localToWorld(0, legHeight + 18 + sortedY[i], 0),
-                    '', sTick
-                  );
+              const getShelfCenterY = (idx: number) => {
+                if (sortedY.length === shelves) {
+                  return legHeight + 18 + sortedY[idx];
+                } else {
+                  const step = insideHeight / (shelves + 1);
+                  return legHeight + 18 + (idx + 1) * step;
                 }
-                // Top
-                drawDimensionLine(
-                  localToWorld(0, legHeight + 18 + sortedY[shelves - 1] + 18, 0),
-                  localToWorld(0, legHeight + 18 + insideHeight, 0),
-                  '', sTick
-                );
-              } else {
-                const step = insideHeight / (shelves + 1);
-                for (let i = 0; i <= shelves; i++) {
-                  const startY = legHeight + 18 + i * step;
-                  const endY = legHeight + 18 + (i + 1) * step - (i === shelves ? 0 : 18);
-                  drawDimensionLine(
-                    localToWorld(0, startY, 0),
-                    localToWorld(0, endY, 0),
-                    '', sTick
-                  );
+              };
+
+              for (let i = 0; i <= shelves; i++) {
+                let startY: number;
+                let endY: number;
+                if (i === 0) {
+                  startY = legHeight + 18;
+                  endY = getShelfCenterY(0) - 9;
+                } else if (i === shelves) {
+                  startY = getShelfCenterY(shelves - 1) + 9;
+                  endY = legHeight + 18 + insideHeight;
+                } else {
+                  startY = getShelfCenterY(i - 1) + 9;
+                  endY = getShelfCenterY(i) - 9;
                 }
+                const sStart = localToWorld(0, startY, 0);
+                const sEnd = localToWorld(0, endY, 0);
+                drawDimensionLine(sStart, sEnd, '', sTick);
               }
             }
           }
