@@ -44,6 +44,7 @@ interface ProjectState {
   updateModuleRotation: (moduleId: string, rotationDeg: number) => void;
   duplicateModule: (moduleId: string) => void;
   resetModulePositions: () => void;
+  alignModulesSideBySide: () => void;
   updateMaterialPrice: (materialId: string, price: number) => void;
 
   // Custom single-module templates
@@ -1871,6 +1872,71 @@ export const useProjectStore = create<ProjectState>()(
         return found || m;
       })
     ];
+
+    const updatedProject = {
+      ...state.activeProject,
+      modules: updatedModules,
+      updatedAt: new Date().toISOString()
+    };
+
+    return {
+      activeProject: updatedProject,
+      projects: state.projects.map((p) => p.id === state.activeProject!.id ? updatedProject : p)
+    };
+  }),
+
+  alignModulesSideBySide: () => set((state) => {
+    if (!state.activeProject || !state.activeProject.modules || state.activeProject.modules.length === 0) return {};
+
+    const modules = state.activeProject.modules || [];
+
+    // Separate modules into lower (floor-level) and upper (wall-mounted)
+    const isUpper = (m: CabinetModule) =>
+      m.type === 'kitchen_upper' || m.type === 'hood' || m.type === 'built_in_hood' || m.type === 'microwave';
+
+    const lowerMods = modules.filter((m) => !isUpper(m));
+    const upperMods = modules.filter((m) => isUpper(m));
+
+    // Sort lower modules by current xOffset
+    const sortedLower = [...lowerMods].sort((a, b) => a.xOffset - b.xOffset);
+    const totalLowerWidth = sortedLower.reduce((sum, mod) => sum + (mod.config.width || 0), 0);
+
+    // Place lower modules side-by-side (along X, centered around 0)
+    let currentLowerLeft = -totalLowerWidth / 2;
+    const alignedLower = sortedLower.map((mod) => {
+      const w = mod.config.width || 0;
+      const xOff = Math.round(currentLowerLeft + w / 2);
+      currentLowerLeft += w;
+      return {
+        ...mod,
+        xOffset: xOff,
+        yOffset: 0,
+        zOffset: 0
+      };
+    });
+
+    // Sort upper modules by current xOffset
+    const sortedUpper = [...upperMods].sort((a, b) => a.xOffset - b.xOffset);
+    const totalUpperWidth = sortedUpper.reduce((sum, mod) => sum + (mod.config.width || 0), 0);
+
+    // Place upper modules side-by-side (along X, centered around 0, Y-offset is kept at upper position e.g. 1400 or kept as is, but setting Y offset to 1400 and Z offset to 0)
+    let currentUpperLeft = -totalUpperWidth / 2;
+    const alignedUpper = sortedUpper.map((mod) => {
+      const w = mod.config.width || 0;
+      const xOff = Math.round(currentUpperLeft + w / 2);
+      currentUpperLeft += w;
+      return {
+        ...mod,
+        xOffset: xOff,
+        yOffset: 1400, // standard upper module height
+        zOffset: 0
+      };
+    });
+
+    const updatedModules = modules.map((m) => {
+      const found = [...alignedLower, ...alignedUpper].find((u) => u.id === m.id);
+      return found || m;
+    });
 
     const updatedProject = {
       ...state.activeProject,

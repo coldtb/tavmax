@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useProjectStore, getCabinetSections } from '../store/projectStore';
 import { ThreeViewer } from '../components/ThreeViewer';
 import { TemplateThumbnail } from '../components/TemplateThumbnail';
-import { Sparkles, Eye, Ruler, Grid, Layers, Move, RefreshCw, Send, Check, Plus, Trash2, Box, Copy, Magnet, Printer, X, FileText, HelpCircle, Info, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Sparkles, Eye, Ruler, Grid, Layers, Move, RefreshCw, Send, Check, Plus, Trash2, Box, Copy, Magnet, Printer, X, FileText, HelpCircle, Info, ChevronLeft, ChevronRight, Columns, AlignLeft } from 'lucide-react';
 
 const COLOR_PALETTE = [
   // Pastel / Warm
@@ -34,6 +34,7 @@ export const Editor: React.FC = () => {
     removeModuleFromActive,
     duplicateModule,
     resetModulePositions,
+    alignModulesSideBySide,
     updateModulePosition,
     updateModuleRotation,
     customTemplates,
@@ -2474,6 +2475,13 @@ return (
             >
               <Magnet size={16} />
             </button>
+            <button
+              onClick={() => alignModulesSideBySide()}
+              className="p-2 rounded-lg transition-all cursor-pointer bg-neutral-800 text-neutral-400 border border-transparent hover:bg-neutral-700 hover:text-white"
+              title="Зэрэгцүүлэх: Бүх шүүгээнүүдийг завсаргүй зэрэгцүүлэн наах"
+            >
+              <AlignLeft size={16} />
+            </button>
             <div className="w-px h-5 bg-white/10 mx-0.5 self-center" />
             <button
               onClick={() => {
@@ -2553,6 +2561,75 @@ return (
             </span>
           </div>
 
+          {/* Floating Viewport Controls */}
+          <div className="absolute top-4 left-4 z-20 bg-[#0e1018]/85 backdrop-blur-md border border-white/10 rounded-xl p-1 shadow-2xl flex gap-1 select-none items-center">
+            <button
+              type="button"
+              onClick={() => setExplode(!explode)}
+              className={`p-2 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 text-[10px] font-bold ${
+                explode 
+                  ? 'bg-amber-500 text-neutral-950 shadow-md shadow-amber-500/20' 
+                  : 'text-neutral-400 hover:text-white hover:bg-white/5'
+              }`}
+              title="Задрах харагдац: Хавтангуудыг салгаж бүтцийг нь харах"
+            >
+              <Layers size={13} />
+              <span>Задрах</span>
+            </button>
+            <div className="w-px h-3.5 bg-white/10 self-center" />
+            <button
+              type="button"
+              onClick={() => setOpenDoors(!openDoors)}
+              className={`p-2 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 text-[10px] font-bold ${
+                openDoors 
+                  ? 'bg-amber-500 text-neutral-950 shadow-md shadow-amber-500/20' 
+                  : 'text-neutral-400 hover:text-white hover:bg-white/5'
+              }`}
+              title="Хаалга болон шургуулгуудыг онгойлгох / хаах"
+            >
+              <Eye size={13} />
+              <span>Нээх</span>
+            </button>
+            <div className="w-px h-3.5 bg-white/10 self-center" />
+            <button
+              type="button"
+              onClick={() => setShowDimensions(!showDimensions)}
+              className={`p-2 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 text-[10px] font-bold ${
+                showDimensions 
+                  ? 'bg-amber-500 text-neutral-950 shadow-md shadow-amber-500/20' 
+                  : 'text-neutral-400 hover:text-white hover:bg-white/5'
+              }`}
+              title="Хэмжээсийг харуулах / нуух"
+            >
+              <Grid size={13} />
+              <span>Хэмжээс</span>
+            </button>
+            <div className="w-px h-3.5 bg-white/10 self-center" />
+            <button
+              type="button"
+              onClick={() => setMeasureMode(!measureMode)}
+              className={`p-2 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 text-[10px] font-bold ${
+                measureMode 
+                  ? 'bg-amber-500 text-neutral-950 shadow-md shadow-amber-500/20' 
+                  : 'text-neutral-400 hover:text-white hover:bg-white/5'
+              }`}
+              title="Зай хэмжигч метр: 3D дээр хоёр цэг сонгож зайг хэмжих"
+            >
+              <Ruler size={13} />
+              <span>Метр</span>
+            </button>
+            <div className="w-px h-3.5 bg-white/10 self-center" />
+            <button
+              type="button"
+              onClick={() => alignModulesSideBySide()}
+              className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer flex items-center gap-1.5 text-[10px] font-bold"
+              title="Шүүгээнүүдийг зэрэгцүүлж наах (Auto-align side-by-side)"
+            >
+              <AlignLeft size={13} />
+              <span>Зэрэгцүүлэх</span>
+            </button>
+          </div>
+
           {measureMode && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-amber-500 text-neutral-950 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg border border-amber-600 animate-pulse uppercase tracking-wider">
               Метр горим идэвхтэй: 3D орон зайд дараад хэмжинэ үү (A-B цэг сонгох)
@@ -2570,6 +2647,10 @@ return (
             measureMode={measureMode}
             onRightClickModule={(moduleId, x, y) => {
               setContextMenu({ moduleId, x, y });
+            }}
+            onDoubleClickModule={(moduleId) => {
+              setSelectedModuleId(moduleId);
+              setShowFloatingConfig(true);
             }}
           />
 
@@ -2622,8 +2703,91 @@ return (
 
                 <div className="h-px bg-white/5 my-1" />
 
+                {/* Dimensions section */}
+                <div className="px-2.5 py-1.5 flex flex-col gap-2 border-t border-white/5">
+                  <div className="text-[10px] text-neutral-400 font-bold">Үндсэн хэмжээсүүд</div>
+                  
+                  {/* Width Input */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-neutral-400 text-[10px]">Өргөн (W):</span>
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        min={200}
+                        max={3000}
+                        step={50}
+                        value={contextMod.config.width}
+                        onChange={(e) => {
+                          setSelectedModuleId(contextMod.id);
+                          const val = parseInt(e.target.value) || 0;
+                          updateActiveConfig({ width: val });
+                        }}
+                        onBlur={(e) => {
+                          setSelectedModuleId(contextMod.id);
+                          const val = Math.max(200, Math.min(3000, parseInt(e.target.value) || 200));
+                          updateActiveConfig({ width: val });
+                        }}
+                        className="w-16 bg-neutral-900 border border-white/10 rounded px-1.5 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-[10px]"
+                      />
+                      <span className="text-[9px] text-neutral-500">мм</span>
+                    </div>
+                  </div>
+
+                  {/* Height Input */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-neutral-400 text-[10px]">Өндөр (H):</span>
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        min={200}
+                        max={2800}
+                        step={50}
+                        value={contextMod.config.height}
+                        onChange={(e) => {
+                          setSelectedModuleId(contextMod.id);
+                          const val = parseInt(e.target.value) || 0;
+                          updateActiveConfig({ height: val });
+                        }}
+                        onBlur={(e) => {
+                          setSelectedModuleId(contextMod.id);
+                          const val = Math.max(200, Math.min(2800, parseInt(e.target.value) || 200));
+                          updateActiveConfig({ height: val });
+                        }}
+                        className="w-16 bg-neutral-900 border border-white/10 rounded px-1.5 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-[10px]"
+                      />
+                      <span className="text-[9px] text-neutral-500">мм</span>
+                    </div>
+                  </div>
+
+                  {/* Depth Input */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-neutral-400 text-[10px]">Гүн (D):</span>
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        min={200}
+                        max={1000}
+                        step={50}
+                        value={contextMod.config.depth}
+                        onChange={(e) => {
+                          setSelectedModuleId(contextMod.id);
+                          const val = parseInt(e.target.value) || 0;
+                          updateActiveConfig({ depth: val });
+                        }}
+                        onBlur={(e) => {
+                          setSelectedModuleId(contextMod.id);
+                          const val = Math.max(200, Math.min(1000, parseInt(e.target.value) || 200));
+                          updateActiveConfig({ depth: val });
+                        }}
+                        className="w-16 bg-neutral-900 border border-white/10 rounded px-1.5 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-[10px]"
+                      />
+                      <span className="text-[9px] text-neutral-500">мм</span>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Y-coordinate (height) slider inside menu */}
-                <div className="px-2.5 py-1.5 flex flex-col gap-1.5">
+                <div className="px-2.5 py-1.5 flex flex-col gap-1.5 border-t border-white/5">
                   <div className="flex justify-between text-[10px] text-neutral-400 font-bold">
                     <span>Өндөр / Давхарлах (Y тэнхлэг)</span>
                     <span className="text-amber-500 font-bold">{contextMod.yOffset} мм</span>

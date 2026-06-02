@@ -16,6 +16,7 @@ interface ThreeViewerProps {
   enableSnapping?: boolean;
   measureMode?: boolean; // A-B measurement mode
   onRightClickModule?: (moduleId: string, clientX: number, clientY: number) => void;
+  onDoubleClickModule?: (moduleId: string) => void;
 }
 
 const getShelfY = (
@@ -166,6 +167,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
   enableSnapping = true,
   measureMode = false,
   onRightClickModule,
+  onDoubleClickModule,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -1171,12 +1173,43 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
         }
       };
 
+      const onDoubleClick = (event: MouseEvent) => {
+        if (!rendererRef.current || !cameraRef.current) return;
+
+        const rect = rendererRef.current.domElement.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, cameraRef.current);
+        const intersects = raycaster.intersectObjects(furnitureGroup.children, true);
+
+        if (intersects.length > 0) {
+          let obj: THREE.Object3D | null = intersects[0].object;
+          let group: THREE.Group | null = null;
+          while (obj && obj !== scene) {
+            if (obj.parent === furnitureGroup) {
+              group = obj as THREE.Group;
+              break;
+            }
+            obj = obj.parent;
+          }
+
+          if (group && group.name) {
+            setSelectedModuleId(group.name);
+            if (onDoubleClickModule) {
+              onDoubleClickModule(group.name);
+            }
+          }
+        }
+      };
+
       // Add pointer listeners for dragging
       renderer.domElement.addEventListener('pointerdown', onPointerDown);
       renderer.domElement.addEventListener('pointermove', onPointerMove);
       renderer.domElement.addEventListener('pointerup', onPointerUp);
       renderer.domElement.addEventListener('pointerleave', onPointerUp);
       renderer.domElement.addEventListener('contextmenu', onContextMenu);
+      renderer.domElement.addEventListener('dblclick', onDoubleClick);
 
       // 5. Grid/Floor plane — 10m × 10m with 100mm cells
       const gridHelper = new THREE.GridHelper(10000, 100, '#3a4040', '#2e3535');
@@ -1235,6 +1268,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           renderer.domElement.removeEventListener('pointerup', onPointerUp);
           renderer.domElement.removeEventListener('pointerleave', onPointerUp);
           renderer.domElement.removeEventListener('contextmenu', onContextMenu);
+          renderer.domElement.removeEventListener('dblclick', onDoubleClick);
           if (container && container.contains(renderer.domElement)) {
             container.removeChild(renderer.domElement);
           }
