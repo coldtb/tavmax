@@ -1054,7 +1054,11 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
     });
   }
 
-  return parts;
+  return parts.map(p => ({
+    ...p,
+    width: Math.round(p.width),
+    height: Math.round(p.height)
+  }));
 };
 
 const rebuildPartsFromModules = (modules: CabinetModule[]): Part[] => {
