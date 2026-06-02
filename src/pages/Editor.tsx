@@ -894,17 +894,51 @@ export const Editor: React.FC = () => {
                   </div>
 
                   {/* Leg status */}
-                  <div className="flex items-center gap-3 border-t border-white/5 pt-3">
-                    <input
-                      type="checkbox"
-                      id="hasLegs"
-                      checked={config.hasLegs}
-                      onChange={(e) => updateActiveConfig({ hasLegs: e.target.checked })}
-                      className="w-4 h-4 bg-[#0c0d12] border border-white/10 rounded accent-amber-500 cursor-pointer"
-                    />
-                    <label htmlFor="hasLegs" className="text-xs text-neutral-300 font-medium select-none cursor-pointer flex items-center gap-1.5">
-                      <span>Шүүгээнд хөл суурилуулах (100мм өндөртэй хөл)</span>
-                    </label>
+                  <div className="flex flex-col gap-3 border-t border-white/5 pt-3">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="hasLegs"
+                        checked={config.hasLegs}
+                        onChange={(e) => updateActiveConfig({ hasLegs: e.target.checked })}
+                        className="w-4 h-4 bg-[#0c0d12] border border-white/10 rounded accent-amber-500 cursor-pointer"
+                      />
+                      <label htmlFor="hasLegs" className="text-xs text-neutral-300 font-medium select-none cursor-pointer flex items-center gap-1.5">
+                        <span>Шүүгээнд хөл суурилуулах (100мм өндөртэй хөл)</span>
+                      </label>
+                    </div>
+
+                    {config.hasLegs && (
+                      <div className="flex flex-col gap-2 bg-[#0c0d12]/50 border border-white/5 p-3 rounded-xl">
+                        <label className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mb-1">
+                          Хөлний загвар сонгох:
+                        </label>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => updateActiveConfig({ legStyle: 'plinth' })}
+                            className={`flex-1 py-1.5 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all text-center cursor-pointer ${
+                              (config.legStyle || 'plinth') === 'plinth'
+                                ? 'bg-amber-500 text-neutral-950 border-amber-500'
+                                : 'bg-[#0c0d12] text-neutral-400 border-white/5 hover:text-white'
+                            }`}
+                            type="button"
+                          >
+                            Хаалттай (Plinth)
+                          </button>
+                          <button
+                            onClick={() => updateActiveConfig({ legStyle: 'cylinder' })}
+                            className={`flex-1 py-1.5 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all text-center cursor-pointer ${
+                              config.legStyle === 'cylinder'
+                                ? 'bg-amber-500 text-neutral-950 border-amber-500'
+                                : 'bg-[#0c0d12] text-neutral-400 border-white/5 hover:text-white'
+                            }`}
+                            type="button"
+                          >
+                            Ил задгай (Cylinder)
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Glass Left/Right options for Vitrine */}

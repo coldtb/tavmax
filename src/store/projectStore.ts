@@ -1058,8 +1058,8 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
     }
   }
 
-  // Add plinth/socle boards to carcass parts calculation if hasLegs is enabled
-  if (config.hasLegs) {
+  // Add plinth/socle boards to carcass parts calculation if hasLegs is enabled and plinth style is selected
+  if (config.hasLegs && (config.legStyle || 'plinth') !== 'cylinder') {
     const plinthHeight = 100;
     parts.push({
       id: 'p-plinth-front',

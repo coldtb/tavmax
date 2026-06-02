@@ -1654,86 +1654,119 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           return mesh;
         };
 
-        // Render Legs (Closed 10cm Plinth / Socle)
+        // Render Legs (Closed 10cm Plinth / Socle or Cylinder columns)
         const buildLegs = () => {
           if (!hasLegs) return;
+          const legStyle = config.legStyle || 'plinth';
           
-          // Front plinth board
-          const fPlinthW = width;
-          const fPlinthGeo = new THREE.BoxGeometry(fPlinthW, 100, 18);
-          const fPlinth = new THREE.Mesh(fPlinthGeo, bodyMat);
-          fPlinth.castShadow = true;
-          fPlinth.receiveShadow = true;
-          const fPlinthZ = halfD - 50;
-          fPlinth.position.set(0, 50, fPlinthZ);
-          fPlinth.userData = {
-            category: 'leg',
-            baseX: 0,
-            baseY: 50,
-            baseZ: fPlinthZ,
-            expX: 0,
-            expY: -35,
-            expZ: 15
-          };
-          moduleGroup.add(fPlinth);
+          if (legStyle === 'cylinder') {
+            const legGeo = new THREE.CylinderGeometry(20, 12, 100, 16);
+            const legM = new THREE.MeshStandardMaterial({
+              color: '#111827',
+              metalness: 0.5,
+              roughness: 0.5,
+              polygonOffset: true,
+              polygonOffsetFactor: 1,
+              polygonOffsetUnits: 1
+            });
+            const lx1 = -halfW + 40;
+            const lx2 = halfW - 40;
+            const lz1 = -halfD + 40;
+            const lz2 = halfD - 40;
+            
+            [[lx1, 50, lz1], [lx1, 50, lz2], [lx2, 50, lz1], [lx2, 50, lz2]].forEach(([lx, ly, lz]) => {
+              const leg = new THREE.Mesh(legGeo, legM);
+              leg.position.set(lx, ly, lz);
+              leg.castShadow = true;
+              leg.userData = {
+                category: 'leg',
+                baseX: lx,
+                baseY: ly,
+                baseZ: lz,
+                expX: lx * 0.1,
+                expY: -35,
+                expZ: lz * 0.1
+              };
+              moduleGroup.add(leg);
+            });
+          } else {
+            // Front plinth board
+            const fPlinthW = width;
+            const fPlinthGeo = new THREE.BoxGeometry(fPlinthW, 100, 18);
+            const fPlinth = new THREE.Mesh(fPlinthGeo, bodyMat);
+            fPlinth.castShadow = true;
+            fPlinth.receiveShadow = true;
+            const fPlinthZ = halfD - 50;
+            fPlinth.position.set(0, 50, fPlinthZ);
+            fPlinth.userData = {
+              category: 'leg',
+              baseX: 0,
+              baseY: 50,
+              baseZ: fPlinthZ,
+              expX: 0,
+              expY: -35,
+              expZ: 15
+            };
+            moduleGroup.add(fPlinth);
 
-          // Back plinth board
-          const bPlinthW = Math.max(10, width - 36);
-          const bPlinthGeo = new THREE.BoxGeometry(bPlinthW, 100, 18);
-          const bPlinth = new THREE.Mesh(bPlinthGeo, bodyMat);
-          bPlinth.castShadow = true;
-          bPlinth.receiveShadow = true;
-          const bPlinthZ = -halfD + 9;
-          bPlinth.position.set(0, 50, bPlinthZ);
-          bPlinth.userData = {
-            category: 'leg',
-            baseX: 0,
-            baseY: 50,
-            baseZ: bPlinthZ,
-            expX: 0,
-            expY: -35,
-            expZ: -15
-          };
-          moduleGroup.add(bPlinth);
+            // Back plinth board
+            const bPlinthW = Math.max(10, width - 36);
+            const bPlinthGeo = new THREE.BoxGeometry(bPlinthW, 100, 18);
+            const bPlinth = new THREE.Mesh(bPlinthGeo, bodyMat);
+            bPlinth.castShadow = true;
+            bPlinth.receiveShadow = true;
+            const bPlinthZ = -halfD + 9;
+            bPlinth.position.set(0, 50, bPlinthZ);
+            bPlinth.userData = {
+              category: 'leg',
+              baseX: 0,
+              baseY: 50,
+              baseZ: bPlinthZ,
+              expX: 0,
+              expY: -35,
+              expZ: -15
+            };
+            moduleGroup.add(bPlinth);
 
-          // Side plinth boards (Left & Right)
-          const sPlinthD = Math.max(10, depth - 68);
-          const sPlinthGeo = new THREE.BoxGeometry(18, 100, sPlinthD);
-          
-          // Left side plinth
-          const lPlinth = new THREE.Mesh(sPlinthGeo, bodyMat);
-          lPlinth.castShadow = true;
-          lPlinth.receiveShadow = true;
-          const lPlinthX = -halfW + 9;
-          const sidePlinthZ = halfD - 59 - sPlinthD / 2;
-          lPlinth.position.set(lPlinthX, 50, sidePlinthZ);
-          lPlinth.userData = {
-            category: 'leg',
-            baseX: lPlinthX,
-            baseY: 50,
-            baseZ: sidePlinthZ,
-            expX: -10,
-            expY: -35,
-            expZ: 0
-          };
-          moduleGroup.add(lPlinth);
+            // Side plinth boards (Left & Right)
+            const sPlinthD = Math.max(10, depth - 68);
+            const sPlinthGeo = new THREE.BoxGeometry(18, 100, sPlinthD);
+            
+            // Left side plinth
+            const lPlinth = new THREE.Mesh(sPlinthGeo, bodyMat);
+            lPlinth.castShadow = true;
+            lPlinth.receiveShadow = true;
+            const lPlinthX = -halfW + 9;
+            const sidePlinthZ = halfD - 59 - sPlinthD / 2;
+            lPlinth.position.set(lPlinthX, 50, sidePlinthZ);
+            lPlinth.userData = {
+              category: 'leg',
+              baseX: lPlinthX,
+              baseY: 50,
+              baseZ: sidePlinthZ,
+              expX: -10,
+              expY: -35,
+              expZ: 0
+            };
+            moduleGroup.add(lPlinth);
 
-          // Right side plinth
-          const rPlinth = new THREE.Mesh(sPlinthGeo, bodyMat);
-          rPlinth.castShadow = true;
-          rPlinth.receiveShadow = true;
-          const rPlinthX = halfW - 9;
-          rPlinth.position.set(rPlinthX, 50, sidePlinthZ);
-          rPlinth.userData = {
-            category: 'leg',
-            baseX: rPlinthX,
-            baseY: 50,
-            baseZ: sidePlinthZ,
-            expX: 10,
-            expY: -35,
-            expZ: 0
-          };
-          moduleGroup.add(rPlinth);
+            // Right side plinth
+            const rPlinth = new THREE.Mesh(sPlinthGeo, bodyMat);
+            rPlinth.castShadow = true;
+            rPlinth.receiveShadow = true;
+            const rPlinthX = halfW - 9;
+            rPlinth.position.set(rPlinthX, 50, sidePlinthZ);
+            rPlinth.userData = {
+              category: 'leg',
+              baseX: rPlinthX,
+              baseY: 50,
+              baseZ: sidePlinthZ,
+              expX: 10,
+              expY: -35,
+              expZ: 0
+            };
+            moduleGroup.add(rPlinth);
+          }
         };
 
         const modParts = mod.parts || [];
@@ -2353,85 +2386,121 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           const topY = legH + bodyH - P / 2;
           const botY = legH + P / 2;
 
-          // ── PLINTH / LEGS (Closed 10cm Plinth / Socle) ─────────────────────────
+          // ── PLINTH / LEGS (Closed 10cm Plinth / Socle or Cylinder columns) ─────────────────────────
           if (isLower && hasLegs) {
-            // Left plinth board
-            const lpW = 18;
-            const lpD = S - 18;
-            const lpGeo = new THREE.BoxGeometry(lpW, 100, lpD);
-            const lp = new THREE.Mesh(lpGeo, bodyMat);
-            lp.castShadow = true;
-            lp.receiveShadow = true;
-            const lpX = -hs + 9;
-            const lpZ = 9;
-            lp.position.set(lpX, 50, lpZ);
-            lp.userData = { category: 'leg', baseX: lpX, baseY: 50, baseZ: lpZ, expX: -15, expY: -35, expZ: 0 };
-            moduleGroup.add(lp);
+            const legStyle = config.legStyle || 'plinth';
+            if (legStyle === 'cylinder') {
+              const legGeo = new THREE.CylinderGeometry(20, 12, 100, 16);
+              const legM = new THREE.MeshStandardMaterial({
+                color: '#111827',
+                metalness: 0.5,
+                roughness: 0.5,
+                polygonOffset: true,
+                polygonOffsetFactor: 1,
+                polygonOffsetUnits: 1
+              });
+              const legPositions = [
+                [-hs + 40, 50, -hs + 40],
+                [-hs + 40, 50, hs - 40],
+                [-40, 50, hs - 40],
+                [-40, 50, 40],
+                [hs - 40, 50, 40],
+                [hs - 40, 50, -hs + 40]
+              ];
+              legPositions.forEach(([lx, ly, lz]) => {
+                const leg = new THREE.Mesh(legGeo, legM);
+                leg.position.set(lx, ly, lz);
+                leg.castShadow = true;
+                leg.userData = {
+                  category: 'leg',
+                  baseX: lx,
+                  baseY: ly,
+                  baseZ: lz,
+                  expX: lx * 0.1,
+                  expY: -35,
+                  expZ: lz * 0.1
+                };
+                moduleGroup.add(leg);
+              });
+            } else {
+              // Left plinth board
+              const lpW = 18;
+              const lpD = S - 18;
+              const lpGeo = new THREE.BoxGeometry(lpW, 100, lpD);
+              const lp = new THREE.Mesh(lpGeo, bodyMat);
+              lp.castShadow = true;
+              lp.receiveShadow = true;
+              const lpX = -hs + 9;
+              const lpZ = 9;
+              lp.position.set(lpX, 50, lpZ);
+              lp.userData = { category: 'leg', baseX: lpX, baseY: 50, baseZ: lpZ, expX: -15, expY: -35, expZ: 0 };
+              moduleGroup.add(lp);
 
-            // Back plinth board
-            const bpW = S;
-            const bpD = 18;
-            const bpGeo = new THREE.BoxGeometry(bpW, 100, bpD);
-            const bp = new THREE.Mesh(bpGeo, bodyMat);
-            bp.castShadow = true;
-            bp.receiveShadow = true;
-            const bpX = 0;
-            const bpZ = -hs + 9;
-            bp.position.set(bpX, 50, bpZ);
-            bp.userData = { category: 'leg', baseX: bpX, baseY: 50, baseZ: bpZ, expX: 0, expY: -35, expZ: -15 };
-            moduleGroup.add(bp);
+              // Back plinth board
+              const bpW = S;
+              const bpD = 18;
+              const bpGeo = new THREE.BoxGeometry(bpW, 100, bpD);
+              const bp = new THREE.Mesh(bpGeo, bodyMat);
+              bp.castShadow = true;
+              bp.receiveShadow = true;
+              const bpX = 0;
+              const bpZ = -hs + 9;
+              bp.position.set(bpX, 50, bpZ);
+              bp.userData = { category: 'leg', baseX: bpX, baseY: 50, baseZ: bpZ, expX: 0, expY: -35, expZ: -15 };
+              moduleGroup.add(bp);
 
-            // Right plinth board
-            const rpW = 18;
-            const rpD = hs;
-            const rpGeo = new THREE.BoxGeometry(rpW, 100, rpD);
-            const rp = new THREE.Mesh(rpGeo, bodyMat);
-            rp.castShadow = true;
-            rp.receiveShadow = true;
-            const rpX = hs - 9;
-            const rpZ = -hs / 2;
-            rp.position.set(rpX, 50, rpZ);
-            rp.userData = { category: 'leg', baseX: rpX, baseY: 50, baseZ: rpZ, expX: 15, expY: -35, expZ: 0 };
-            moduleGroup.add(rp);
+              // Right plinth board
+              const rpW = 18;
+              const rpD = hs;
+              const rpGeo = new THREE.BoxGeometry(rpW, 100, rpD);
+              const rp = new THREE.Mesh(rpGeo, bodyMat);
+              rp.castShadow = true;
+              rp.receiveShadow = true;
+              const rpX = hs - 9;
+              const rpZ = -hs / 2;
+              rp.position.set(rpX, 50, rpZ);
+              rp.userData = { category: 'leg', baseX: rpX, baseY: 50, baseZ: rpZ, expX: 15, expY: -35, expZ: 0 };
+              moduleGroup.add(rp);
 
-            // Back arm front plinth board
-            const bafpW = hs - 18;
-            const bafpD = 18;
-            const bafpGeo = new THREE.BoxGeometry(bafpW, 100, bafpD);
-            const bafp = new THREE.Mesh(bafpGeo, bodyMat);
-            bafp.castShadow = true;
-            bafp.receiveShadow = true;
-            const bafpX = hs / 2 + 9;
-            const bafpZ = -9;
-            bafp.position.set(bafpX, 50, bafpZ);
-            bafp.userData = { category: 'leg', baseX: bafpX, baseY: 50, baseZ: bafpZ, expX: 0, expY: -35, expZ: 15 };
-            moduleGroup.add(bafp);
+              // Back arm front plinth board
+              const bafpW = hs - 18;
+              const bafpD = 18;
+              const bafpGeo = new THREE.BoxGeometry(bafpW, 100, bafpD);
+              const bafp = new THREE.Mesh(bafpGeo, bodyMat);
+              bafp.castShadow = true;
+              bafp.receiveShadow = true;
+              const bafpX = hs / 2 + 9;
+              const bafpZ = -9;
+              bafp.position.set(bafpX, 50, bafpZ);
+              bafp.userData = { category: 'leg', baseX: bafpX, baseY: 50, baseZ: bafpZ, expX: 0, expY: -35, expZ: 15 };
+              moduleGroup.add(bafp);
 
-            // Front arm right plinth board
-            const farpW = 18;
-            const farpD = hs - 50;
-            const farpGeo = new THREE.BoxGeometry(farpW, 100, farpD);
-            const farp = new THREE.Mesh(farpGeo, bodyMat);
-            farp.castShadow = true;
-            farp.receiveShadow = true;
-            const farpX = -9;
-            const farpZ = (hs - 50) / 2;
-            farp.position.set(farpX, 50, farpZ);
-            farp.userData = { category: 'leg', baseX: farpX, baseY: 50, baseZ: farpZ, expX: 15, expY: -35, expZ: 0 };
-            moduleGroup.add(farp);
+              // Front arm right plinth board
+              const farpW = 18;
+              const farpD = hs - 50;
+              const farpGeo = new THREE.BoxGeometry(farpW, 100, farpD);
+              const farp = new THREE.Mesh(farpGeo, bodyMat);
+              farp.castShadow = true;
+              farp.receiveShadow = true;
+              const farpX = -9;
+              const farpZ = (hs - 50) / 2;
+              farp.position.set(farpX, 50, farpZ);
+              farp.userData = { category: 'leg', baseX: farpX, baseY: 50, baseZ: farpZ, expX: 15, expY: -35, expZ: 0 };
+              moduleGroup.add(farp);
 
-            // Front arm front plinth board
-            const fafpW = hs - 18;
-            const fafpD = 18;
-            const fafpGeo = new THREE.BoxGeometry(fafpW, 100, fafpD);
-            const fafp = new THREE.Mesh(fafpGeo, bodyMat);
-            fafp.castShadow = true;
-            fafp.receiveShadow = true;
-            const fafpX = -hs / 2 - 9;
-            const fafpZ = hs - 50;
-            fafp.position.set(fafpX, 50, fafpZ);
-            fafp.userData = { category: 'leg', baseX: fafpX, baseY: 50, baseZ: fafpZ, expX: 0, expY: -35, expZ: 15 };
-            moduleGroup.add(fafp);
+              // Front arm front plinth board
+              const fafpW = hs - 18;
+              const fafpD = 18;
+              const fafpGeo = new THREE.BoxGeometry(fafpW, 100, fafpD);
+              const fafp = new THREE.Mesh(fafpGeo, bodyMat);
+              fafp.castShadow = true;
+              fafp.receiveShadow = true;
+              const fafpX = -hs / 2 - 9;
+              const fafpZ = hs - 50;
+              fafp.position.set(fafpX, 50, fafpZ);
+              fafp.userData = { category: 'leg', baseX: fafpX, baseY: 50, baseZ: fafpZ, expX: 0, expY: -35, expZ: 15 };
+              moduleGroup.add(fafp);
+            }
           }
 
           // ── OUTER SHELL PANELS ───────────────────────────────────────────────
