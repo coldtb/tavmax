@@ -1827,7 +1827,8 @@ export const useProjectStore = create<ProjectState>()(
     // Separate modules into lower, upper, and TV
     const isTV = (m: CabinetModule) => m.type === 'tv_unit';
     const isUpper = (m: CabinetModule) =>
-      m.type === 'kitchen_upper' || m.type === 'hood' || m.type === 'built_in_hood' || m.type === 'microwave';
+      (m.type === 'kitchen_upper' || m.type === 'hood' || m.type === 'built_in_hood' || m.type === 'microwave') &&
+      (m.config.height ?? 0) < 1000;
 
     const lowerMods = modules.filter((m) => !isUpper(m) && !isTV(m));
     const upperMods = modules.filter((m) => isUpper(m) && !isTV(m));
@@ -1920,10 +1921,10 @@ export const useProjectStore = create<ProjectState>()(
 
     const modules = state.activeProject.modules || [];
 
-    // Separate modules into lower, upper, and TV
+    // Separate modules into lower, upper, and TV based on height and Y-offset
     const isTV = (m: CabinetModule) => m.type === 'tv_unit';
     const isUpper = (m: CabinetModule) =>
-      m.type === 'kitchen_upper' || m.type === 'hood' || m.type === 'built_in_hood' || m.type === 'microwave';
+      m.yOffset >= 500 && (m.config.height ?? 0) < 1000;
 
     const lowerMods = modules.filter((m) => !isUpper(m) && !isTV(m));
     const upperMods = modules.filter((m) => isUpper(m) && !isTV(m));
@@ -1942,7 +1943,7 @@ export const useProjectStore = create<ProjectState>()(
       return {
         ...mod,
         xOffset: xOff,
-        yOffset: 0,
+        yOffset: 0, // floor level
         zOffset: 0
       };
     });
@@ -1951,7 +1952,7 @@ export const useProjectStore = create<ProjectState>()(
     const sortedUpper = [...upperMods].sort((a, b) => a.xOffset - b.xOffset);
     const totalUpperWidth = sortedUpper.reduce((sum, mod) => sum + (mod.config.width || 0), 0);
 
-    // Place upper modules side-by-side (along X, centered around 0, Y-offset is kept at upper position e.g. 1400 or kept as is, but setting Y offset to 1400 and Z offset to 0)
+    // Place upper modules side-by-side (along X, centered around 0, keeping their floating height)
     let currentUpperLeft = -totalUpperWidth / 2;
     const alignedUpper = sortedUpper.map((mod) => {
       const w = mod.config.width || 0;
@@ -1960,7 +1961,7 @@ export const useProjectStore = create<ProjectState>()(
       return {
         ...mod,
         xOffset: xOff,
-        yOffset: 1400, // standard upper module height
+        yOffset: mod.yOffset, // preserve custom height
         zOffset: 0
       };
     });
