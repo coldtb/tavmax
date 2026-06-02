@@ -94,12 +94,10 @@ export const Cutting: React.FC = () => {
 
     Object.entries(partsByMaterial).forEach(([matId, parts]) => {
       const isCountertopMat = COUNTERTOP_MAT_IDS.has(matId);
-      const isGlassMat = matId === 'mat-8';
 
       // Countertop sheets: 4600mm long x 600mm wide, no rotation
-      // Glass sheets: 2200mm long x 1600mm wide
-      const nestSheetW = isCountertopMat ? 4600 : (isGlassMat ? 2200 : sheetDimensions.width);
-      const nestSheetH = isCountertopMat ? 600 : (isGlassMat ? 1600 : sheetDimensions.height);
+      const nestSheetW = isCountertopMat ? 4600 : sheetDimensions.width;
+      const nestSheetH = isCountertopMat ? 600 : sheetDimensions.height;
       const nestRotation = isCountertopMat ? false : allowRotation;
 
       const partsInput: NestingPartInput[] = parts.map((p) => {
@@ -280,7 +278,7 @@ export const Cutting: React.FC = () => {
           {/* General nesting summaries banner */}
           <div className="grid grid-cols-3 gap-4 bg-[#12141c] border border-white/5 p-4 rounded-xl">
             <div className="text-center border-r border-white/5">
-              <span className="block text-[10px] text-neutral-500 uppercase">Шаардлагатай хавтан / Шил</span>
+              <span className="block text-[10px] text-neutral-500 uppercase">Шаардлагатай хавтан</span>
               <span className="text-xl font-bold text-white">{totalSheets} ширхэг</span>
             </div>
             <div className="text-center border-r border-white/5">
@@ -312,7 +310,7 @@ export const Cutting: React.FC = () => {
                       </div>
                     </div>
                     <span className="px-2.5 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/25 rounded-lg text-[10px] font-bold uppercase tracking-wider">
-                      {material.id === 'mat-8' ? 'Хэрэглэгдэх шил' : 'Хэрэглэгдэх хавтан'}: {sheets.length} ш
+                      Хэрэглэгдэх хавтан: {sheets.length} ш
                     </span>
                   </div>
 

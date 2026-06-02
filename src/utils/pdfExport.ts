@@ -290,9 +290,7 @@ export const exportProjectToPDF = (
     doc.setFont('Helvetica', 'bold');
     doc.setFontSize(10);
     doc.setTextColor(40, 40, 40);
-    const isGlass = sheet.materialId === 'mat-8';
-    const labelPrefix = isGlass ? 'Шил' : 'Хавтан';
-    doc.text(`${labelPrefix} №${sheet.sheetId}: ${sheet.width}x${sheet.height}мм | Ашиглалт: ${sheet.efficiency}%`, 15, pageOffset);
+    doc.text(`Хавтан №${sheet.sheetId}: ${sheet.width}x${sheet.height}мм | Ашиглалт: ${sheet.efficiency}%`, 15, pageOffset);
 
     // Draw the sheet bounding box
     // A4 width: 210mm. Sheet margins: 10mm left/right. Usable width: 190mm.

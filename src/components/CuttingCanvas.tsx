@@ -51,7 +51,7 @@ export const CuttingCanvas: React.FC<CuttingCanvasProps> = ({ sheet, materialNam
       <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
           <h3 className="font-display font-bold text-base sm:text-lg text-white flex flex-wrap items-center gap-2">
-            {sheet.materialId === 'mat-8' ? 'Шил' : 'Хавтан'} №{sheet.localSheetId !== undefined ? sheet.localSheetId : sheet.sheetId} {materialName && <span className="text-amber-400 font-semibold text-xs bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">{materialName}</span>} <span className="text-xs sm:text-sm font-normal text-neutral-400">({sheet.width} x {sheet.height} мм)</span>
+            Хавтан №{sheet.localSheetId !== undefined ? sheet.localSheetId : sheet.sheetId} {materialName && <span className="text-amber-400 font-semibold text-xs bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">{materialName}</span>} <span className="text-xs sm:text-sm font-normal text-neutral-400">({sheet.width} x {sheet.height} мм)</span>
           </h3>
           <p className="text-[11px] sm:text-xs text-neutral-400 mt-0.5">
             Ашигтай талбай: <span className="text-amber-500 font-semibold">{sheet.efficiency}%</span> | Хаягдал: {(100 - sheet.efficiency).toFixed(1)}%
