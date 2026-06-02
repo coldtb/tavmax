@@ -439,7 +439,6 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
 
       if (sections.length > 1) {
         const numSections = sections.length;
-        const hasBoth = doors > 0 && drawers > 0;
 
         for (let j = 0; j < numSections; j++) {
           const sec = sections[j];
@@ -448,30 +447,25 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
           let secDrawers = 0;
           let secDoors = 0;
 
-          if (hasBoth) {
-            // Drawers only in the last section, doors in the others
-            if (j === numSections - 1) {
-              secDrawers = drawers;
-            } else {
-              const numDoorSections = numSections - 1;
-              secDoors = Math.floor(doors / numDoorSections) + (j < doors % numDoorSections ? 1 : 0);
-            }
-          } else {
-            // Distribute across all sections
-            if (drawers > 0) {
-              secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
-            }
-            if (doors > 0) {
-              secDoors = Math.floor(doors / numSections) + (j < doors % numSections ? 1 : 0);
-            }
+          // Distribute drawers and doors across all sections
+          if (drawers > 0) {
+            secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
+          }
+          if (doors > 0) {
+            secDoors = Math.floor(doors / numSections) + (j < doors % numSections ? 1 : 0);
           }
 
+          const sectionH = baseHeight - 10;
+          const hasDrawersAndDoors = secDrawers > 0 && secDoors > 0;
+          const drawerAreaH = hasDrawersAndDoors ? sectionH / 2 : sectionH;
+          const doorAreaH = hasDrawersAndDoors ? sectionH / 2 : sectionH;
+
           if (secDrawers > 0) {
-            // Drawers section
+            // Drawers section (placed at the top if both drawers and doors exist)
             parts.push({
               id: `p-kl-dr-f-${j}`,
               name: `Шургуулганы нүүр`,
-              width: (baseHeight - 10) / secDrawers - 5,
+              width: Math.round(drawerAreaH / secDrawers - 5),
               height: panel.width,
               quantity: secDrawers,
               materialId: doorMaterialId,
@@ -491,13 +485,13 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
           }
           
           if (secDoors > 0) {
-            // Door section
+            // Door section (placed at the bottom if both drawers and doors exist)
             const doorWidth = (panel.width - 4 * (secDoors - 1)) / secDoors;
             parts.push({
               id: `p-kl-door-${j}`,
               name: `Шүүгээний хаалга`,
               width: doorWidth,
-              height: baseHeight - 10,
+              height: Math.round(doorAreaH),
               quantity: secDoors,
               materialId: doorMaterialId,
               edgeBanding: edge,
@@ -931,8 +925,6 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
 
       // Distribute doors, drawers, shelves across sections
       const numSections = sections.length;
-      const hasBoth = doors > 0 && drawers > 0;
-
       for (let j = 0; j < numSections; j++) {
         const sec = sections[j];
         const panel = panels[j];
@@ -940,39 +932,34 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
         let secDrawers = 0;
         let secDoors = 0;
 
-        if (hasBoth) {
-          // Drawers only in the last section, doors in the others
-          if (j === numSections - 1) {
-            secDrawers = drawers;
-          } else {
-            const numDoorSections = numSections - 1;
-            secDoors = Math.floor(doors / numDoorSections) + (j < doors % numDoorSections ? 1 : 0);
-          }
-        } else {
-          // Distribute across all sections
-          if (drawers > 0) {
-            secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
-          }
-          if (doors > 0) {
-            secDoors = Math.floor(doors / numSections) + (j < doors % numSections ? 1 : 0);
-          }
+        // Distribute drawers and doors across all sections
+        if (drawers > 0) {
+          secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
+        }
+        if (doors > 0) {
+          secDoors = Math.floor(doors / numSections) + (j < doors % numSections ? 1 : 0);
         }
 
+        const sectionH = baseHeight - 10;
+        const hasDrawersAndDoors = secDrawers > 0 && secDoors > 0;
+        const drawerAreaH = hasDrawersAndDoors ? sectionH / 2 : sectionH;
+        const doorAreaH = hasDrawersAndDoors ? sectionH / 2 : sectionH;
+
         if (secDrawers > 0) {
-          // Drawers section
-          parts.push({ id: `p-cb-drawer-f-${j}`, name: `Шургуулганы нүүр хавтан`, width: (baseHeight - 10) / secDrawers - 5, height: panel.width, quantity: secDrawers, materialId: doorMaterialId, edgeBanding: edge, category: 'Шургуулга' });
+          // Drawers section (placed at the top if both drawers and doors exist)
+          parts.push({ id: `p-cb-drawer-f-${j}`, name: `Шургуулганы нүүр хавтан`, width: Math.round(drawerAreaH / secDrawers - 5), height: panel.width, quantity: secDrawers, materialId: doorMaterialId, edgeBanding: edge, category: 'Шургуулга' });
           parts.push({ id: `p-cb-drawer-s-${j}`, name: `Шургуулганы хажуу бэлдэц`, width: 120, height: depth - 50, quantity: secDrawers * 2, materialId: 'mat-6', edgeBanding: '1mm', category: 'Шургуулга' });
         }
         
         if (secDoors > 0) {
-          // Door section (Downward opening doors)
+          // Door section (placed at the bottom if both drawers and doors exist)
           const doorW = (panel.width - 4 * (secDoors - 1)) / secDoors;
           for (let i = 0; i < secDoors; i++) {
             parts.push({
               id: `p-cb-door-down-${j}-${i}`,
               name: `ТВ тавиурын доошоо онгойх хаалга`,
               width: doorW - 4,
-              height: baseHeight - 10,
+              height: Math.round(doorAreaH),
               quantity: 1,
               materialId: doorMaterialId,
               edgeBanding: edge,
