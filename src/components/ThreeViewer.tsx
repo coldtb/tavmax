@@ -3226,7 +3226,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           // Distribute doors, drawers, shelves across sections
           const numSections = sections.length;
           const drawerSecIdx = drawers > 0 ? numSections - 1 : -1;
-          const numDoorSections = Math.min(doors, drawers > 0 ? numSections - 1 : numSections);
+          const numDoorSections = drawers > 0 ? numSections - 1 : numSections;
 
           for (let j = 0; j < numSections; j++) {
             const sec = sections[j];
@@ -3251,16 +3251,26 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                 }
               }
             } else if (j < numDoorSections) {
-              // Downward doors
-              const doorMesh = addBoard(panel.width, bodyHeight - 10, 18, dx, legHeight + bodyHeight / 2, halfD + 9, doorMat, 'ТВ тавиурын доошоо онгойх хаалга', 'Хаалга', { id: `${mod.id}-door-downward-${j}`, isDownward: true });
+              // Distribute doors inside this section
+              const secDoors = Math.floor(doors / numDoorSections) + (j < doors % numDoorSections ? 1 : 0);
+              if (secDoors > 0) {
+                const doorW = (panel.width - 4 * (secDoors - 1)) / secDoors;
+                const doorH = bodyHeight - 10;
+                const doorY = legHeight + bodyHeight / 2;
 
-              if (handleType !== 'none') {
-                const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
-                const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
-                const handle = new THREE.Mesh(handleGeom, handleMat);
-                handle.rotation.z = Math.PI / 2;
-                handle.position.set(0, (bodyHeight - 10) / 2 - 25, 12);
-                doorMesh.add(handle);
+                for (let i = 0; i < secDoors; i++) {
+                  const doorX = dx - panel.width / 2 + doorW / 2 + i * (doorW + 4);
+                  const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'ТВ тавиурын доошоо онгойх хаалга', 'Хаалга', { id: `${mod.id}-door-downward-${j}-${i}`, isDownward: true });
+
+                  if (handleType !== 'none') {
+                    const handleGeom = new THREE.CylinderGeometry(4, 4, Math.min(80, (doorW - 4) * 0.4), 8);
+                    const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
+                    const handle = new THREE.Mesh(handleGeom, handleMat);
+                    handle.rotation.z = Math.PI / 2;
+                    handle.position.set(0, doorH / 2 - 25, 12);
+                    doorMesh.add(handle);
+                  }
+                }
               }
 
               // Shelves inside door sections

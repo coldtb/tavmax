@@ -913,7 +913,7 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
       // Distribute doors, drawers, shelves across sections
       const numSections = sections.length;
       const drawerSecIdx = drawers > 0 ? numSections - 1 : -1;
-      const numDoorSections = Math.min(doors, drawers > 0 ? numSections - 1 : numSections);
+      const numDoorSections = drawers > 0 ? numSections - 1 : numSections;
 
       for (let j = 0; j < numSections; j++) {
         const sec = sections[j];
@@ -923,8 +923,24 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
           parts.push({ id: `p-cb-drawer-f-${j}`, name: `Шургуулганы нүүр хавтан`, width: (baseHeight - 10) / drawers - 5, height: panel.width, quantity: drawers, materialId: doorMaterialId, edgeBanding: edge, category: 'Шургуулга' });
           parts.push({ id: `p-cb-drawer-s-${j}`, name: `Шургуулганы хажуу бэлдэц`, width: 120, height: depth - 50, quantity: drawers * 2, materialId: 'mat-6', edgeBanding: '1mm', category: 'Шургуулга' });
         } else if (j < numDoorSections) {
-          // Door section (Downward opening door)
-          parts.push({ id: `p-cb-door-down-${j}`, name: `ТВ тавиурын доошоо онгойх хаалга`, width: panel.width, height: baseHeight - 10, quantity: 1, materialId: doorMaterialId, edgeBanding: edge, category: 'Хаалга', notes: 'Доошоо онгойх нугастай' });
+          // Door section (Downward opening doors)
+          const secDoors = Math.floor(doors / numDoorSections) + (j < doors % numDoorSections ? 1 : 0);
+          if (secDoors > 0) {
+            const doorW = (panel.width - 4 * (secDoors - 1)) / secDoors;
+            for (let i = 0; i < secDoors; i++) {
+              parts.push({
+                id: `p-cb-door-down-${j}-${i}`,
+                name: `ТВ тавиурын доошоо онгойх хаалга`,
+                width: doorW - 4,
+                height: baseHeight - 10,
+                quantity: 1,
+                materialId: doorMaterialId,
+                edgeBanding: edge,
+                category: 'Хаалга',
+                notes: 'Доошоо онгойх нугастай'
+              });
+            }
+          }
           
           if (shelves > 0) {
             parts.push({ id: `p-cb-shelf-${j}`, name: `Дотор тавиур хавтан`, width: depth - 20, height: sec.width - 2, quantity: shelves, materialId, edgeBanding: '1mm', category: 'Дээд тавиур' });
