@@ -1144,7 +1144,8 @@ export const Editor: React.FC = () => {
                     const legHeight = config.hasLegs ? 100 : 0;
                     const insideHeight = Number(config.height) - legHeight - 36;
                     let sPositions = config.shelfPositions || [];
-                    const isMultiSection = selectedMod.type === 'wardrobe' || selectedMod.type === 'bookshelf';
+                    const sections = getCabinetSections(Number(config.width), config, selectedMod.type);
+                    const isMultiSection = selectedMod.type === 'wardrobe' || selectedMod.type === 'bookshelf' || ((selectedMod.type === 'kitchen_lower' || selectedMod.type === 'kitchen_upper') && sections.length > 1);
 
                     const storedCountsRaw: number[] | undefined = (config as any).sectionShelfCounts;
                     const hasValidStoredCounts = isMultiSection && storedCountsRaw &&
