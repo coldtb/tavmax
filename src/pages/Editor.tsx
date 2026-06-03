@@ -2892,74 +2892,7 @@ return (
             </span>
           </div>
 
-          {/* Floating Viewport Controls */}
-          <div className="absolute top-4 left-4 z-20 bg-[#0e1018]/85 backdrop-blur-md border border-white/10 rounded-xl p-1 shadow-2xl flex gap-1 select-none items-center">
-            <button
-              type="button"
-              onClick={() => setExplode(!explode)}
-              className={`p-2 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 text-[10px] font-bold ${
-                explode 
-                  ? 'bg-amber-500 text-neutral-950 shadow-md shadow-amber-500/20' 
-                  : 'text-neutral-400 hover:text-white hover:bg-white/5'
-              }`}
-              title="Задрах харагдац: Хавтангуудыг салгаж бүтцийг нь харах"
-            >
-              <Layers size={13} />
-              <span>Задрах</span>
-            </button>
-            <div className="w-px h-3.5 bg-white/10 self-center" />
-            <button
-              type="button"
-              onClick={() => setOpenDoors(!openDoors)}
-              className={`p-2 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 text-[10px] font-bold ${
-                openDoors 
-                  ? 'bg-amber-500 text-neutral-950 shadow-md shadow-amber-500/20' 
-                  : 'text-neutral-400 hover:text-white hover:bg-white/5'
-              }`}
-              title="Хаалга болон шургуулгуудыг онгойлгох / хаах"
-            >
-              <Eye size={13} />
-              <span>Нээх</span>
-            </button>
-            <div className="w-px h-3.5 bg-white/10 self-center" />
-            <button
-              type="button"
-              onClick={() => setShowDimensions(!showDimensions)}
-              className={`p-2 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 text-[10px] font-bold ${
-                showDimensions 
-                  ? 'bg-amber-500 text-neutral-950 shadow-md shadow-amber-500/20' 
-                  : 'text-neutral-400 hover:text-white hover:bg-white/5'
-              }`}
-              title="Хэмжээсийг харуулах / нуух"
-            >
-              <Grid size={13} />
-              <span>Хэмжээс</span>
-            </button>
-            <div className="w-px h-3.5 bg-white/10 self-center" />
-            <button
-              type="button"
-              onClick={() => setMeasureMode(!measureMode)}
-              className={`p-2 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 text-[10px] font-bold ${
-                measureMode 
-                  ? 'bg-amber-500 text-neutral-950 shadow-md shadow-amber-500/20' 
-                  : 'text-neutral-400 hover:text-white hover:bg-white/5'
-              }`}
-              title="Зай хэмжигч метр: 3D дээр хоёр цэг сонгож зайг хэмжих"
-            >
-              <Ruler size={13} />
-              <span>Метр</span>
-            </button>
-            <div className="w-px h-3.5 bg-white/10 self-center" />
-            <button
-              type="button"
-              onClick={() => alignModulesSideBySide()}
-              className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer flex items-center gap-1.5 text-[10px] font-bold"
-              title="Шүүгээнүүдийг зэрэгцүүлж наах (Auto-align side-by-side)"
-            >
-              <AlignLeft size={13} />
-              <span>Зэрэгцүүлэх</span>
-            </button>
-          </div>
+
 
           {measureMode && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-amber-500 text-neutral-950 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg border border-amber-600 animate-pulse uppercase tracking-wider">
