@@ -1294,15 +1294,18 @@ export const useProjectStore = create<ProjectState>()(
         }
 
         // Handle shelves count changes
-        if (newShelves !== oldShelves) {
+        if (newShelves !== oldShelves && config.shelfPositions === undefined) {
           const legHeight = newHasLegs ? 100 : 0;
           const insideHeight = newHeight - legHeight - 36;
           const newPositions = [];
           
           if (mod.type === 'wardrobe' || mod.type === 'bookshelf' || (newPartitions > 0 && (mod.type === 'custom' || mod.type === 'kitchen_lower' || mod.type === 'kitchen_upper'))) {
             const sections = getCabinetSections(newWidth, updatedConfig, mod.type);
+            const storedCounts: number[] | undefined = updatedConfig.sectionShelfCounts;
+            const hasValidStored = storedCounts && storedCounts.length === sections.length && storedCounts.reduce((a, b) => a + b, 0) === newShelves;
+
             sections.forEach((sec, sIdx) => {
-              const shelvesInSec = Math.floor(newShelves / sections.length) + (sIdx < newShelves % sections.length ? 1 : 0);
+              const shelvesInSec = hasValidStored ? storedCounts![sIdx] : (Math.floor(newShelves / sections.length) + (sIdx < newShelves % sections.length ? 1 : 0));
               const step = insideHeight / (shelvesInSec + 1);
               for (let i = 0; i < shelvesInSec; i++) {
                 newPositions.push(Math.round((i + 1) * step));

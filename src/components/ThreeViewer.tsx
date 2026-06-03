@@ -2218,12 +2218,13 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               if (secDoors > 0) {
                 // Bottom area for doors if both exist, else full height
                 const startY = legHeight + 5;
-                const doorW = (panel.width - 4 * (secDoors - 1)) / secDoors;
-                const doorH = doorAreaH;
+                const defaultDoorW = (panel.width - 4 * (secDoors - 1)) / secDoors;
+                const doorW = config.doorWidth && config.customDoors ? Math.min(defaultDoorW, Number(config.doorWidth)) : defaultDoorW;
+                const doorH = config.doorHeight && config.customDoors ? Math.min(doorAreaH, Number(config.doorHeight)) : doorAreaH;
                 const doorY = startY + doorH / 2;
 
                 for (let i = 0; i < secDoors; i++) {
-                  const doorX = dx - panel.width / 2 + doorW / 2 + i * (doorW + 4);
+                  const doorX = dx - panel.width / 2 + defaultDoorW / 2 + i * (defaultDoorW + 4);
                   const isLeftHinged = secDoors > 1 ? (i % 2 === 0) : (dx <= 0);
                   const doorMesh = addBoard(
                     doorW - 4,
@@ -2763,12 +2764,13 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                 }
 
                 if (secDoors > 0) {
-                  const doorW = (panel.width - 4 * (secDoors - 1)) / secDoors;
-                  const doorH = height - 10;
+                  const defaultDoorW = (panel.width - 4 * (secDoors - 1)) / secDoors;
+                  const doorW = config.doorWidth && config.customDoors ? Math.min(defaultDoorW, Number(config.doorWidth)) : defaultDoorW;
+                  const doorH = config.doorHeight && config.customDoors ? Math.min(height - 10, Number(config.doorHeight)) : height - 10;
                   const doorY = 5 + doorH / 2;
 
                   for (let i = 0; i < secDoors; i++) {
-                    const doorX = dx - panel.width / 2 + doorW / 2 + i * (doorW + 4);
+                    const doorX = dx - panel.width / 2 + defaultDoorW / 2 + i * (defaultDoorW + 4);
                     const isLeftHinged = secDoors > 1 ? (i % 2 === 0) : (dx <= 0);
                     const doorUserData = {
                       id: `${mod.id}-section-${j}-door-${i}`,
