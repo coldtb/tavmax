@@ -1309,6 +1309,32 @@ export const useProjectStore = create<ProjectState>()(
           }
           updatedConfig.dividerPositions = newPositions;
           updatedConfig.partitions = newPartitions;
+
+          // Recalculate shelf positions and section counts because sections layout changed
+          const legHeight = newHasLegs ? 100 : 0;
+          const insideHeight = newHeight - legHeight - 36;
+          const newPositionsShelves = [];
+          if (mod.type === 'wardrobe' || mod.type === 'bookshelf' || (newPartitions > 0 && (mod.type === 'custom' || mod.type === 'kitchen_lower' || mod.type === 'kitchen_upper'))) {
+            const sections = getCabinetSections(newWidth, updatedConfig, mod.type);
+            const newCounts = sections.map((_, sIdx) =>
+              Math.floor(newShelves / sections.length) + (sIdx < newShelves % sections.length ? 1 : 0)
+            );
+            sections.forEach((sec, sIdx) => {
+              const shelvesInSec = newCounts[sIdx];
+              const step = insideHeight / (shelvesInSec + 1);
+              for (let i = 0; i < shelvesInSec; i++) {
+                newPositionsShelves.push(Math.round((i + 1) * step));
+              }
+            });
+            updatedConfig.sectionShelfCounts = newCounts;
+            updatedConfig.shelfPositions = newPositionsShelves;
+          } else {
+            const step = insideHeight / (newShelves + 1);
+            for (let i = 0; i < newShelves; i++) {
+              newPositionsShelves.push(Math.round((i + 1) * step));
+            }
+            updatedConfig.shelfPositions = newPositionsShelves;
+          }
         }
         // Handle width resizing (scale divider positions proportionally)
         else if (newWidth !== oldWidth && mod.config.dividerPositions && mod.config.dividerPositions.length > 0) {
@@ -1317,7 +1343,7 @@ export const useProjectStore = create<ProjectState>()(
         }
 
         // Handle shelves count changes
-        if (newShelves !== oldShelves && config.shelfPositions === undefined) {
+        if (newShelves !== oldShelves || (newShelves > 0 && (!updatedConfig.shelfPositions || updatedConfig.shelfPositions.length !== newShelves))) {
           const legHeight = newHasLegs ? 100 : 0;
           const insideHeight = newHeight - legHeight - 36;
           const newPositions = [];
@@ -1326,14 +1352,18 @@ export const useProjectStore = create<ProjectState>()(
             const sections = getCabinetSections(newWidth, updatedConfig, mod.type);
             const storedCounts: number[] | undefined = updatedConfig.sectionShelfCounts;
             const hasValidStored = storedCounts && storedCounts.length === sections.length && storedCounts.reduce((a, b) => a + b, 0) === newShelves;
+            const newCounts = hasValidStored ? storedCounts! : sections.map((_, sIdx) =>
+              Math.floor(newShelves / sections.length) + (sIdx < newShelves % sections.length ? 1 : 0)
+            );
 
             sections.forEach((sec, sIdx) => {
-              const shelvesInSec = hasValidStored ? storedCounts![sIdx] : (Math.floor(newShelves / sections.length) + (sIdx < newShelves % sections.length ? 1 : 0));
+              const shelvesInSec = newCounts[sIdx];
               const step = insideHeight / (shelvesInSec + 1);
               for (let i = 0; i < shelvesInSec; i++) {
                 newPositions.push(Math.round((i + 1) * step));
               }
             });
+            updatedConfig.sectionShelfCounts = newCounts;
           } else {
             const step = insideHeight / (newShelves + 1);
             for (let i = 0; i < newShelves; i++) {
