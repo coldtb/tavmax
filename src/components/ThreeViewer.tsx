@@ -2177,9 +2177,9 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                   const hasLeftDoor = config.leftDoor !== undefined ? !!config.leftDoor : (doors === 1 || doors >= 2);
                   const hasRightDoor = config.rightDoor !== undefined ? !!config.rightDoor : (doors >= 2);
                   if (j === 0) {
-                    secDoors = hasLeftDoor ? 1 : 0;
+                    secDoors = hasLeftDoor ? (panel.width >= 550 ? 2 : 1) : 0;
                   } else if (j === numSections - 1) {
-                    secDoors = hasRightDoor ? 1 : 0;
+                    secDoors = hasRightDoor ? (panel.width >= 550 ? 2 : 1) : 0;
                   } else {
                     secDoors = 0;
                   }
@@ -2746,9 +2746,9 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                   const hasLeftDoor = config.leftDoor !== undefined ? !!config.leftDoor : (doors === 1 || doors >= 2);
                   const hasRightDoor = config.rightDoor !== undefined ? !!config.rightDoor : (doors >= 2);
                   if (j === 0) {
-                    secDoors = hasLeftDoor ? 1 : 0;
+                    secDoors = hasLeftDoor ? (panel.width >= 550 ? 2 : 1) : 0;
                   } else if (j === numSections - 1) {
-                    secDoors = hasRightDoor ? 1 : 0;
+                    secDoors = hasRightDoor ? (panel.width >= 550 ? 2 : 1) : 0;
                   } else {
                     secDoors = 0;
                   }
