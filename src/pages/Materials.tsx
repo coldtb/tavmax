@@ -4,7 +4,7 @@ import type { Material } from '../data/mockData';
 import { Search, Plus, Trash2, X, Layers } from 'lucide-react';
 
 export const Materials: React.FC = () => {
-  const { materials } = useProjectStore();
+  const { materials, updateMaterialPrice } = useProjectStore();
 
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -155,6 +155,23 @@ export const Materials: React.FC = () => {
                   {mat.thickness} мм
                 </span>
               </div>
+
+              {/* Price Row */}
+              <div className="flex items-center justify-between border-t border-white/5 pt-3 mt-1">
+                <span className="text-[10px] text-neutral-500 font-bold uppercase">Хуудасны үнэ:</span>
+                <div className="relative flex items-center max-w-[120px]">
+                  <input
+                    type="number"
+                    value={mat.price || 0}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 0;
+                      updateMaterialPrice(mat.id, val);
+                    }}
+                    className="w-full bg-[#0c0d12]/50 hover:bg-[#0c0d12] focus:bg-[#0c0d12] border border-white/10 hover:border-white/20 focus:border-amber-500 rounded-lg px-2 py-1 text-right text-xs font-mono font-bold text-amber-400 outline-none transition-all"
+                  />
+                  <span className="text-[10px] text-neutral-500 font-semibold ml-1">₮</span>
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -246,6 +263,30 @@ export const Materials: React.FC = () => {
                   />
                   <span className="text-[10px] text-neutral-500 font-mono">{newMat.color}</span>
                 </div>
+              </div>
+            </div>
+
+            {/* Price + Stock */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider">Хуудасны үнэ (₮)</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={newMat.price}
+                  onChange={(e) => setNewMat({ ...newMat, price: parseInt(e.target.value) || 0 })}
+                  className="w-full bg-[#0c0d12] border border-white/10 focus:border-amber-500 rounded-xl px-3 py-2.5 text-white text-xs outline-none transition-colors font-mono"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider">Үлдэгдэл (ш)</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={newMat.stock}
+                  onChange={(e) => setNewMat({ ...newMat, stock: parseInt(e.target.value) || 0 })}
+                  className="w-full bg-[#0c0d12] border border-white/10 focus:border-amber-500 rounded-xl px-3 py-2.5 text-white text-xs outline-none transition-colors font-mono"
+                />
               </div>
             </div>
 
