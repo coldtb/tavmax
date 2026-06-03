@@ -1,6 +1,9 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useProjectStore, getCabinetSections } from '../store/projectStore';
 import { ThreeViewer } from '../components/ThreeViewer';
+import { exportProjectToPDF } from '../utils/pdfExport';
+import { runNestingOptimizer } from '../utils/nesting';
+import type { NestingPartInput } from '../utils/nesting';
 import { TemplateThumbnail } from '../components/TemplateThumbnail';
 import { Sparkles, Eye, Ruler, Grid, Layers, Move, RefreshCw, Send, Check, Plus, Trash2, Box, Copy, Magnet, Printer, X, FileText, HelpCircle, Info, ChevronLeft, ChevronRight, Columns, AlignLeft, Loader2 } from 'lucide-react';
 
@@ -585,6 +588,7 @@ export const Editor: React.FC = () => {
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [emailToSend, setEmailToSend] = useState('');
   const [emailSending, setEmailSending] = useState(false);
+  const [editorPdfLoading, setEditorPdfLoading] = useState(false);
 
   const handleSendEmailSimulate = () => {
     if (!emailToSend || !emailToSend.includes('@')) {
@@ -597,6 +601,122 @@ export const Editor: React.FC = () => {
       alert(`Сонгосон PDF тохиргоог ${emailToSend} хаяг руу амжилттай илгээлээ!`);
       setEmailToSend('');
     }, 2000);
+  };
+
+  const handleDownloadProductionPDF = async () => {
+    if (!activeProject || editorPdfLoading) return;
+    setEditorPdfLoading(true);
+    try {
+      const partsByMaterial: { [matId: string]: NestingPartInput[] } = {};
+      activeProject.parts.forEach((p) => {
+        if (!partsByMaterial[p.materialId]) {
+          partsByMaterial[p.materialId] = [];
+        }
+        partsByMaterial[p.materialId].push({
+          id: p.id,
+          name: p.name,
+          width: p.width,
+          height: p.height,
+          quantity: p.quantity,
+          materialId: p.materialId,
+        });
+      });
+
+      const allSheets: any[] = [];
+      let globalSheetId = 1;
+
+      Object.entries(partsByMaterial).forEach(([matId, groupParts]) => {
+        const isCountertopMat = matId === 'mat-ct-wood' || matId === 'mat-ct-stone';
+        const nestSheetW = isCountertopMat ? 4600 : 2750;
+        const nestSheetH = isCountertopMat ? 600 : 1830;
+        const nestRotation = isCountertopMat ? false : true;
+        const nestMargin = isCountertopMat ? 0 : 10;
+
+        const groupPartsInput = groupParts.map((p) => {
+          const partW = isCountertopMat ? Math.max(p.width, p.height) : p.width;
+          const partH = isCountertopMat ? Math.min(p.width, p.height) : p.height;
+          return {
+            ...p,
+            width: partW,
+            height: partH,
+          };
+        });
+
+        const sheets = runNestingOptimizer(groupPartsInput, {
+          sheetWidth: nestSheetW,
+          sheetHeight: nestSheetH,
+          kerf: 4,
+          margin: nestMargin,
+          allowRotation: nestRotation,
+        });
+
+        sheets.forEach((sheet) => {
+          allSheets.push({
+            ...sheet,
+            sheetId: globalSheetId++,
+            materialId: matId,
+          });
+        });
+      });
+
+      let totalBoardCost = 0;
+      Object.entries(partsByMaterial).forEach(([matId, groupParts]) => {
+        const mat = materials.find((m) => m.id === matId) || materials[0];
+        const isCountertopMat = matId === 'mat-ct-wood' || matId === 'mat-ct-stone';
+        const nestSheetW = isCountertopMat ? 4600 : 2750;
+        const nestSheetH = isCountertopMat ? 600 : 1830;
+        const nestRotation = isCountertopMat ? false : true;
+        const nestMargin = isCountertopMat ? 0 : 10;
+
+        const groupPartsInput = groupParts.map((p) => {
+          const partW = isCountertopMat ? Math.max(p.width, p.height) : p.width;
+          const partH = isCountertopMat ? Math.min(p.width, p.height) : p.height;
+          return {
+            ...p,
+            width: partW,
+            height: partH,
+          };
+        });
+
+        const sheets = runNestingOptimizer(groupPartsInput, {
+          sheetWidth: nestSheetW,
+          sheetHeight: nestSheetH,
+          kerf: 4,
+          margin: nestMargin,
+          allowRotation: nestRotation,
+        });
+        totalBoardCost += sheets.length * (mat?.price || 0);
+      });
+
+      let totalEdgeBandingCost = 0;
+      activeProject.parts.forEach((p) => {
+        if (p.edgeBanding !== 'none') {
+          const perimeter = (p.width + p.height) * 2;
+          const rate = p.edgeBanding === '2mm' ? 1.5 : 0.8;
+          totalEdgeBandingCost += perimeter * rate * p.quantity;
+        }
+      });
+
+      const hingesCount = activeProject.config.doors * 3;
+      const tracksCount = activeProject.config.drawers;
+      const hardwareCost = hingesCount * 8000 + tracksCount * 25000 + 40000;
+      const subtotal = totalBoardCost + totalEdgeBandingCost + hardwareCost;
+
+      const canvas = document.querySelector('canvas');
+      const liveDataUrl = canvas ? canvas.toDataURL('image/png') : null;
+      const threeImageDataUrl = liveDataUrl || sessionStorage.getItem('tavmax-three-screenshot');
+
+      await exportProjectToPDF(
+        { ...activeProject, price: subtotal },
+        materials,
+        allSheets,
+        threeImageDataUrl
+      );
+    } catch (e) {
+      console.error('Error generating PDF:', e);
+    } finally {
+      setEditorPdfLoading(false);
+    }
   };
 
   const handleAddCustomPart = (e: React.FormEvent) => {
@@ -3212,6 +3332,24 @@ return (
           <div className="fixed inset-0 z-[999] bg-black/80 backdrop-blur-sm flex items-start justify-center overflow-y-auto py-8 px-4" id="print-overlay">
             {/* Screen-only close bar */}
             <div className="fixed top-4 right-4 z-[1000] flex gap-2 print:hidden">
+              <button
+                onClick={handleDownloadProductionPDF}
+                disabled={editorPdfLoading}
+                className="flex items-center gap-1.5 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-white/5 font-bold text-xs rounded-xl cursor-pointer transition-all shrink-0 disabled:opacity-50"
+              >
+                {editorPdfLoading ? (
+                  <>
+                    <Loader2 className="animate-spin" size={14} />
+                    Бэлдэж байна...
+                  </>
+                ) : (
+                  <>
+                    <FileText size={14} />
+                    Үйлдвэрлэлийн PDF татах
+                  </>
+                )}
+              </button>
+
               <button
                 onClick={() => {
                   const el = document.getElementById('spec-sheet');

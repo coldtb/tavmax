@@ -2,16 +2,56 @@ import { jsPDF } from 'jspdf';
 import type { Project, Material } from '../data/mockData';
 import type { NestedSheet } from './nesting';
 
-export const exportProjectToPDF = (
+const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return window.btoa(binary);
+};
+
+export const exportProjectToPDF = async (
   project: Project,
   materials: Material[],
-  sheets: NestedSheet[]
+  sheets: NestedSheet[],
+  threeImageDataUrl?: string | null
 ) => {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
     format: 'a4',
   });
+
+  let fontName = fontName;
+
+  try {
+    const [regRes, boldRes] = await Promise.all([
+      fetch('/Roboto-Regular.ttf'),
+      fetch('/Roboto-Bold.ttf')
+    ]);
+
+    if (regRes.ok && boldRes.ok) {
+      const [regBuf, boldBuf] = await Promise.all([
+        regRes.arrayBuffer(),
+        boldRes.arrayBuffer()
+      ]);
+
+      const regBase64 = arrayBufferToBase64(regBuf);
+      const boldBase64 = arrayBufferToBase64(boldBuf);
+
+      doc.addFileToVFS('Roboto-Regular.ttf', regBase64);
+      doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
+
+      doc.addFileToVFS('Roboto-Bold.ttf', boldBase64);
+      doc.addFont('Roboto-Bold.ttf', 'Roboto', 'bold');
+
+      fontName = 'Roboto';
+    }
+  } catch (e) {
+    console.error('Error loading custom Cyrillic fonts:', e);
+  }
 
   const primaryMaterial = materials.find((m) => m.id === project.config.materialId) || materials[0];
   const doorMaterial = project.config.doorStyle === 'classic'
@@ -33,7 +73,7 @@ export const exportProjectToPDF = (
   const addHeaderFooter = (pageNum: number, totalPages: number) => {
     drawPageBorder();
     // Header
-    doc.setFont('Helvetica', 'bold');
+    doc.setFont(fontName, 'bold');
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
     doc.text('TAVMAX — AI FURNITURE DESIGN & MANUFACTURING', 10, 12);
@@ -56,7 +96,7 @@ export const exportProjectToPDF = (
   doc.rect(7, 7, 196, 70, 'F');
   
   // Title
-  doc.setFont('Helvetica', 'bold');
+  doc.setFont(fontName, 'bold');
   doc.setFontSize(28);
   doc.setTextColor(217, 119, 6); // Amber
   doc.text('TAVMAX', 20, 35);
@@ -74,13 +114,13 @@ export const exportProjectToPDF = (
   
   let y = 110;
   doc.text('Төслийн нэр:', 20, y);
-  doc.setFont('Helvetica', 'normal');
+  doc.setFont(fontName, 'normal');
   doc.text(project.name, 70, y);
   
   y += 10;
-  doc.setFont('Helvetica', 'bold');
+  doc.setFont(fontName, 'bold');
   doc.text('Тавилгын төрөл:', 20, y);
-  doc.setFont('Helvetica', 'normal');
+  doc.setFont(fontName, 'normal');
   const typeMap: Record<string, string> = {
     wardrobe: 'Шкаф / Хувцасны шүүгээ',
     kitchen_lower: 'Гал тогооны доод шүүгээ',
@@ -95,43 +135,64 @@ export const exportProjectToPDF = (
   doc.text(typeMap[project.furnitureType] || project.furnitureType, 70, y);
 
   y += 10;
-  doc.setFont('Helvetica', 'bold');
+  doc.setFont(fontName, 'bold');
   doc.text('Огноо:', 20, y);
-  doc.setFont('Helvetica', 'normal');
+  doc.setFont(fontName, 'normal');
   doc.text(new Date(project.updatedAt).toLocaleDateString('mn-MN'), 70, y);
 
   y += 10;
-  doc.setFont('Helvetica', 'bold');
+  doc.setFont(fontName, 'bold');
   doc.text('Захиалагч:', 20, y);
-  doc.setFont('Helvetica', 'normal');
+  doc.setFont(fontName, 'normal');
   doc.text(`${project.customerName} (${project.customerPhone})`, 70, y);
 
   y += 20;
-  doc.setFont('Helvetica', 'bold');
+  doc.setFont(fontName, 'bold');
   doc.text('Тавилгын Хэмжээс:', 20, y);
-  doc.setFont('Helvetica', 'normal');
+  doc.setFont(fontName, 'normal');
   doc.text(`Өргөн: ${project.config.width}мм | Өндөр: ${project.config.height}мм | Гүн: ${project.config.depth}мм`, 70, y);
 
   y += 10;
-  doc.setFont('Helvetica', 'bold');
+  doc.setFont(fontName, 'bold');
   doc.text('Үндсэн материал:', 20, y);
-  doc.setFont('Helvetica', 'normal');
+  doc.setFont(fontName, 'normal');
   doc.text(`${primaryMaterial.name} (${primaryMaterial.code}) - ${primaryMaterial.thickness}мм`, 70, y);
 
   y += 10;
-  doc.setFont('Helvetica', 'bold');
+  doc.setFont(fontName, 'bold');
   doc.text('Хаалганы материал:', 20, y);
-  doc.setFont('Helvetica', 'normal');
+  doc.setFont(fontName, 'normal');
   doc.text(`${doorMaterial.name} (${doorMaterial.code}) - ${doorMaterial.thickness}мм`, 70, y);
+
+  // 3D image block
+  if (threeImageDataUrl) {
+    try {
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.25);
+      doc.rect(35, 152, 140, 72);
+      doc.addImage(threeImageDataUrl, 'PNG', 36, 153, 138, 70);
+    } catch (e) {
+      console.error('Error adding image to PDF:', e);
+    }
+  } else {
+    // Fallback decorative / placeholder
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(0.2);
+    doc.rect(35, 152, 140, 72);
+    doc.setFont(fontName, 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(150, 150, 150);
+    doc.text('3D Загварын зураг', 105, 190, { align: 'center' });
+  }
 
   // Signatures
   doc.setFontSize(10);
-  doc.setFont('Helvetica', 'bold');
+  doc.setFont(fontName, 'bold');
   doc.text('Тайлан бэлтгэсэн:', 20, 240);
-  doc.setFont('Helvetica', 'normal');
+  doc.setFont(fontName, 'normal');
   doc.text('TavMax Дизайнер програм', 20, 246);
 
-  doc.setFont('Helvetica', 'bold');
+  doc.setFont(fontName, 'bold');
   doc.text('Зөвшөөрсөн (Захиалагч):', 120, 240);
   doc.line(120, 255, 190, 255);
 
@@ -141,7 +202,7 @@ export const exportProjectToPDF = (
   doc.addPage();
   addHeaderFooter(2, 3 + Math.ceil(sheets.length / 2));
 
-  doc.setFont('Helvetica', 'bold');
+  doc.setFont(fontName, 'bold');
   doc.setFontSize(14);
   doc.setTextColor(217, 119, 6);
   doc.text('БЭЛДЭЦИЙН ЖАГСААЛТ (PARTS LIST)', 10, 24);
@@ -184,7 +245,7 @@ export const exportProjectToPDF = (
       doc.rect(10, py - 4, 190, 6.5, 'F');
     }
 
-    doc.setFont('Helvetica', 'normal');
+    doc.setFont(fontName, 'normal');
     doc.setFontSize(8.5);
     doc.setTextColor(40, 40, 40);
 
@@ -209,7 +270,7 @@ export const exportProjectToPDF = (
   const pricingPageNum = doc.getNumberOfPages();
   addHeaderFooter(pricingPageNum, pricingPageNum + Math.ceil(sheets.length / 2));
 
-  doc.setFont('Helvetica', 'bold');
+  doc.setFont(fontName, 'bold');
   doc.setFontSize(14);
   doc.setTextColor(217, 119, 6);
   doc.text('ТӨСЛИЙН ЗАРДАЛ, ҮНИЙН ТООЦООЛУУР', 10, 24);
@@ -229,11 +290,11 @@ export const exportProjectToPDF = (
   const drawCostRow = (label: string, value: number, isTotal = false) => {
     if (isTotal) {
       doc.line(10, cy - 2, 200, cy - 2);
-      doc.setFont('Helvetica', 'bold');
+      doc.setFont(fontName, 'bold');
       doc.setFontSize(12);
       doc.setTextColor(217, 119, 6);
     } else {
-      doc.setFont('Helvetica', 'normal');
+      doc.setFont(fontName, 'normal');
       doc.setFontSize(10.5);
       doc.setTextColor(60, 60, 60);
     }
@@ -253,12 +314,12 @@ export const exportProjectToPDF = (
 
   // Notes area
   cy += 15;
-  doc.setFont('Helvetica', 'bold');
+  doc.setFont(fontName, 'bold');
   doc.setFontSize(11);
   doc.setTextColor(40, 40, 40);
   doc.text('Үйлдвэрлэлийн Тэмдэглэл:', 15, cy);
   cy += 6;
-  doc.setFont('Helvetica', 'normal');
+  doc.setFont(fontName, 'normal');
   doc.setFontSize(9);
   doc.setTextColor(100, 100, 100);
   doc.text('1. Бүх бэлдэцийг CNC зүсэлтийн машинд шууд оруулах боломжтой SVG болон DXF өгөгдлөөр экспортлосон.', 15, cy);
@@ -277,7 +338,7 @@ export const exportProjectToPDF = (
       const currentNestingPage = doc.getNumberOfPages();
       addHeaderFooter(currentNestingPage, currentNestingPage); // page numbers update dynamically
       
-      doc.setFont('Helvetica', 'bold');
+      doc.setFont(fontName, 'bold');
       doc.setFontSize(14);
       doc.setTextColor(217, 119, 6);
       doc.text('ЗҮСЭЛТИЙН ХАВТАНГИЙН БАЙРШИЛ (NESTING)', 10, 24);
@@ -287,7 +348,7 @@ export const exportProjectToPDF = (
     const pageOffset = (sIdx % 2 === 0) ? 35 : 155;
 
     // Draw sheet title
-    doc.setFont('Helvetica', 'bold');
+    doc.setFont(fontName, 'bold');
     doc.setFontSize(10);
     doc.setTextColor(40, 40, 40);
     doc.text(`Хавтан №${sheet.sheetId}: ${sheet.width}x${sheet.height}мм | Ашиглалт: ${sheet.efficiency}%`, 15, pageOffset);
@@ -322,7 +383,7 @@ export const exportProjectToPDF = (
       // Label inside the box
       if (pw > 15 && ph > 6) {
         doc.setFontSize(5.5);
-        doc.setFont('Helvetica', 'normal');
+        doc.setFont(fontName, 'normal');
         doc.setTextColor(60, 40, 20);
         
         // Print part dimensions or name

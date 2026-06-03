@@ -3,12 +3,13 @@ import { useProjectStore } from '../store/projectStore';
 import { runNestingOptimizer } from '../utils/nesting';
 import type { NestingPartInput } from '../utils/nesting';
 import { CuttingCanvas } from '../components/CuttingCanvas';
-import { Play, Settings, Ruler, Info, Layers, Plus, Trash2, Download, Printer } from 'lucide-react';
+import { Play, Settings, Ruler, Info, Layers, Plus, Trash2, Download, Printer, RefreshCw } from 'lucide-react';
 import { exportProjectToPDF } from '../utils/pdfExport';
 import { generatePartsDXF } from '../utils/dxfExport';
 
 export const Cutting: React.FC = () => {
   const { activeProject, materials, addPartToActive, removePartFromActive } = useProjectStore();
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   // Nesting options states with localStorage persistence
   const [sheetSize, setSheetSize] = useState<'2750x1830' | '2440x1220' | '3050x1830'>(() => {
@@ -267,62 +268,69 @@ export const Cutting: React.FC = () => {
     };
   }, [activeProject, materials]);
 
-  const handleTriggerPDF = () => {
-    if (!activeProject) return;
-    
-    const partsByMaterial: { [matId: string]: NestingPartInput[] } = {};
-    activeProject.parts.forEach((p) => {
-      if (!partsByMaterial[p.materialId]) {
-        partsByMaterial[p.materialId] = [];
-      }
-      partsByMaterial[p.materialId].push({
-        id: p.id,
-        name: p.name,
-        width: p.width,
-        height: p.height,
-        quantity: p.quantity,
-        materialId: p.materialId,
-      });
-    });
-
-    const allSheets: any[] = [];
-    let globalSheetId = 1;
-
-    Object.entries(partsByMaterial).forEach(([matId, groupParts]) => {
-      const isCountertopMat = matId === 'mat-ct-wood' || matId === 'mat-ct-stone';
-      const nestSheetW = isCountertopMat ? 4600 : 2750;
-      const nestSheetH = isCountertopMat ? 600 : 1830;
-      const nestRotation = isCountertopMat ? false : true;
-      const nestMargin = isCountertopMat ? 0 : 10;
-
-      const groupPartsInput = groupParts.map((p) => {
-        const partW = isCountertopMat ? Math.max(p.width, p.height) : p.width;
-        const partH = isCountertopMat ? Math.min(p.width, p.height) : p.height;
-        return {
-          ...p,
-          width: partW,
-          height: partH,
-        };
-      });
-
-      const sheets = runNestingOptimizer(groupPartsInput, {
-        sheetWidth: nestSheetW,
-        sheetHeight: nestSheetH,
-        kerf: 4,
-        margin: nestMargin,
-        allowRotation: nestRotation,
-      });
-
-      sheets.forEach((sheet) => {
-        allSheets.push({
-          ...sheet,
-          sheetId: globalSheetId++,
-          materialId: matId,
+  const handleTriggerPDF = async () => {
+    if (!activeProject || pdfLoading) return;
+    setPdfLoading(true);
+    try {
+      const partsByMaterial: { [matId: string]: NestingPartInput[] } = {};
+      activeProject.parts.forEach((p) => {
+        if (!partsByMaterial[p.materialId]) {
+          partsByMaterial[p.materialId] = [];
+        }
+        partsByMaterial[p.materialId].push({
+          id: p.id,
+          name: p.name,
+          width: p.width,
+          height: p.height,
+          quantity: p.quantity,
+          materialId: p.materialId,
         });
       });
-    });
 
-    exportProjectToPDF({ ...activeProject, price: calculations.total }, materials, allSheets);
+      const allSheets: any[] = [];
+      let globalSheetId = 1;
+
+      Object.entries(partsByMaterial).forEach(([matId, groupParts]) => {
+        const isCountertopMat = matId === 'mat-ct-wood' || matId === 'mat-ct-stone';
+        const nestSheetW = isCountertopMat ? 4600 : 2750;
+        const nestSheetH = isCountertopMat ? 600 : 1830;
+        const nestRotation = isCountertopMat ? false : true;
+        const nestMargin = isCountertopMat ? 0 : 10;
+
+        const groupPartsInput = groupParts.map((p) => {
+          const partW = isCountertopMat ? Math.max(p.width, p.height) : p.width;
+          const partH = isCountertopMat ? Math.min(p.width, p.height) : p.height;
+          return {
+            ...p,
+            width: partW,
+            height: partH,
+          };
+        });
+
+        const sheets = runNestingOptimizer(groupPartsInput, {
+          sheetWidth: nestSheetW,
+          sheetHeight: nestSheetH,
+          kerf: 4,
+          margin: nestMargin,
+          allowRotation: nestRotation,
+        });
+
+        sheets.forEach((sheet) => {
+          allSheets.push({
+            ...sheet,
+            sheetId: globalSheetId++,
+            materialId: matId,
+          });
+        });
+      });
+
+      const threeImageDataUrl = sessionStorage.getItem('tavmax-three-screenshot');
+      await exportProjectToPDF({ ...activeProject, price: calculations.total }, materials, allSheets, threeImageDataUrl);
+    } catch (e) {
+      console.error('Error generating PDF:', e);
+    } finally {
+      setPdfLoading(false);
+    }
   };
 
   const handleTriggerDXF = () => {
@@ -471,10 +479,20 @@ export const Cutting: React.FC = () => {
           </button>
           <button
             onClick={handleTriggerPDF}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-neutral-950 text-xs font-bold transition-all shadow-lg active:scale-[0.98] cursor-pointer"
+            disabled={pdfLoading}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-neutral-950 text-xs font-bold transition-all shadow-lg active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Printer size={14} />
-            PDF Тайлан хэвлэх
+            {pdfLoading ? (
+              <>
+                <RefreshCw className="animate-spin" size={14} />
+                Бэлдэж байна...
+              </>
+            ) : (
+              <>
+                <Printer size={14} />
+                PDF Тайлан хэвлэх
+              </>
+            )}
           </button>
         </div>
       </div>

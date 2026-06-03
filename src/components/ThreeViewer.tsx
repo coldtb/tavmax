@@ -457,6 +457,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
     let animId: number = 0;
     let renderer: THREE.WebGLRenderer | null = null;
     let controls: OrbitControls | null = null;
+    let lastScreenshotTime = 0;
 
     // Drag-and-drop state variables
     let isDragging = false;
@@ -527,7 +528,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
       cameraRef.current = camera;
 
       // 3. Renderer Setup
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, logarithmicDepthBuffer: true });
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, logarithmicDepthBuffer: true, preserveDrawingBuffer: true });
       renderer.setSize(width, height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.shadowMap.enabled = true;
@@ -1279,6 +1280,16 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
         if (controlsRef.current) controlsRef.current.update();
         if (rendererRef.current && sceneRef.current && cameraRef.current) {
           rendererRef.current.render(sceneRef.current, cameraRef.current);
+          const now = Date.now();
+          if (now - lastScreenshotTime > 1500) {
+            lastScreenshotTime = now;
+            try {
+              const dataUrl = rendererRef.current.domElement.toDataURL('image/png');
+              sessionStorage.setItem('tavmax-three-screenshot', dataUrl);
+            } catch (e) {
+              console.error('Error saving 3D screenshot', e);
+            }
+          }
         }
       };
       animate();
