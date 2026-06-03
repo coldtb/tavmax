@@ -24,7 +24,7 @@ export const exportProjectToPDF = async (
     format: 'a4',
   });
 
-  let fontName = fontName;
+  let fontName = 'helvetica';
 
   try {
     const [regRes, boldRes] = await Promise.all([
