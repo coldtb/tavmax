@@ -423,6 +423,28 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
         });
       }
 
+      // Doors
+      if (doors > 0) {
+        const defaultDoorWidth = width >= 800 ? (width - 10) / 2 : (width - 10);
+        const customDoorWidth = config.doorWidth ? Number(config.doorWidth) : defaultDoorWidth;
+        const customDoorHeight = config.doorHeight ? Number(config.doorHeight) : (bodyHeight - 10);
+        if (config.customDoors) {
+          const leftDoorVal = config.leftDoor !== undefined ? config.leftDoor : (doors === 1 || doors >= 2 ? 1 : 0);
+          const rightDoorVal = config.rightDoor !== undefined ? config.rightDoor : (doors >= 2 ? 1 : 0);
+          const leftDoorCount = typeof leftDoorVal === 'number' ? leftDoorVal : (leftDoorVal ? 1 : 0);
+          const rightDoorCount = typeof rightDoorVal === 'number' ? rightDoorVal : (rightDoorVal ? 1 : 0);
+          if (leftDoorCount > 0) {
+            parts.push({ id: 'p-b-door-left', name: 'Номын шкафны хаалга (Зүүн)', width: customDoorWidth, height: customDoorHeight, quantity: leftDoorCount, materialId: doorMaterialId, edgeBanding: edge, category: 'Хаалга' });
+          }
+          if (rightDoorCount > 0) {
+            parts.push({ id: 'p-b-door-right', name: 'Номын шкафны хаалга (Баруун)', width: customDoorWidth, height: customDoorHeight, quantity: rightDoorCount, materialId: doorMaterialId, edgeBanding: edge, category: 'Хаалга' });
+          }
+        } else {
+          const doorWidth = (width - 10) / doors;
+          parts.push({ id: 'p-b-door', name: 'Номын шкафны хаалга', width: doorWidth, height: bodyHeight - 10, quantity: doors, materialId: doorMaterialId, edgeBanding: edge, category: 'Хаалга' });
+        }
+      }
+
       // Backing HDF
       parts.push({ id: 'p-b-back', name: 'Ар тал (ХДФ)', width: width - 6, height: bodyHeight - 6, quantity: 1, materialId: 'mat-7', edgeBanding: 'none', category: 'Ар тал' });
       break;

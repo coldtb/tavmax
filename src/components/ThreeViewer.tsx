@@ -1985,6 +1985,165 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               }
             });
           }
+
+          // Doors — support glass type
+          if (doors > 0) {
+            const isGlass = config.glassType && config.glassType !== 'none';
+            const glassOpacity = config.glassType === 'frosted' ? 0.55 : 0.22;
+            const glassColor = config.glassType === 'frosted' ? '#cce8f0' : '#b8daf0';
+            const glassPaneMat = new THREE.MeshStandardMaterial({
+              color: glassColor, transparent: true, opacity: glassOpacity,
+              roughness: config.glassType === 'frosted' ? 0.7 : 0.05,
+              metalness: 0.08, side: THREE.DoubleSide,
+              polygonOffset: true,
+              polygonOffsetFactor: 1,
+              polygonOffsetUnits: 1
+            });
+
+            if (sections.length > 1) {
+              const numSections = sections.length;
+              const panels = getCabinetFrontPanels(width, config);
+
+              for (let j = 0; j < numSections; j++) {
+                const sec = sections[j];
+                const panel = panels[j];
+                const dx = panel.centerX;
+
+                let secDoors = 0;
+
+                // Distribute doors across sections
+                if (config.customDoors) {
+                  const leftDoorVal = config.leftDoor !== undefined ? config.leftDoor : (doors === 1 || doors >= 2 ? 1 : 0);
+                  const rightDoorVal = config.rightDoor !== undefined ? config.rightDoor : (doors >= 2 ? 1 : 0);
+                  const leftDoorCount = typeof leftDoorVal === 'number' ? leftDoorVal : (leftDoorVal ? 1 : 0);
+                  const rightDoorCount = typeof rightDoorVal === 'number' ? rightDoorVal : (rightDoorVal ? 1 : 0);
+
+                  if (j === 0) {
+                    secDoors = leftDoorCount;
+                  } else if (j === numSections - 1) {
+                    secDoors = rightDoorCount;
+                  } else {
+                    secDoors = 0;
+                  }
+                } else {
+                  secDoors = Math.floor(doors / numSections) + (j < doors % numSections ? 1 : 0);
+                }
+
+                if (secDoors > 0) {
+                  const defaultDoorW = (panel.width - 4 * (secDoors - 1)) / secDoors;
+                  const doorW = config.doorWidth && config.customDoors ? Math.min(defaultDoorW, Number(config.doorWidth)) : defaultDoorW;
+                  const doorH = config.doorHeight && config.customDoors ? Math.min(bodyHeight - 10, Number(config.doorHeight)) : bodyHeight - 10;
+                  const doorY = legHeight + 5 + doorH / 2;
+
+                  for (let i = 0; i < secDoors; i++) {
+                    const doorX = dx - panel.width / 2 + defaultDoorW / 2 + i * (defaultDoorW + 4);
+                    const isLeftHinged = secDoors > 1 ? (i % 2 === 0) : (dx <= 0);
+                    const doorUserData = {
+                      id: `${mod.id}-section-${j}-door-${i}`,
+                      isLeftHinged,
+                      doorCenterX: doorX,
+                      doorWidth: doorW - 4
+                    };
+
+                    if (isGlass) {
+                      const fT = 40; // frame thickness mm
+                      const fD = 18; // frame depth mm
+                      // Top rail
+                      addBoard(doorW - 4, fT, fD, doorX, doorY + doorH / 2 - fT / 2, halfD + 9, doorMat, 'Шилэн хаалга – Дээд тавиур', 'Хаалга', doorUserData);
+                      // Bottom rail
+                      addBoard(doorW - 4, fT, fD, doorX, doorY - doorH / 2 + fT / 2, halfD + 9, doorMat, 'Шилэн хаалга – Доод тавиур', 'Хаалга', doorUserData);
+                      // Left stile
+                      const leftFrame = addBoard(fT, doorH - 2 * fT, fD, doorX - doorW / 2 + fT / 2 + 2, doorY, halfD + 9, doorMat, 'Шилэн хаалга – Зүүн туг', 'Хаалга', doorUserData);
+                      // Right stile
+                      const rightFrame = addBoard(fT, doorH - 2 * fT, fD, doorX + doorW / 2 - fT / 2 - 2, doorY, halfD + 9, doorMat, 'Шилэн хаалга – Баруун туг', 'Хаалга', doorUserData);
+                      // Glass pane
+                      addBoard(doorW - 4 - 2 * fT, doorH - 2 * fT, 4, doorX, doorY, halfD + 9, glassPaneMat, 'Шилэн хаалга – Шил', 'Хаалга', doorUserData);
+
+                      // Handle
+                      if (handleType !== 'none') {
+                        const hGeom = new THREE.CylinderGeometry(4, 4, 120, 8);
+                        const hMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
+                        const handle = new THREE.Mesh(hGeom, hMat);
+                        handle.rotation.x = Math.PI / 2;
+                        handle.position.set(0, -doorH / 2 + 60, 12);
+                        if (isLeftHinged) {
+                          rightFrame.add(handle);
+                        } else {
+                          leftFrame.add(handle);
+                        }
+                      }
+                    } else {
+                      const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'Хаалга хавтан', 'Хаалга', doorUserData);
+                      if (handleType !== 'none') {
+                        const handleGeom = new THREE.CylinderGeometry(4, 4, 120, 8);
+                        const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
+                        const handle = new THREE.Mesh(handleGeom, handleMat);
+                        handle.rotation.x = Math.PI / 2;
+                        const handleSide = isLeftHinged ? 1 : -1;
+                        handle.position.set(handleSide * ((doorW - 4) / 2 - 25), -doorH / 2 + 60, 12);
+                        doorMesh.add(handle);
+                      }
+                    }
+                  }
+                }
+              }
+            } else {
+              // Single section doors
+              const doorW = (width - 10) / doors;
+              for (let i = 0; i < doors; i++) {
+                const doorX = -halfW + 5 + doorW / 2 + i * doorW;
+                const doorH = bodyHeight - 10;
+                const doorY = legHeight + 5 + doorH / 2;
+                const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+                const doorUserData = {
+                  id: `${mod.id}-door-${i}`,
+                  isLeftHinged,
+                  doorCenterX: doorX,
+                  doorWidth: doorW - 4
+                };
+
+                if (isGlass) {
+                  const fT = 40; // frame thickness mm
+                  const fD = 18; // frame depth mm
+                  // Top rail
+                  addBoard(doorW - 4, fT, fD, doorX, doorY + doorH / 2 - fT / 2, halfD + 9, doorMat, 'Шилэн хаалга – Дээд тавиур', 'Хаалга', doorUserData);
+                  // Bottom rail
+                  addBoard(doorW - 4, fT, fD, doorX, doorY - doorH / 2 + fT / 2, halfD + 9, doorMat, 'Шилэн хаалга – Доод тавиур', 'Хаалга', doorUserData);
+                  // Left stile
+                  const leftFrame = addBoard(fT, doorH - 2 * fT, fD, doorX - doorW / 2 + fT / 2 + 2, doorY, halfD + 9, doorMat, 'Шилэн хаалга – Зүүн туг', 'Хаалга', doorUserData);
+                  // Right stile
+                  const rightFrame = addBoard(fT, doorH - 2 * fT, fD, doorX + doorW / 2 - fT / 2 - 2, doorY, halfD + 9, doorMat, 'Шилэн хаалга – Баруун туг', 'Хаалга', doorUserData);
+                  // Glass pane
+                  addBoard(doorW - 4 - 2 * fT, doorH - 2 * fT, 4, doorX, doorY, halfD + 9, glassPaneMat, 'Шилэн хаалга – Шил', 'Хаалга', doorUserData);
+
+                  // Handle
+                  if (handleType !== 'none') {
+                    const hGeom = new THREE.CylinderGeometry(4, 4, 120, 8);
+                    const hMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
+                    const handle = new THREE.Mesh(hGeom, hMat);
+                    handle.rotation.x = Math.PI / 2;
+                    handle.position.set(0, -doorH / 2 + 60, 12);
+                    if (isLeftHinged) {
+                      rightFrame.add(handle);
+                    } else {
+                      leftFrame.add(handle);
+                    }
+                  }
+                } else {
+                  const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'Шүүгээний хаалга', 'Хаалга', doorUserData);
+                  if (handleType !== 'none') {
+                    const handleGeom = new THREE.CylinderGeometry(4, 4, 120, 8);
+                    const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
+                    const handle = new THREE.Mesh(handleGeom, handleMat);
+                    handle.rotation.x = Math.PI / 2;
+                    const handleSide = isLeftHinged ? 1 : -1;
+                    handle.position.set(handleSide * ((doorW - 4) / 2 - 25), -doorH / 2 + 60, 12);
+                    doorMesh.add(handle);
+                  }
+                }
+              }
+            }
+          }
         } else if (mod.type === 'wardrobe') {
           // Wardrobe
           buildLegs();

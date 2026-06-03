@@ -1706,8 +1706,8 @@ export const Editor: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Glass door options for upper cabinets */}
-                  {(selectedMod.type === 'kitchen_upper' || selectedMod.type === 'built_in_hood' || selectedMod.type === 'corner_upper') && (
+                  {/* Glass door options for upper cabinets and bookshelves */}
+                  {(selectedMod.type === 'bookshelf' || selectedMod.type === 'kitchen_upper' || selectedMod.type === 'built_in_hood' || selectedMod.type === 'corner_upper') && (
                     <div className="flex flex-col gap-1.5 border-t border-white/5 pt-3">
                       <label className="text-xs text-neutral-400 font-semibold flex items-center gap-1.5">
                         🪟 Шилэн хаалганы төрөл
