@@ -2870,12 +2870,12 @@ return (
 
                 {/* Dimensions section */}
                 <div className="px-2.5 py-1.5 flex flex-col gap-2 border-t border-white/5">
-                  <div className="text-[10px] text-neutral-400 font-bold">Үндсэн хэмжээсүүд</div>
+                  <div className="text-[10px] text-neutral-400 font-bold">Хэмжээ & Бүтэц</div>
                   
-                  {/* Width Input */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-neutral-400 text-[10px]">Өргөн (W):</span>
-                    <div className="flex items-center gap-1">
+                  <div className="grid grid-cols-3 gap-x-1.5 gap-y-1.5">
+                    {/* Width W */}
+                    <div className="flex flex-col gap-0.5">
+                      <label className="text-neutral-500 text-[8px] font-bold uppercase tracking-tight">Өргөн (W)</label>
                       <input
                         type="number"
                         min={200}
@@ -2892,16 +2892,13 @@ return (
                           const val = Math.max(200, Math.min(3000, parseInt(e.target.value) || 200));
                           updateActiveConfig({ width: val });
                         }}
-                        className="w-16 bg-neutral-900 border border-white/10 rounded px-1.5 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-[10px]"
+                        className="w-full bg-neutral-900 border border-white/10 rounded px-1 py-0.5 text-center text-amber-500 font-bold outline-none focus:border-amber-500 text-[10px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
-                      <span className="text-[9px] text-neutral-500">мм</span>
                     </div>
-                  </div>
 
-                  {/* Height Input */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-neutral-400 text-[10px]">Өндөр (H):</span>
-                    <div className="flex items-center gap-1">
+                    {/* Height H */}
+                    <div className="flex flex-col gap-0.5">
+                      <label className="text-neutral-500 text-[8px] font-bold uppercase tracking-tight">Өндөр (H)</label>
                       <input
                         type="number"
                         min={200}
@@ -2918,16 +2915,13 @@ return (
                           const val = Math.max(200, Math.min(2800, parseInt(e.target.value) || 200));
                           updateActiveConfig({ height: val });
                         }}
-                        className="w-16 bg-neutral-900 border border-white/10 rounded px-1.5 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-[10px]"
+                        className="w-full bg-neutral-900 border border-white/10 rounded px-1 py-0.5 text-center text-amber-500 font-bold outline-none focus:border-amber-500 text-[10px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
-                      <span className="text-[9px] text-neutral-500">мм</span>
                     </div>
-                  </div>
 
-                  {/* Depth Input */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-neutral-400 text-[10px]">Гүн (D):</span>
-                    <div className="flex items-center gap-1">
+                    {/* Depth D */}
+                    <div className="flex flex-col gap-0.5">
+                      <label className="text-neutral-500 text-[8px] font-bold uppercase tracking-tight">Гүн (D)</label>
                       <input
                         type="number"
                         min={200}
@@ -2944,9 +2938,74 @@ return (
                           const val = Math.max(200, Math.min(1000, parseInt(e.target.value) || 200));
                           updateActiveConfig({ depth: val });
                         }}
-                        className="w-16 bg-neutral-900 border border-white/10 rounded px-1.5 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-[10px]"
+                        className="w-full bg-neutral-900 border border-white/10 rounded px-1 py-0.5 text-center text-amber-500 font-bold outline-none focus:border-amber-500 text-[10px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
-                      <span className="text-[9px] text-neutral-500">мм</span>
+                    </div>
+
+                    {/* Doors */}
+                    <div className="flex flex-col gap-0.5">
+                      <label className="text-neutral-500 text-[8px] font-bold uppercase tracking-tight">Хаалга</label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={10}
+                        value={contextMod.config.doors}
+                        onChange={(e) => {
+                          setSelectedModuleId(contextMod.id);
+                          const val = parseInt(e.target.value) || 0;
+                          updateActiveConfig({ doors: val });
+                        }}
+                        onBlur={(e) => {
+                          setSelectedModuleId(contextMod.id);
+                          const val = Math.max(0, Math.min(10, parseInt(e.target.value) || 0));
+                          updateActiveConfig({ doors: val });
+                        }}
+                        className="w-full bg-neutral-900 border border-white/10 rounded px-1 py-0.5 text-center text-cyan-400 font-bold outline-none focus:border-cyan-500 text-[10px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                    </div>
+
+                    {/* Shelves */}
+                    <div className="flex flex-col gap-0.5">
+                      <label className="text-neutral-500 text-[8px] font-bold uppercase tracking-tight">Тавиур</label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={20}
+                        value={contextMod.config.shelves}
+                        onChange={(e) => {
+                          setSelectedModuleId(contextMod.id);
+                          const val = parseInt(e.target.value) || 0;
+                          updateActiveConfig({ shelves: val });
+                        }}
+                        onBlur={(e) => {
+                          setSelectedModuleId(contextMod.id);
+                          const val = Math.max(0, Math.min(20, parseInt(e.target.value) || 0));
+                          updateActiveConfig({ shelves: val });
+                        }}
+                        className="w-full bg-neutral-900 border border-white/10 rounded px-1 py-0.5 text-center text-cyan-400 font-bold outline-none focus:border-cyan-500 text-[10px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                    </div>
+
+                    {/* Drawers */}
+                    <div className="flex flex-col gap-0.5">
+                      <label className="text-neutral-500 text-[8px] font-bold uppercase tracking-tight">Шургуулга</label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={12}
+                        value={contextMod.config.drawers}
+                        onChange={(e) => {
+                          setSelectedModuleId(contextMod.id);
+                          const val = parseInt(e.target.value) || 0;
+                          updateActiveConfig({ drawers: val });
+                        }}
+                        onBlur={(e) => {
+                          setSelectedModuleId(contextMod.id);
+                          const val = Math.max(0, Math.min(12, parseInt(e.target.value) || 0));
+                          updateActiveConfig({ drawers: val });
+                        }}
+                        className="w-full bg-neutral-900 border border-white/10 rounded px-1 py-0.5 text-center text-cyan-400 font-bold outline-none focus:border-cyan-500 text-[10px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
                     </div>
                   </div>
                 </div>
