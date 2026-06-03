@@ -2072,7 +2072,24 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                 doorY = legHeight + drawerStackH + doorH / 2 + 5;
               }
 
-              const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шкафны нугастай хаалга`, 'Хаалга');
+              const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+              const doorMesh = addBoard(
+                doorW - 4,
+                doorH,
+                18,
+                doorX,
+                doorY,
+                halfD + 9,
+                doorMat,
+                `Шкафны нугастай хаалга`,
+                'Хаалга',
+                {
+                  id: `${mod.id}-door-${i}`,
+                  isLeftHinged,
+                  doorCenterX: doorX,
+                  doorWidth: doorW - 4
+                }
+              );
 
               // Handle
               if (handleType !== 'none') {
@@ -2080,8 +2097,8 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                 const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                 const handle = new THREE.Mesh(handleGeom, handleMat);
                 handle.rotation.x = Math.PI / 2;
-                const handleSide = i % 2 === 0 ? 1 : -1;
-                handle.position.set(handleSide * (doorW / 2 - 25), 0, 12);
+                const handleSide = isLeftHinged ? 1 : -1;
+                handle.position.set(handleSide * ((doorW - 4) / 2 - 25), 0, 12);
                 doorMesh.add(handle);
               }
             }
@@ -2188,15 +2205,32 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
                 for (let i = 0; i < secDoors; i++) {
                   const doorX = dx - panel.width / 2 + doorW / 2 + i * (doorW + 4);
-                  const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга');
+                  const isLeftHinged = secDoors > 1 ? (i % 2 === 0) : (dx <= 0);
+                  const doorMesh = addBoard(
+                    doorW - 4,
+                    doorH,
+                    18,
+                    doorX,
+                    doorY,
+                    halfD + 9,
+                    doorMat,
+                    `Шүүгээний хаалга`,
+                    'Хаалга',
+                    {
+                      id: `${mod.id}-section-${j}-door-${i}`,
+                      isLeftHinged,
+                      doorCenterX: doorX,
+                      doorWidth: doorW - 4
+                    }
+                  );
 
                   if (handleType !== 'none') {
                     const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
                     const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                     const handle = new THREE.Mesh(handleGeom, handleMat);
                     handle.rotation.x = Math.PI / 2;
-                    const handleSide = i % 2 === 0 ? 1 : -1;
-                    handle.position.set(handleSide * (doorW / 2 - 25), doorH / 2 - 60, 12);
+                    const handleSide = isLeftHinged ? 1 : -1;
+                    handle.position.set(handleSide * ((doorW - 4) / 2 - 25), doorH / 2 - 60, 12);
                     doorMesh.add(handle);
                   }
                 }
@@ -2248,25 +2282,35 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
                 if (hasLeftDoor) {
                   const doorX = width >= 800 ? -halfW + 5 + customDoorWidth / 2 : 0;
-                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Зүүн)`, 'Хаалга');
+                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Зүүн)`, 'Хаалга', {
+                    id: `${mod.id}-door-left`,
+                    isLeftHinged: true,
+                    doorCenterX: doorX,
+                    doorWidth: customDoorWidth - 4
+                  });
                   if (handleType !== 'none') {
                     const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
                     const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                     const handle = new THREE.Mesh(handleGeom, handleMat);
                     handle.rotation.x = Math.PI / 2;
-                    handle.position.set(customDoorWidth / 2 - 25, doorH / 2 - 60, 12);
+                    handle.position.set((customDoorWidth - 4) / 2 - 25, doorH / 2 - 60, 12);
                     doorMesh.add(handle);
                   }
                 }
                 if (hasRightDoor) {
                   const doorX = width >= 800 ? halfW - 5 - customDoorWidth / 2 : 0;
-                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Баруун)`, 'Хаалга');
+                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Баруун)`, 'Хаалга', {
+                    id: `${mod.id}-door-right`,
+                    isLeftHinged: false,
+                    doorCenterX: doorX,
+                    doorWidth: customDoorWidth - 4
+                  });
                   if (handleType !== 'none') {
                     const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
                     const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                     const handle = new THREE.Mesh(handleGeom, handleMat);
                     handle.rotation.x = Math.PI / 2;
-                    handle.position.set(-customDoorWidth / 2 + 25, doorH / 2 - 60, 12);
+                    handle.position.set(-((customDoorWidth - 4) / 2 - 25), doorH / 2 - 60, 12);
                     doorMesh.add(handle);
                   }
                 }
@@ -2276,7 +2320,13 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                   const doorX = -halfW + 5 + doorW / 2 + i * doorW;
                   const doorH = bodyHeight - 10;
                   const doorY = legHeight + bodyHeight / 2;
-                  const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга');
+                  const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+                  const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга', {
+                    id: `${mod.id}-door-${i}`,
+                    isLeftHinged,
+                    doorCenterX: doorX,
+                    doorWidth: doorW - 4
+                  });
 
                   // Handle
                   if (handleType !== 'none') {
@@ -2284,8 +2334,8 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                     const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                     const handle = new THREE.Mesh(handleGeom, handleMat);
                     handle.rotation.x = Math.PI / 2;
-                    const handleSide = i % 2 === 0 ? 1 : -1;
-                    handle.position.set(handleSide * (doorW / 2 - 25), doorH / 2 - 60, 12);
+                    const handleSide = isLeftHinged ? 1 : -1;
+                    handle.position.set(handleSide * ((doorW - 4) / 2 - 25), doorH / 2 - 60, 12);
                     doorMesh.add(handle);
                   }
                 }
@@ -2320,25 +2370,35 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
                 if (hasLeftDoor) {
                   const doorX = width >= 800 ? -halfW + 5 + customDoorWidth / 2 : 0;
-                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Зүүн)`, 'Хаалга');
+                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Зүүн)`, 'Хаалга', {
+                    id: `${mod.id}-door-left`,
+                    isLeftHinged: true,
+                    doorCenterX: doorX,
+                    doorWidth: customDoorWidth - 4
+                  });
                   if (handleType !== 'none') {
                     const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
                     const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                     const handle = new THREE.Mesh(handleGeom, handleMat);
                     handle.rotation.x = Math.PI / 2;
-                    handle.position.set(customDoorWidth / 2 - 25, doorH / 2 - 40, 12);
+                    handle.position.set((customDoorWidth - 4) / 2 - 25, doorH / 2 - 40, 12);
                     doorMesh.add(handle);
                   }
                 }
                 if (hasRightDoor) {
                   const doorX = width >= 800 ? halfW - 5 - customDoorWidth / 2 : 0;
-                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Баруун)`, 'Хаалга');
+                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Баруун)`, 'Хаалга', {
+                    id: `${mod.id}-door-right`,
+                    isLeftHinged: false,
+                    doorCenterX: doorX,
+                    doorWidth: customDoorWidth - 4
+                  });
                   if (handleType !== 'none') {
                     const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
                     const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                     const handle = new THREE.Mesh(handleGeom, handleMat);
                     handle.rotation.x = Math.PI / 2;
-                    handle.position.set(-customDoorWidth / 2 + 25, doorH / 2 - 40, 12);
+                    handle.position.set(-((customDoorWidth - 4) / 2 - 25), doorH / 2 - 40, 12);
                     doorMesh.add(handle);
                   }
                 }
@@ -2349,7 +2409,13 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
                 for (let i = 0; i < doors; i++) {
                   const doorX = -halfW + 5 + doorW / 2 + i * doorW;
-                  const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга');
+                  const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+                  const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга', {
+                    id: `${mod.id}-door-${i}`,
+                    isLeftHinged,
+                    doorCenterX: doorX,
+                    doorWidth: doorW - 4
+                  });
 
                   // Handle
                   if (handleType !== 'none') {
@@ -2357,8 +2423,8 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                     const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                     const handle = new THREE.Mesh(handleGeom, handleMat);
                     handle.rotation.x = Math.PI / 2;
-                    const handleSide = i % 2 === 0 ? 1 : -1;
-                    handle.position.set(handleSide * (doorW / 2 - 25), doorH / 2 - 40, 12);
+                    const handleSide = isLeftHinged ? 1 : -1;
+                    handle.position.set(handleSide * ((doorW - 4) / 2 - 25), doorH / 2 - 40, 12);
                     doorMesh.add(handle);
                   }
                 }
@@ -2537,14 +2603,20 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             const dW = doors > 1 ? (armW - 4) / doors : armW - 4;
             for (let i = 0; i < Math.min(doors, 2); i++) {
               const doorX = -hs + P + dW/2 + i * (dW + 4);
-              const doorMesh = addBoard(dW, dH, P, doorX, midY, hs + P/2, doorMat, `Хаалга ${i+1}`, 'Хаалга');
+              const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+              const doorMesh = addBoard(dW, dH, P, doorX, midY, hs + P/2, doorMat, `Хаалга ${i+1}`, 'Хаалга', {
+                id: `${mod.id}-door-${i}`,
+                isLeftHinged,
+                doorCenterX: doorX,
+                doorWidth: dW
+              });
               if (handleType !== 'none') {
                 const h = new THREE.Mesh(
                   new THREE.CylinderGeometry(4, 4, 60, 8),
                   new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 })
                 );
                 h.rotation.x = Math.PI / 2;
-                const side = i % 2 === 0 ? 1 : -1;
+                const side = isLeftHinged ? 1 : -1;
                 h.position.set(side * (dW/2 - 22), isLower ? dH/2 - 50 : -dH/2 + 30, 10);
                 doorMesh.add(h);
               }
@@ -2635,20 +2707,26 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                   : (width >= 800 ? halfW - 5 - customDoorWidth / 2 : 0);
                 
                 const handleSide = isLeft ? 1 : -1;
+                const upperDoorUserData = {
+                  id: `${mod.id}-door-${isLeft ? 'left' : 'right'}`,
+                  isLeftHinged: isLeft,
+                  doorCenterX: doorX,
+                  doorWidth: customDoorWidth - 4
+                };
 
                 if (isGlass) {
                   const fT = 40; // frame thickness mm
                   const fD = 18; // frame depth mm
                   // Top rail
-                  addBoard(customDoorWidth - 4, fT, fD, doorX, doorY + doorH / 2 - fT / 2, halfD + 9, doorMat, 'Шилэн хаалга – Дээд тавиур', 'Хаалга');
+                  addBoard(customDoorWidth - 4, fT, fD, doorX, doorY + doorH / 2 - fT / 2, halfD + 9, doorMat, 'Шилэн хаалга – Дээд тавиур', 'Хаалга', upperDoorUserData);
                   // Bottom rail
-                  addBoard(customDoorWidth - 4, fT, fD, doorX, doorY - doorH / 2 + fT / 2, halfD + 9, doorMat, 'Шилэн хаалга – Доод тавиур', 'Хаалга');
+                  addBoard(customDoorWidth - 4, fT, fD, doorX, doorY - doorH / 2 + fT / 2, halfD + 9, doorMat, 'Шилэн хаалга – Доод тавиур', 'Хаалга', upperDoorUserData);
                   // Left stile
-                  const leftFrame = addBoard(fT, doorH - 2 * fT, fD, doorX - customDoorWidth / 2 + fT / 2 + 2, doorY, halfD + 9, doorMat, 'Шилэн хаалга – Зүүн туг', 'Хаалга');
+                  const leftFrame = addBoard(fT, doorH - 2 * fT, fD, doorX - customDoorWidth / 2 + fT / 2 + 2, doorY, halfD + 9, doorMat, 'Шилэн хаалга – Зүүн туг', 'Хаалга', upperDoorUserData);
                   // Right stile
-                  const rightFrame = addBoard(fT, doorH - 2 * fT, fD, doorX + customDoorWidth / 2 - fT / 2 - 2, doorY, halfD + 9, doorMat, 'Шилэн хаалга – Баруун туг', 'Хаалга');
+                  const rightFrame = addBoard(fT, doorH - 2 * fT, fD, doorX + customDoorWidth / 2 - fT / 2 - 2, doorY, halfD + 9, doorMat, 'Шилэн хаалга – Баруун туг', 'Хаалга', upperDoorUserData);
                   // Glass pane
-                  addBoard(customDoorWidth - 4 - 2 * fT, doorH - 2 * fT, 4, doorX, doorY, halfD + 9, glassPaneMat, 'Шилэн хаалга – Шил', 'Хаалга');
+                  addBoard(customDoorWidth - 4 - 2 * fT, doorH - 2 * fT, 4, doorX, doorY, halfD + 9, glassPaneMat, 'Шилэн хаалга – Шил', 'Хаалга', upperDoorUserData);
 
                   // Handle
                   if (handleType !== 'none') {
@@ -2664,13 +2742,13 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                     }
                   }
                 } else {
-                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'Дээд шүүгээний хаалга', 'Хаалга');
+                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'Дээд шүүгээний хаалга', 'Хаалга', upperDoorUserData);
                   if (handleType !== 'none') {
                     const handleGeom = new THREE.CylinderGeometry(4, 4, 30, 8);
                     const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                     const handle = new THREE.Mesh(handleGeom, handleMat);
                     handle.rotation.x = Math.PI / 2;
-                    handle.position.set(handleSide * (customDoorWidth / 2 - 25), -doorH / 2 + 30, 12);
+                    handle.position.set(handleSide * ((customDoorWidth - 4) / 2 - 25), -doorH / 2 + 30, 12);
                     doorMesh.add(handle);
                   }
                 }
@@ -2685,20 +2763,27 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                 const doorX = -halfW + 5 + doorW / 2 + i * doorW;
                 const doorH = height - 10;
                 const doorY = height / 2;
+                const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+                const doorUserData = {
+                  id: `${mod.id}-door-${i}`,
+                  isLeftHinged,
+                  doorCenterX: doorX,
+                  doorWidth: doorW - 4
+                };
 
                 if (isGlass) {
                   const fT = 40; // frame thickness mm
                   const fD = 18; // frame depth mm
                   // Top rail
-                  addBoard(doorW - 4, fT, fD, doorX, doorY + doorH / 2 - fT / 2, halfD + 9, doorMat, 'Шилэн хаалга – Дээд тавиур', 'Хаалга');
+                  addBoard(doorW - 4, fT, fD, doorX, doorY + doorH / 2 - fT / 2, halfD + 9, doorMat, 'Шилэн хаалга – Дээд тавиур', 'Хаалга', doorUserData);
                   // Bottom rail
-                  addBoard(doorW - 4, fT, fD, doorX, doorY - doorH / 2 + fT / 2, halfD + 9, doorMat, 'Шилэн хаалга – Доод тавиур', 'Хаалга');
+                  addBoard(doorW - 4, fT, fD, doorX, doorY - doorH / 2 + fT / 2, halfD + 9, doorMat, 'Шилэн хаалга – Доод тавиур', 'Хаалга', doorUserData);
                   // Left stile
-                  addBoard(fT, doorH - 2 * fT, fD, doorX - doorW / 2 + fT / 2 + 2, doorY, halfD + 9, doorMat, 'Шилэн хаалга – Зүүн туг', 'Хаалга');
+                  const leftFrame = addBoard(fT, doorH - 2 * fT, fD, doorX - doorW / 2 + fT / 2 + 2, doorY, halfD + 9, doorMat, 'Шилэн хаалга – Зүүн туг', 'Хаалга', doorUserData);
                   // Right stile
-                  const rightFrame = addBoard(fT, doorH - 2 * fT, fD, doorX + doorW / 2 - fT / 2 - 2, doorY, halfD + 9, doorMat, 'Шилэн хаалга – Баруун туг', 'Хаалга');
+                  const rightFrame = addBoard(fT, doorH - 2 * fT, fD, doorX + doorW / 2 - fT / 2 - 2, doorY, halfD + 9, doorMat, 'Шилэн хаалга – Баруун туг', 'Хаалга', doorUserData);
                   // Glass pane
-                  addBoard(doorW - 4 - 2 * fT, doorH - 2 * fT, 4, doorX, doorY, halfD + 9, glassPaneMat, 'Шилэн хаалга – Шил', 'Хаалга');
+                  addBoard(doorW - 4 - 2 * fT, doorH - 2 * fT, 4, doorX, doorY, halfD + 9, glassPaneMat, 'Шилэн хаалга – Шил', 'Хаалга', doorUserData);
 
                   // Handle
                   if (handleType !== 'none') {
@@ -2706,19 +2791,22 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                     const hMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                     const handle = new THREE.Mesh(hGeom, hMat);
                     handle.rotation.x = Math.PI / 2;
-                    const hSide = i % 2 === 0 ? 1 : -1;
-                    handle.position.set(hSide * (doorW / 2 - 25), -doorH / 2 + 30, 12);
-                    rightFrame.add(handle);
+                    handle.position.set(0, -doorH / 2 + 30, 12);
+                    if (isLeftHinged) {
+                      rightFrame.add(handle);
+                    } else {
+                      leftFrame.add(handle);
+                    }
                   }
                 } else {
-                  const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'Дээд шүүгээний хаалга', 'Хаалга');
+                  const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'Дээд шүүгээний хаалга', 'Хаалга', doorUserData);
                   if (handleType !== 'none') {
                     const handleGeom = new THREE.CylinderGeometry(4, 4, 30, 8);
                     const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                     const handle = new THREE.Mesh(handleGeom, handleMat);
                     handle.rotation.x = Math.PI / 2;
-                    const handleSide = i % 2 === 0 ? 1 : -1;
-                    handle.position.set(handleSide * (doorW / 2 - 25), -doorH / 2 + 30, 12);
+                    const handleSide = isLeftHinged ? 1 : -1;
+                    handle.position.set(handleSide * ((doorW - 4) / 2 - 25), -doorH / 2 + 30, 12);
                     doorMesh.add(handle);
                   }
                 }
@@ -2914,25 +3002,35 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
               if (hasLeftDoor) {
                 const doorX = width >= 800 ? -halfW + 5 + customDoorWidth / 2 : 0;
-                const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Зүүн)`, 'Хаалга');
+                const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Зүүн)`, 'Хаалга', {
+                  id: `${mod.id}-door-left`,
+                  isLeftHinged: true,
+                  doorCenterX: doorX,
+                  doorWidth: customDoorWidth - 4
+                });
                 if (handleType !== 'none') {
                   const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
                   const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                   const handle = new THREE.Mesh(handleGeom, handleMat);
                   handle.rotation.x = Math.PI / 2;
-                  handle.position.set(customDoorWidth / 2 - 25, doorH / 2 - 60, 12);
+                  handle.position.set((customDoorWidth - 4) / 2 - 25, doorH / 2 - 60, 12);
                   doorMesh.add(handle);
                 }
               }
               if (hasRightDoor) {
                 const doorX = width >= 800 ? halfW - 5 - customDoorWidth / 2 : 0;
-                const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Баруун)`, 'Хаалга');
+                const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Баруун)`, 'Хаалга', {
+                  id: `${mod.id}-door-right`,
+                  isLeftHinged: false,
+                  doorCenterX: doorX,
+                  doorWidth: customDoorWidth - 4
+                });
                 if (handleType !== 'none') {
                   const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
                   const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                   const handle = new THREE.Mesh(handleGeom, handleMat);
                   handle.rotation.x = Math.PI / 2;
-                  handle.position.set(-customDoorWidth / 2 + 25, doorH / 2 - 60, 12);
+                  handle.position.set(-((customDoorWidth - 4) / 2 - 25), doorH / 2 - 60, 12);
                   doorMesh.add(handle);
                 }
               }
@@ -2942,7 +3040,13 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                 const doorX = -halfW + 5 + doorW / 2 + i * doorW;
                 const doorH = bodyHeight - 10;
                 const doorY = legHeight + bodyHeight / 2;
-                const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга');
+                const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+                const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга', {
+                  id: `${mod.id}-door-${i}`,
+                  isLeftHinged,
+                  doorCenterX: doorX,
+                  doorWidth: doorW - 4
+                });
 
                 // Handle
                 if (handleType !== 'none') {
@@ -2950,8 +3054,8 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                   const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                   const handle = new THREE.Mesh(handleGeom, handleMat);
                   handle.rotation.x = Math.PI / 2;
-                  const handleSide = i % 2 === 0 ? 1 : -1;
-                  handle.position.set(handleSide * (doorW / 2 - 25), doorH / 2 - 60, 12);
+                  const handleSide = isLeftHinged ? 1 : -1;
+                  handle.position.set(handleSide * ((doorW - 4) / 2 - 25), doorH / 2 - 60, 12);
                   doorMesh.add(handle);
                 }
               }
@@ -2991,8 +3095,18 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           const doorW = width / 2 - 3;
           const doorY = height - doorH / 2 - 10;
           
-          const leftDoor = addBoard(doorW, doorH, 20, -width / 4 - 1, doorY, halfD + 10, fridgeMat, 'Хөргөгчний хаалга (Зүүн)', 'Хаалга');
-          const rightDoor = addBoard(doorW, doorH, 20, width / 4 + 1, doorY, halfD + 10, fridgeMat, 'Хөргөгчний хаалга (Баруун)', 'Хаалга');
+          const leftDoor = addBoard(doorW, doorH, 20, -width / 4 - 1, doorY, halfD + 10, fridgeMat, 'Хөргөгчний хаалга (Зүүн)', 'Хаалга', {
+            id: `${mod.id}-door-left`,
+            isLeftHinged: true,
+            doorCenterX: -width / 4 - 1,
+            doorWidth: doorW
+          });
+          const rightDoor = addBoard(doorW, doorH, 20, width / 4 + 1, doorY, halfD + 10, fridgeMat, 'Хөргөгчний хаалга (Баруун)', 'Хаалга', {
+            id: `${mod.id}-door-right`,
+            isLeftHinged: false,
+            doorCenterX: width / 4 + 1,
+            doorWidth: doorW
+          });
           
           // Bottom Freezer Drawer (Lower 30%)
           const freezH = height * 0.30;
@@ -3063,25 +3177,35 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
             if (hasLeftDoor) {
               const doorX = width >= 800 ? -halfW + 5 + customDoorWidth / 2 : 0;
-              const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'Шүүгээний хаалга (Зүүн)', 'Хаалга', { id: `${mod.id}-door-left` });
+              const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'Шүүгээний хаалга (Зүүн)', 'Хаалга', {
+                id: `${mod.id}-door-left`,
+                isLeftHinged: true,
+                doorCenterX: doorX,
+                doorWidth: customDoorWidth - 4
+              });
               if (handleType !== 'none') {
                 const handleGeom = new THREE.CylinderGeometry(4, 4, 30, 8);
                 const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                 const handle = new THREE.Mesh(handleGeom, handleMat);
                 handle.rotation.x = Math.PI / 2;
-                handle.position.set(customDoorWidth / 2 - 25, -doorH / 2 + 30, 12);
+                handle.position.set((customDoorWidth - 4) / 2 - 25, -doorH / 2 + 30, 12);
                 doorMesh.add(handle);
               }
             }
             if (hasRightDoor) {
               const doorX = width >= 800 ? halfW - 5 - customDoorWidth / 2 : 0;
-              const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'Шүүгээний хаалга (Баруун)', 'Хаалга', { id: `${mod.id}-door-right` });
+              const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'Шүүгээний хаалга (Баруун)', 'Хаалга', {
+                id: `${mod.id}-door-right`,
+                isLeftHinged: false,
+                doorCenterX: doorX,
+                doorWidth: customDoorWidth - 4
+              });
               if (handleType !== 'none') {
                 const handleGeom = new THREE.CylinderGeometry(4, 4, 30, 8);
                 const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                 const handle = new THREE.Mesh(handleGeom, handleMat);
                 handle.rotation.x = Math.PI / 2;
-                handle.position.set(-customDoorWidth / 2 + 25, -doorH / 2 + 30, 12);
+                handle.position.set(-((customDoorWidth - 4) / 2 - 25), -doorH / 2 + 30, 12);
                 doorMesh.add(handle);
               }
             }
@@ -3090,14 +3214,20 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               const doorW = (width - 10) / doors;
               for (let i = 0; i < doors; i++) {
                 const doorX = -halfW + 5 + doorW / 2 + i * doorW;
-                const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'Шүүгээний хаалга', 'Хаалга', { id: `${mod.id}-door-${i}` });
+                const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+                const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'Шүүгээний хаалга', 'Хаалга', {
+                  id: `${mod.id}-door-${i}`,
+                  isLeftHinged,
+                  doorCenterX: doorX,
+                  doorWidth: doorW - 4
+                });
                 if (handleType !== 'none') {
                   const handleGeom = new THREE.CylinderGeometry(4, 4, 30, 8);
                   const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                   const handle = new THREE.Mesh(handleGeom, handleMat);
                   handle.rotation.x = Math.PI / 2;
-                  const handleSide = i % 2 === 0 ? 1 : -1;
-                  handle.position.set(handleSide * (doorW / 2 - 25), -doorH / 2 + 30, 12);
+                  const handleSide = isLeftHinged ? 1 : -1;
+                  handle.position.set(handleSide * ((doorW - 4) / 2 - 25), -doorH / 2 + 30, 12);
                   doorMesh.add(handle);
                 }
               }
@@ -3145,7 +3275,13 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               
               for (let i = 0; i < doors; i++) {
                 const doorX = -halfW + 5 + doorW / 2 + i * doorW;
-                const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'Печний шүүгээний дээд хаалга', 'Хаалга');
+                const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+                const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'Печний шүүгээний дээд хаалга', 'Хаалга', {
+                  id: `${mod.id}-door-${i}`,
+                  isLeftHinged,
+                  doorCenterX: doorX,
+                  doorWidth: doorW - 4
+                });
                 
                 // Chrome handle
                 if (handleType !== 'none') {
@@ -3153,8 +3289,8 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                   const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                   const handle = new THREE.Mesh(handleGeom, handleMat);
                   handle.rotation.x = Math.PI / 2;
-                  const handleSide = i % 2 === 0 ? 1 : -1;
-                  handle.position.set(handleSide * (doorW / 2 - 25), -doorH / 2 + 30, 12);
+                  const handleSide = isLeftHinged ? 1 : -1;
+                  handle.position.set(handleSide * ((doorW - 4) / 2 - 25), -doorH / 2 + 30, 12);
                   doorMesh.add(handle);
                 }
               }
@@ -3173,7 +3309,12 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           
           // Front panel door (left 73% width)
           const doorW = mwW * 0.73;
-          const doorMesh = addBoard(doorW - 4, mwH - 12, 12, -mwW * 0.12, mwY, mwZ + mwD / 2 + 6, caseMat, 'Печний хаалга', 'Хаалга');
+          const doorMesh = addBoard(doorW - 4, mwH - 12, 12, -mwW * 0.12, mwY, mwZ + mwD / 2 + 6, caseMat, 'Печний хаалга', 'Хаалга', {
+            id: `${mod.id}-door-mw`,
+            isLeftHinged: true,
+            doorCenterX: -mwW * 0.12,
+            doorWidth: doorW - 4
+          });
           
           // Door glass window
           addBoard(doorW - 60, mwH - 60, 4, 0, 0, 7, glassMat, 'Хаалганы шил', 'Их бие', { id: `p-mw-door-glass` });
@@ -3317,9 +3458,14 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
             for (let i = 0; i < doors; i++) {
               const doorX = -halfW + 5 + doorW / 2 + i * doorW;
-              const isLeftHinged = i % 2 === 0;
+              const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
 
-              const doorMesh = addBoard(doorW - 4, doorH, 4, doorX, doorY, halfD + 9, vitrineGlassMat, 'Шилэн хаалга (Төмөр араамтай)', 'Хаалга', { id: `${mod.id}-door-${i}` });
+              const doorMesh = addBoard(doorW - 4, doorH, 4, doorX, doorY, halfD + 9, vitrineGlassMat, 'Шилэн хаалга (Төмөр араамтай)', 'Хаалга', {
+                id: `${mod.id}-door-${i}`,
+                isLeftHinged,
+                doorCenterX: doorX,
+                doorWidth: doorW - 4
+              });
 
               const fW = doorW - 4;
               const topRail = new THREE.Mesh(new THREE.BoxGeometry(fW, 20, 18), metalFrameMat);
@@ -3490,25 +3636,35 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
           if (hasLeftDoor) {
             const doorX = width >= 800 ? -halfW + 5 + customDoorWidth / 2 : 0;
-            const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Хаалга (Зүүн)`, 'Хаалга');
+            const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Хаалга (Зүүн)`, 'Хаалга', {
+              id: `${mod.id}-door-left`,
+              isLeftHinged: true,
+              doorCenterX: doorX,
+              doorWidth: customDoorWidth - 4
+            });
             if (handleType !== 'none') {
               const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
               const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
               const handle = new THREE.Mesh(handleGeom, handleMat);
               handle.rotation.x = Math.PI / 2;
-              handle.position.set(customDoorWidth / 2 - 25, 0, 12);
+              handle.position.set((customDoorWidth - 4) / 2 - 25, 0, 12);
               doorMesh.add(handle);
             }
           }
           if (hasRightDoor) {
             const doorX = width >= 800 ? halfW - 5 - customDoorWidth / 2 : 0;
-            const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Хаалга (Баруун)`, 'Хаалга');
+            const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Хаалга (Баруун)`, 'Хаалга', {
+              id: `${mod.id}-door-right`,
+              isLeftHinged: false,
+              doorCenterX: doorX,
+              doorWidth: customDoorWidth - 4
+            });
             if (handleType !== 'none') {
               const handleGeom = new THREE.CylinderGeometry(4, 4, 80, 8);
               const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
               const handle = new THREE.Mesh(handleGeom, handleMat);
               handle.rotation.x = Math.PI / 2;
-              handle.position.set(-customDoorWidth / 2 + 25, 0, 12);
+              handle.position.set(-((customDoorWidth - 4) / 2 - 25), 0, 12);
               doorMesh.add(handle);
             }
           } else if (drawers > 0) {
@@ -3851,12 +4007,21 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               targetY += (doorH / 2) * (Math.cos(openAngle) - 1);
               targetZ += (doorH / 2) * Math.sin(openAngle);
             } else {
-              const isLeftHinged = mesh.userData.id.includes('left') || baseX < 0;
+              const isLeftHinged = mesh.userData.isLeftHinged !== undefined
+                ? mesh.userData.isLeftHinged
+                : (mesh.userData.id.includes('left') || baseX < 0);
               mesh.rotation.y = isLeftHinged ? -openAngle : openAngle;
 
-              const hingeWidthOffset = (mesh.geometry as THREE.BoxGeometry).parameters.width / 2;
-              targetX += (isLeftHinged ? -1 : 1) * hingeWidthOffset * (1 - Math.cos(mesh.rotation.y));
-              targetZ += hingeWidthOffset * Math.sin(Math.abs(mesh.rotation.y));
+              const doorCenterX = mesh.userData.doorCenterX !== undefined ? mesh.userData.doorCenterX : baseX;
+              const doorWidth = mesh.userData.doorWidth !== undefined ? mesh.userData.doorWidth : (mesh.geometry as THREE.BoxGeometry).parameters.width;
+              const hingeWidthOffset = doorWidth / 2;
+
+              const hingeX = doorCenterX + (isLeftHinged ? -1 : 1) * hingeWidthOffset;
+              const rotOffsetX = (baseX - hingeX) * Math.cos(mesh.rotation.y) - (baseX - hingeX);
+              const rotOffsetZ = - (baseX - hingeX) * Math.sin(mesh.rotation.y);
+
+              targetX += rotOffsetX;
+              targetZ += rotOffsetZ;
             }
           } else if (category === 'Шургуулга') {
             targetZ += 300 * doorOpenFactor;
