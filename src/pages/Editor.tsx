@@ -5,7 +5,7 @@ import { exportProjectToPDF } from '../utils/pdfExport';
 import { runNestingOptimizer } from '../utils/nesting';
 import type { NestingPartInput } from '../utils/nesting';
 import { TemplateThumbnail } from '../components/TemplateThumbnail';
-import { Sparkles, Eye, Ruler, Grid, Layers, Move, RefreshCw, Send, Check, Plus, Trash2, Box, Copy, Magnet, Printer, X, FileText, HelpCircle, Info, ChevronLeft, ChevronRight, Columns, AlignLeft, Loader2 } from 'lucide-react';
+import { Sparkles, Eye, Ruler, Grid, Layers, Move, RefreshCw, Send, Check, Plus, Trash2, Box, Copy, Magnet, Printer, X, FileText, HelpCircle, Info, ChevronLeft, ChevronRight, Columns, AlignLeft, Loader2, Home } from 'lucide-react';
 
 const COLOR_PALETTE = [
   // Pastel / Warm
@@ -56,6 +56,13 @@ export const Editor: React.FC = () => {
   const [snapping, setSnapping] = useState(true);
   const [measureMode, setMeasureMode] = useState(false);
   const [viewMode, setViewMode] = useState<'perspective' | 'front' | 'top' | 'side'>('perspective');
+  const [showRoom, setShowRoom] = useState(false);
+  const [roomWallColor, setRoomWallColor] = useState('#f5f0eb');
+  const [roomFloorType, setRoomFloorType] = useState<'wood' | 'tile' | 'marble' | 'concrete'>('wood');
+  const [roomWidth, setRoomWidth] = useState(4000);
+  const [roomDepth, setRoomDepth] = useState(3000);
+  const [roomHeight, setRoomHeight] = useState(2700);
+  const [showRoomPanel, setShowRoomPanel] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showTemplatePanel, setShowTemplatePanel] = useState(true);
   const [panelWidth, setPanelWidth] = useState(320);
@@ -2812,6 +2819,148 @@ return (
             >
               <AlignLeft size={16} />
             </button>
+            <div className="relative">
+              <button
+                onClick={() => {
+                  if (!showRoom) {
+                    setShowRoom(true);
+                    setShowRoomPanel(true);
+                  } else {
+                    setShowRoomPanel(!showRoomPanel);
+                  }
+                }}
+                className={`p-2 rounded-lg transition-all cursor-pointer ${
+                  showRoom ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-neutral-800 text-neutral-400 border border-transparent hover:text-white'
+                }`}
+                title="Өрөөний орчин: Хана, шал, мод/чулуу/плитка сонгох"
+              >
+                <Home size={16} />
+              </button>
+              {showRoomPanel && (
+                <div className="absolute top-full right-0 mt-2 w-[280px] bg-[#12141c]/95 border border-white/10 rounded-xl shadow-2xl p-3 backdrop-blur-md z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-bold text-white uppercase tracking-wider">🏠 Өрөөний орчин</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setShowRoom(!showRoom)}
+                        className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                          showRoom ? 'bg-emerald-500 text-neutral-950' : 'bg-neutral-700 text-neutral-400'
+                        }`}
+                        type="button"
+                      >
+                        {showRoom ? 'ON' : 'OFF'}
+                      </button>
+                      <button onClick={() => setShowRoomPanel(false)} className="text-neutral-500 hover:text-white cursor-pointer" type="button">
+                        <X size={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {showRoom && (
+                    <div className="space-y-3">
+                      {/* Wall Color */}
+                      <div>
+                        <label className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider mb-1 block">Ханын өнгө</label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {[
+                            { color: '#ffffff', label: 'Цагаан' },
+                            { color: '#f5f0eb', label: 'Тос' },
+                            { color: '#e8e5e0', label: 'Саарал' },
+                            { color: '#e0e8f0', label: 'Цэнхэр' },
+                            { color: '#d5dfd5', label: 'Ногоон' },
+                            { color: '#e8ddd0', label: 'Бор' },
+                          ].map(({ color, label }) => (
+                            <button
+                              key={color}
+                              onClick={() => setRoomWallColor(color)}
+                              className={`w-7 h-7 rounded-lg border-2 transition-all cursor-pointer hover:scale-110 ${
+                                roomWallColor === color ? 'border-amber-500 ring-2 ring-amber-500/30 scale-110' : 'border-white/10'
+                              }`}
+                              style={{ backgroundColor: color }}
+                              title={label}
+                              type="button"
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Floor Type */}
+                      <div>
+                        <label className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider mb-1 block">Шалны төрөл</label>
+                        <div className="grid grid-cols-4 gap-1.5">
+                          {[
+                            { type: 'wood' as const, label: 'Мод', icon: '🪵', color: '#b8956a' },
+                            { type: 'tile' as const, label: 'Плитка', icon: '🔲', color: '#d4d0cc' },
+                            { type: 'marble' as const, label: 'Гантиг', icon: '💎', color: '#f0ece8' },
+                            { type: 'concrete' as const, label: 'Бетон', icon: '🏗️', color: '#7a7a7a' },
+                          ].map(({ type, label, icon, color }) => (
+                            <button
+                              key={type}
+                              onClick={() => setRoomFloorType(type)}
+                              className={`flex flex-col items-center gap-0.5 p-1.5 rounded-lg border transition-all cursor-pointer ${
+                                roomFloorType === type
+                                  ? 'border-amber-500 bg-amber-500/10 text-amber-400'
+                                  : 'border-white/10 bg-white/5 text-neutral-400 hover:text-white hover:border-white/20'
+                              }`}
+                              type="button"
+                            >
+                              <div className="w-5 h-5 rounded" style={{ backgroundColor: color }} />
+                              <span className="text-[8px] font-bold uppercase">{icon} {label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Room Dimensions */}
+                      <div className="space-y-2">
+                        <label className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider block">Өрөөний хэмжээ</label>
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] text-neutral-500 w-12">Өргөн</span>
+                            <input
+                              type="range"
+                              min={2000}
+                              max={8000}
+                              step={100}
+                              value={roomWidth}
+                              onChange={(e) => setRoomWidth(Number(e.target.value))}
+                              className="flex-1 h-1 accent-amber-500 cursor-pointer"
+                            />
+                            <span className="text-[9px] text-amber-400 font-bold w-14 text-right">{roomWidth}мм</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] text-neutral-500 w-12">Гүн</span>
+                            <input
+                              type="range"
+                              min={2000}
+                              max={8000}
+                              step={100}
+                              value={roomDepth}
+                              onChange={(e) => setRoomDepth(Number(e.target.value))}
+                              className="flex-1 h-1 accent-amber-500 cursor-pointer"
+                            />
+                            <span className="text-[9px] text-amber-400 font-bold w-14 text-right">{roomDepth}мм</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] text-neutral-500 w-12">Өндөр</span>
+                            <input
+                              type="range"
+                              min={2000}
+                              max={8000}
+                              step={100}
+                              value={roomHeight}
+                              onChange={(e) => setRoomHeight(Number(e.target.value))}
+                              className="flex-1 h-1 accent-amber-500 cursor-pointer"
+                            />
+                            <span className="text-[9px] text-amber-400 font-bold w-14 text-right">{roomHeight}мм</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             <div className="w-px h-5 bg-white/10 mx-0.5 self-center" />
             <button
               onClick={() => {
@@ -2908,6 +3057,12 @@ return (
             viewMode={viewMode}
             enableSnapping={snapping}
             measureMode={measureMode}
+            showRoom={showRoom}
+            roomWallColor={roomWallColor}
+            roomFloorType={roomFloorType}
+            roomWidth={roomWidth}
+            roomDepth={roomDepth}
+            roomHeight={roomHeight}
             onRightClickModule={(moduleId, x, y) => {
               setContextMenu({ moduleId, x, y });
             }}

@@ -15,8 +15,16 @@ interface ThreeViewerProps {
   viewMode: 'perspective' | 'front' | 'top' | 'side';
   enableSnapping?: boolean;
   measureMode?: boolean; // A-B measurement mode
+  paintMaterialId?: string | null;
+  onPaintComponent?: (moduleId: string, type: 'materialId' | 'doorMaterialId', materialId: string) => void;
   onRightClickModule?: (moduleId: string, clientX: number, clientY: number) => void;
   onDoubleClickModule?: (moduleId: string) => void;
+  showRoom?: boolean;
+  roomWallColor?: string;
+  roomFloorType?: 'wood' | 'tile' | 'marble' | 'concrete';
+  roomWidth?: number;  // mm
+  roomDepth?: number;  // mm
+  roomHeight?: number; // mm
 }
 
 const getShelfY = (
@@ -168,6 +176,12 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
   measureMode = false,
   onRightClickModule,
   onDoubleClickModule,
+  showRoom = false,
+  roomWallColor = '#f5f0eb',
+  roomFloorType = 'wood',
+  roomWidth = 4000,
+  roomDepth = 3000,
+  roomHeight = 2700,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -176,6 +190,9 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
   const controlsRef = useRef<OrbitControls | null>(null);
   const furnitureGroupRef = useRef<THREE.Group | null>(null);
   const dimsGroupRef = useRef<THREE.Group | null>(null);
+  const roomGroupRef = useRef<THREE.Group | null>(null);
+  const gridHelperRef = useRef<THREE.GridHelper | null>(null);
+  const floorMeshRef = useRef<THREE.Mesh | null>(null);
 
   const projectRef = useRef(project);
   const enableSnappingRef = useRef(enableSnapping);
@@ -1240,6 +1257,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
       const gridHelper = new THREE.GridHelper(10000, 100, '#3a4040', '#2e3535');
       gridHelper.position.y = -2;
       scene.add(gridHelper);
+      gridHelperRef.current = gridHelper;
 
       // Floor plane - dark concrete tone
       const floorGeo = new THREE.PlaneGeometry(12000, 12000);
@@ -1249,6 +1267,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
       floor.position.y = -2;
       floor.receiveShadow = true;
       scene.add(floor);
+      floorMeshRef.current = floor;
 
       // Window resize handler
       const handleResize = () => {
@@ -1355,6 +1374,194 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
         break;
     }
   }, [viewMode]);
+
+  // Room environment useEffect — build/remove room when props change
+  useEffect(() => {
+    const scene = sceneRef.current;
+    if (!scene) return;
+
+    // Remove previous room group if exists
+    if (roomGroupRef.current) {
+      scene.remove(roomGroupRef.current);
+      roomGroupRef.current.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.geometry.dispose();
+          if (Array.isArray(child.material)) {
+            child.material.forEach(m => m.dispose());
+          } else {
+            child.material.dispose();
+          }
+        }
+      });
+      roomGroupRef.current = null;
+    }
+
+    // Toggle existing grid and floor visibility
+    if (gridHelperRef.current) gridHelperRef.current.visible = !showRoom;
+    if (floorMeshRef.current) floorMeshRef.current.visible = !showRoom;
+
+    if (!showRoom) return;
+
+    // Build room environment
+    const roomGroup = new THREE.Group();
+    roomGroup.name = '__room_environment__';
+
+    const w = roomWidth;
+    const d = roomDepth;
+    const h = roomHeight;
+
+    // --- Helper: create tile texture ---
+    const createTileTexture = (): THREE.CanvasTexture => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d')!;
+      ctx.fillStyle = '#d4d0cc';
+      ctx.fillRect(0, 0, 512, 512);
+      // Draw tile grid
+      ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+      ctx.lineWidth = 2;
+      const tileSize = 128;
+      for (let x = 0; x <= 512; x += tileSize) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 512); ctx.stroke();
+      }
+      for (let y = 0; y <= 512; y += tileSize) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(512, y); ctx.stroke();
+      }
+      // Subtle shading per tile
+      for (let tx = 0; tx < 4; tx++) {
+        for (let ty = 0; ty < 4; ty++) {
+          const shade = 0.97 + Math.random() * 0.06;
+          ctx.fillStyle = `rgba(${Math.floor(212*shade)},${Math.floor(208*shade)},${Math.floor(204*shade)},0.3)`;
+          ctx.fillRect(tx * tileSize + 2, ty * tileSize + 2, tileSize - 4, tileSize - 4);
+        }
+      }
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(w / 1000, d / 1000);
+      return texture;
+    };
+
+    // --- Floor material based on type ---
+    let floorMaterial: THREE.MeshStandardMaterial;
+    switch (roomFloorType) {
+      case 'wood': {
+        const tex = createWoodTexture();
+        tex.repeat.set(w / 800, d / 800);
+        floorMaterial = new THREE.MeshStandardMaterial({
+          map: tex,
+          color: '#b8956a',
+          roughness: 0.7,
+          metalness: 0.0,
+          side: THREE.FrontSide,
+        });
+        break;
+      }
+      case 'tile': {
+        const tex = createTileTexture();
+        floorMaterial = new THREE.MeshStandardMaterial({
+          map: tex,
+          color: '#d4d0cc',
+          roughness: 0.5,
+          metalness: 0.05,
+          side: THREE.FrontSide,
+        });
+        break;
+      }
+      case 'marble': {
+        const tex = createMarbleTexture();
+        tex.repeat.set(w / 1500, d / 1500);
+        floorMaterial = new THREE.MeshStandardMaterial({
+          map: tex,
+          color: '#f0ece8',
+          roughness: 0.2,
+          metalness: 0.1,
+          side: THREE.FrontSide,
+        });
+        break;
+      }
+      case 'concrete':
+      default: {
+        floorMaterial = new THREE.MeshStandardMaterial({
+          color: '#7a7a7a',
+          roughness: 0.9,
+          metalness: 0.0,
+          side: THREE.FrontSide,
+        });
+        break;
+      }
+    }
+
+    // Room floor
+    const roomFloorGeo = new THREE.PlaneGeometry(w, d);
+    const roomFloor = new THREE.Mesh(roomFloorGeo, floorMaterial);
+    roomFloor.rotation.x = -Math.PI / 2;
+    roomFloor.position.set(0, -1, -d / 2 + d / 2); // center at origin
+    roomFloor.position.set(0, -1, 0);
+    roomFloor.receiveShadow = true;
+    roomGroup.add(roomFloor);
+
+    // Wall material
+    const wallMat = new THREE.MeshStandardMaterial({
+      color: roomWallColor,
+      roughness: 0.85,
+      metalness: 0.0,
+      side: THREE.FrontSide,
+    });
+
+    // Baseboard material
+    const baseboardMat = new THREE.MeshStandardMaterial({
+      color: '#e8e4df',
+      roughness: 0.4,
+      metalness: 0.05,
+    });
+    const baseboardHeight = 60;
+
+    // Back wall (at z = -d/2, facing +z)
+    const backWallGeo = new THREE.PlaneGeometry(w, h);
+    const backWall = new THREE.Mesh(backWallGeo, wallMat.clone());
+    backWall.position.set(0, h / 2, -d / 2);
+    backWall.receiveShadow = true;
+    roomGroup.add(backWall);
+
+    // Back baseboard
+    const backBaseGeo = new THREE.BoxGeometry(w, baseboardHeight, 12);
+    const backBase = new THREE.Mesh(backBaseGeo, baseboardMat.clone());
+    backBase.position.set(0, baseboardHeight / 2, -d / 2 + 6);
+    roomGroup.add(backBase);
+
+    // Left wall (at x = -w/2, facing +x)
+    const leftWallGeo = new THREE.PlaneGeometry(d, h);
+    const leftWall = new THREE.Mesh(leftWallGeo, wallMat.clone());
+    leftWall.position.set(-w / 2, h / 2, 0);
+    leftWall.rotation.y = Math.PI / 2;
+    leftWall.receiveShadow = true;
+    roomGroup.add(leftWall);
+
+    // Left baseboard
+    const leftBaseGeo = new THREE.BoxGeometry(12, baseboardHeight, d);
+    const leftBase = new THREE.Mesh(leftBaseGeo, baseboardMat.clone());
+    leftBase.position.set(-w / 2 + 6, baseboardHeight / 2, 0);
+    roomGroup.add(leftBase);
+
+    // Right wall (at x = w/2, facing -x)
+    const rightWallGeo = new THREE.PlaneGeometry(d, h);
+    const rightWall = new THREE.Mesh(rightWallGeo, wallMat.clone());
+    rightWall.position.set(w / 2, h / 2, 0);
+    rightWall.rotation.y = -Math.PI / 2;
+    rightWall.receiveShadow = true;
+    roomGroup.add(rightWall);
+
+    // Right baseboard
+    const rightBaseGeo = new THREE.BoxGeometry(12, baseboardHeight, d);
+    const rightBase = new THREE.Mesh(rightBaseGeo, baseboardMat.clone());
+    rightBase.position.set(w / 2 - 6, baseboardHeight / 2, 0);
+    roomGroup.add(rightBase);
+
+    scene.add(roomGroup);
+    roomGroupRef.current = roomGroup;
+  }, [showRoom, roomWallColor, roomFloorType, roomWidth, roomDepth, roomHeight]);
 
   // Re-build 3D objects whenever modules configuration, materials, or dimension options change
   useEffect(() => {
