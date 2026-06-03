@@ -1900,7 +1900,7 @@ export const Editor: React.FC = () => {
                       {materials.map((mat) => (
                         <button
                           key={mat.id}
-                          onClick={() => updateActiveConfig({ materialId: mat.id })}
+                          onClick={() => updateActiveConfig({ materialId: mat.id, bodyColor: undefined })}
                           className={`flex items-center gap-2 p-2 rounded-xl border text-[11px] font-medium transition-all text-left cursor-pointer ${
                             config.materialId === mat.id
                               ? 'border-amber-500 bg-amber-500/5 text-white'
@@ -2013,7 +2013,7 @@ export const Editor: React.FC = () => {
                       {materials.map((mat) => (
                         <button
                           key={mat.id}
-                          onClick={() => updateActiveConfig({ doorMaterialId: mat.id })}
+                          onClick={() => updateActiveConfig({ doorMaterialId: mat.id, color: undefined })}
                           className={`flex items-center gap-2 p-2 rounded-xl border text-[11px] font-medium transition-all text-left cursor-pointer ${
                             config.doorMaterialId === mat.id
                               ? 'border-amber-500 bg-amber-500/5 text-white'
