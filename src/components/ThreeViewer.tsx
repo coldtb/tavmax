@@ -478,6 +478,12 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
     let draggedPartitionMesh: THREE.Mesh | null = null;
     let draggedPartitionIndex = -1;
 
+    // Drag threshold variables
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let dragThresholdPassed = false;
+    let activeDragType: 'module' | 'shelf' | 'partition' | null = null;
+
     try {
       // 1. Scene setup
       const scene = new THREE.Scene();
@@ -688,28 +694,30 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
         if (intersects.length > 0) {
           const hitObj = intersects[0].object;
 
+          // Trace up to find parent group
+          let obj: THREE.Object3D | null = hitObj;
+          let group: THREE.Group | null = null;
+          while (obj && obj !== scene) {
+            if (obj.parent === furnitureGroup) {
+              group = obj as THREE.Group;
+              break;
+            }
+            obj = obj.parent;
+          }
+
+          dragStartX = event.clientX;
+          dragStartY = event.clientY;
+          dragThresholdPassed = false;
+
           // Check if we hit an interior shelf to drag it vertically
           if (hitObj.userData.category === 'Дээд тавиур' && hitObj.userData.shelfIndex !== undefined && hitObj instanceof THREE.Mesh) {
-            isDraggingShelf = true;
+            activeDragType = 'shelf';
             draggedShelfMesh = hitObj;
             draggedShelfIndex = hitObj.userData.shelfIndex;
-
-            // Find parent module group
-            let obj: THREE.Object3D | null = hitObj;
-            let group: THREE.Group | null = null;
-            while (obj && obj !== scene) {
-              if (obj.parent === furnitureGroup) {
-                group = obj as THREE.Group;
-                break;
-              }
-              obj = obj.parent;
-            }
             parentModuleGroup = group;
 
             if (group) {
               setSelectedModuleId(group.name); // Select this module in store
-              controlsRef.current.enabled = false; // Disable camera panning/orbiting
-
               // Glow shelf drag effect (warm amber/yellow glow)
               if (hitObj.material && !Array.isArray(hitObj.material)) {
                 const mat = hitObj.material as any;
@@ -726,30 +734,16 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               hitObj.getWorldPosition(worldPos);
               dragPlane.setFromNormalAndCoplanarPoint(planeNormal, worldPos);
             }
-            return;
           }
           // Check if we hit a vertical partition to drag it horizontally
           else if (hitObj.userData.category === 'Хуваалт' && hitObj.userData.partitionIndex !== undefined && hitObj instanceof THREE.Mesh) {
-            isDraggingPartition = true;
+            activeDragType = 'partition';
             draggedPartitionMesh = hitObj;
             draggedPartitionIndex = hitObj.userData.partitionIndex;
-
-            // Find parent module group
-            let obj: THREE.Object3D | null = hitObj;
-            let group: THREE.Group | null = null;
-            while (obj && obj !== scene) {
-              if (obj.parent === furnitureGroup) {
-                group = obj as THREE.Group;
-                break;
-              }
-              obj = obj.parent;
-            }
             parentModuleGroup = group;
 
             if (group) {
               setSelectedModuleId(group.name); // Select this module in store
-              controlsRef.current.enabled = false; // Disable camera panning/orbiting
-
               // Glow partition drag effect (warm amber/yellow glow)
               if (hitObj.material && !Array.isArray(hitObj.material)) {
                 const mat = hitObj.material as any;
@@ -766,26 +760,11 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               hitObj.getWorldPosition(worldPos);
               dragPlane.setFromNormalAndCoplanarPoint(planeNormal, worldPos);
             }
-            return;
           }
-
           // Otherwise drag the entire module
-          // Trace up to find top-level group directly under furnitureGroup
-          let obj: THREE.Object3D | null = hitObj;
-          let group: THREE.Group | null = null;
-          while (obj && obj !== scene) {
-            if (obj.parent === furnitureGroup) {
-              group = obj as THREE.Group;
-              break;
-            }
-            obj = obj.parent;
-          }
-
-          if (group && group.name) {
-            isDragging = true;
+          else if (group && group.name) {
+            activeDragType = 'module';
             draggedGroup = group;
-            controlsRef.current.enabled = false; // Disable camera panning/orbiting
-
             setSelectedModuleId(group.name); // Select this module in store
 
             // Glow drag effect
@@ -812,6 +791,25 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
       const onPointerMove = (event: PointerEvent) => {
         if (!rendererRef.current || !cameraRef.current) return;
+
+        // --- CHECK DRAG THRESHOLD ---
+        if (activeDragType && !dragThresholdPassed) {
+          const dist = Math.hypot(event.clientX - dragStartX, event.clientY - dragStartY);
+          if (dist >= 6) {
+            dragThresholdPassed = true;
+            if (controlsRef.current) controlsRef.current.enabled = false; // Disable camera orbiting only when dragging starts
+            
+            if (activeDragType === 'module') {
+              isDragging = true;
+            } else if (activeDragType === 'shelf') {
+              isDraggingShelf = true;
+            } else if (activeDragType === 'partition') {
+              isDraggingPartition = true;
+            }
+          } else {
+            return; // drag threshold not passed yet
+          }
+        }
 
         const rect = rendererRef.current.domElement.getBoundingClientRect();
         mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -1062,8 +1060,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
       const onPointerUp = () => {
         // Handle shelf dragging commit
-        if (isDraggingShelf && draggedShelfMesh && parentModuleGroup) {
-          isDraggingShelf = false;
+        if (draggedShelfMesh && parentModuleGroup) {
           if (controlsRef.current) controlsRef.current.enabled = true; // Re-enable camera orbiting
 
           // Clear highlight glow
@@ -1074,32 +1071,31 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             }
           }
 
-          // Commit Y height change to the store
-          const currentModuleId = parentModuleGroup.name;
-          const activeMod = projectRef.current.modules || [];
-          const activeModItem = activeMod.find(m => m.id === currentModuleId);
-          if (activeModItem) {
-            const config = activeModItem.config;
-            const sPositions = config.shelfPositions || [];
-            const legHeight = config.hasLegs ? 100 : 0;
-            
-            // Calculate final relative position
-            const finalY = draggedShelfMesh.position.y - legHeight - 18;
-            
-            const newPos = [...sPositions];
-            newPos[draggedShelfIndex] = Math.round(finalY);
-            updateActiveConfig({ shelfPositions: newPos });
+          // Commit Y height change to the store ONLY if threshold was passed and we actually dragged it
+          if (isDraggingShelf) {
+            const currentModuleId = parentModuleGroup.name;
+            const activeMod = projectRef.current.modules || [];
+            const activeModItem = activeMod.find(m => m.id === currentModuleId);
+            if (activeModItem) {
+              const config = activeModItem.config;
+              const sPositions = config.shelfPositions || [];
+              const legHeight = config.hasLegs ? 100 : 0;
+              const finalY = draggedShelfMesh.position.y - legHeight - 18;
+              
+              const newPos = [...sPositions];
+              newPos[draggedShelfIndex] = Math.round(finalY);
+              updateActiveConfig({ shelfPositions: newPos });
+            }
           }
 
+          isDraggingShelf = false;
           draggedShelfMesh = null;
           parentModuleGroup = null;
           draggedShelfIndex = -1;
-          return;
         }
 
         // Handle partition dragging commit
-        if (isDraggingPartition && draggedPartitionMesh && parentModuleGroup) {
-          isDraggingPartition = false;
+        else if (draggedPartitionMesh && parentModuleGroup) {
           if (controlsRef.current) controlsRef.current.enabled = true; // Re-enable camera orbiting
 
           // Clear highlight glow
@@ -1110,44 +1106,44 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             }
           }
 
-          // Commit X position change to the store
-          const currentModuleId = parentModuleGroup.name;
-          const activeMod = projectRef.current.modules || [];
-          const activeModItem = activeMod.find(m => m.id === currentModuleId);
-          if (activeModItem) {
-            const config = activeModItem.config;
-            const width = Number(config.width) || 0;
-            const halfW = width / 2;
-            const dPositions = config.dividerPositions || [];
-            
-            // Calculate final relative position from left outer edge
-            const finalX = draggedPartitionMesh.position.x + halfW;
-            
-            const newPos = [...dPositions];
-            newPos[draggedPartitionIndex] = Math.round(finalX);
-            updateActiveConfig({ dividerPositions: newPos });
+          // Commit X position change to the store ONLY if threshold was passed and we actually dragged it
+          if (isDraggingPartition) {
+            const currentModuleId = parentModuleGroup.name;
+            const activeMod = projectRef.current.modules || [];
+            const activeModItem = activeMod.find(m => m.id === currentModuleId);
+            if (activeModItem) {
+              const config = activeModItem.config;
+              const width = Number(config.width) || 0;
+              const halfW = width / 2;
+              const dPositions = config.dividerPositions || [];
+              const finalX = draggedPartitionMesh.position.x + halfW;
+              
+              const newPos = [...dPositions];
+              newPos[draggedPartitionIndex] = Math.round(finalX);
+              updateActiveConfig({ dividerPositions: newPos });
+            }
           }
 
+          isDraggingPartition = false;
           draggedPartitionMesh = null;
           parentModuleGroup = null;
           draggedPartitionIndex = -1;
-          return;
         }
 
         // Stop measure sphere dragging
-        if (measureDragging) {
+        else if (measureDragging) {
           measureDragging = null;
           if (controlsRef.current) controlsRef.current.enabled = true;
           if (rendererRef.current?.domElement) rendererRef.current.domElement.style.cursor = 'crosshair';
-          return;
         }
 
-        if (isDragging && draggedGroup) {
-          isDragging = false;
+        else if (draggedGroup) {
           if (controlsRef.current) controlsRef.current.enabled = true; // Re-enable camera orbiting
 
-          // Commit position coordinate change to store
-          updateModulePosition(draggedGroup.name, draggedGroup.position.x, draggedGroup.position.y, draggedGroup.position.z);
+          // Commit position coordinate change to store ONLY if threshold was passed and we actually dragged it
+          if (isDragging) {
+            updateModulePosition(draggedGroup.name, draggedGroup.position.x, draggedGroup.position.y, draggedGroup.position.z);
+          }
 
           // Clear highlight glow
           draggedGroup.traverse((child) => {
@@ -1159,8 +1155,13 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             }
           });
 
+          isDragging = false;
           draggedGroup = null;
         }
+
+        // Reset threshold variables
+        activeDragType = null;
+        dragThresholdPassed = false;
       };
 
       const onContextMenu = (event: MouseEvent) => {
