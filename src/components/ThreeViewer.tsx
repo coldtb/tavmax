@@ -575,6 +575,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
       const measureHitPoint = new THREE.Vector3();
 
       const onPointerDown = (event: PointerEvent) => {
+        if (event.button !== 0) return; // Only allow left-clicks for dragging / select
         if (!rendererRef.current || !cameraRef.current || !controlsRef.current) return;
 
         const rect = rendererRef.current.domElement.getBoundingClientRect();
