@@ -6,7 +6,6 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { Dashboard } from './pages/Dashboard';
 import { Editor } from './pages/Editor';
 import { Cutting } from './pages/Cutting';
-import { Pricing } from './pages/Pricing';
 import { Materials } from './pages/Materials';
 import { Customer } from './pages/Customer';
 import { Settings } from './pages/Settings';
@@ -14,7 +13,6 @@ import {
   LayoutDashboard,
   Box,
   Scissors,
-  DollarSign,
   Warehouse,
   CreditCard,
   Settings as SettingsIcon,
@@ -94,7 +92,6 @@ export const App: React.FC = () => {
     { id: 'dashboard', label: 'Хянах самбар', icon: <LayoutDashboard size={18} /> },
     { id: 'editor', label: '3D Засварлагч', icon: <Box size={18} /> },
     { id: 'cutting', label: 'Зүсэлт оновчлол', icon: <Scissors size={18} /> },
-    { id: 'pricing', label: 'Үнэ & Бэлдэц', icon: <DollarSign size={18} /> },
     { id: 'materials', label: 'Материал', icon: <Warehouse size={18} /> },
     { id: 'customer', label: 'Миний Эрх & Төлбөр', icon: <CreditCard size={18} /> },
     { id: 'settings', label: 'Тохиргоо', icon: <SettingsIcon size={18} /> },
@@ -224,7 +221,6 @@ export const App: React.FC = () => {
             )}
             {activeTab === 'editor' && <Editor />}
             {activeTab === 'cutting' && <Cutting />}
-            {activeTab === 'pricing' && <Pricing />}
             {activeTab === 'materials' && <Materials />}
             {activeTab === 'customer' && <Customer />}
             {activeTab === 'settings' && <Settings />}
