@@ -1015,7 +1015,8 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
       parts.push({ id: 'p-co-back1', name: 'Ар тал (ХДФ) – Зүүн', width: size / 2, height: height - 6, quantity: 1, materialId: 'mat-7', edgeBanding: 'none', category: 'Ар тал' });
       parts.push({ id: 'p-co-back2', name: 'Ар тал (ХДФ) – Ар', width: size / 2, height: height - 6, quantity: 1, materialId: 'mat-7', edgeBanding: 'none', category: 'Ар тал' });
       // Doors on the two open faces
-      if (doors > 0) {
+      const cornerDoors = config.doors !== undefined ? Number(config.doors) : 2;
+      if (cornerDoors > 0) {
         parts.push({ id: 'p-co-door1', name: 'Буланд тохирох хаалга (Урд)', width: size / 2 - 5, height: height - 10, quantity: 1, materialId: doorMaterialId, edgeBanding: cEdge, category: 'Хаалга' });
         parts.push({ id: 'p-co-door2', name: 'Буланд тохирох хаалга (Хажуу)', width: size / 2 - 5, height: height - 10, quantity: 1, materialId: doorMaterialId, edgeBanding: cEdge, category: 'Хаалга' });
       }

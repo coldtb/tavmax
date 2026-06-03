@@ -2801,13 +2801,14 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           addBoard(S-2*P, bodyH, 3, 0, midY, -hs+1.5, hdfMat, 'Ар тал (ХДФ)', 'Ар тал');
 
           // ── DOORS — only on FRONT ARM +Z face (x from -hs to 0) ─────────────
-          if (doors > 0) {
+          const cornerDoors = config.doors !== undefined ? Number(config.doors) : 2;
+          if (cornerDoors > 0) {
             const dH = bodyH - 10;
             const armW = hs - 2*P; // usable width of front arm opening
-            const dW = doors > 1 ? (armW - 4) / doors : armW - 4;
-            for (let i = 0; i < Math.min(doors, 2); i++) {
+            const dW = cornerDoors > 1 ? (armW - 4) / cornerDoors : armW - 4;
+            for (let i = 0; i < Math.min(cornerDoors, 2); i++) {
               const doorX = -hs + P + dW/2 + i * (dW + 4);
-              const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+              const isLeftHinged = cornerDoors > 1 ? (i % 2 === 0) : (doorX <= 0);
               const doorMesh = addBoard(dW, dH, P, doorX, midY, hs + P/2, doorMat, `Хаалга ${i+1}`, 'Хаалга', {
                 id: `${mod.id}-door-${i}`,
                 isLeftHinged,
