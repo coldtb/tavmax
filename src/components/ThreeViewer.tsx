@@ -47,29 +47,29 @@ const createWoodTexture = (): THREE.CanvasTexture => {
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, 512, 512);
   
-  // Draw organic wood grain lines (Horizontal)
+  // Draw organic wood grain lines (Vertical)
   ctx.strokeStyle = 'rgba(0, 0, 0, 0.18)';
   ctx.lineWidth = 2.0;
   
   for (let i = 0; i < 70; i++) {
     ctx.beginPath();
-    const startY = Math.random() * 512;
-    ctx.moveTo(0, startY);
+    const startX = Math.random() * 512;
+    ctx.moveTo(startX, 0);
     
-    let currentY = startY;
-    for (let x = 10; x <= 512; x += 10) {
-      currentY += Math.sin(x * 0.04 + startY) * 0.9 + (Math.random() - 0.5) * 0.6;
-      ctx.lineTo(x, currentY);
+    let currentX = startX;
+    for (let y = 10; y <= 512; y += 10) {
+      currentX += Math.sin(y * 0.04 + startX) * 0.9 + (Math.random() - 0.5) * 0.6;
+      ctx.lineTo(currentX, y);
     }
     ctx.stroke();
   }
   
-  // Fine noise fibers (Horizontal)
+  // Fine noise fibers (Vertical)
   ctx.fillStyle = 'rgba(0, 0, 0, 0.03)';
   for (let i = 0; i < 6000; i++) {
     const rx = Math.random() * 512;
     const ry = Math.random() * 512;
-    ctx.fillRect(rx, ry, Math.random() * 15 + 5, 1);
+    ctx.fillRect(rx, ry, 1, Math.random() * 15 + 5);
   }
 
   const texture = new THREE.CanvasTexture(canvas);
