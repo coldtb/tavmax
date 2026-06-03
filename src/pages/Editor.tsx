@@ -882,7 +882,6 @@ export const Editor: React.FC = () => {
                 { step: 2, label: 'Дотор', title: 'Тавиур, Шургуулга' },
                 { step: 3, label: 'Нүүр/Өнгө', title: 'Хаалга, Өнгө материал' },
                 { step: 4, label: 'Байршил', title: '3D орон зайн байршил' },
-                { step: 5, label: 'Деталь', title: 'Гар аргаар нэмэх деталь' },
               ].map((s) => {
                 const isAct = activeStep === s.step;
                 const isDone = activeStep > s.step;
