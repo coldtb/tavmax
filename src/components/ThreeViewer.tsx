@@ -2941,7 +2941,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                   const doorY = 5 + doorH / 2;
 
                   for (let i = 0; i < secDoors; i++) {
-                    const doorX = dx - panel.width / 2 + defaultDoorW / 2 + i * (defaultDoorW + 4);
+                    const doorX = dx - panel.width / 2 + doorW / 2 + i * (doorW + 4);
                     const isLeftHinged = secDoors > 1 ? (i % 2 === 0) : (dx <= 0);
                     const doorUserData = {
                       id: `${mod.id}-section-${j}-door-${i}`,
