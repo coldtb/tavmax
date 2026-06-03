@@ -684,6 +684,13 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
         // ── NORMAL DRAG MODE ──
         const intersects = raycaster.intersectObjects(furnitureGroup.children, true);
+        console.log("[Raycaster:onPointerDown] Clicked intersects:", intersects.map(i => ({
+          name: i.object.name,
+          category: i.object.userData?.category,
+          moduleId: i.object.parent?.name || i.object.name,
+          distance: i.distance,
+          point: { x: Math.round(i.point.x), y: Math.round(i.point.y), z: Math.round(i.point.z) }
+        })));
 
         if (intersects.length > 0) {
           const hitObj = intersects[0].object;
@@ -1174,6 +1181,13 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
         raycaster.setFromCamera(mouse, cameraRef.current);
         const intersects = raycaster.intersectObjects(furnitureGroup.children, true);
+        console.log("[Raycaster:onContextMenu] Right-clicked intersects:", intersects.map(i => ({
+          name: i.object.name,
+          category: i.object.userData?.category,
+          moduleId: i.object.parent?.name || i.object.name,
+          distance: i.distance,
+          point: { x: Math.round(i.point.x), y: Math.round(i.point.y), z: Math.round(i.point.z) }
+        })));
 
         if (intersects.length > 0) {
           // Trace up to find top-level group directly under furnitureGroup
