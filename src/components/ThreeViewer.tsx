@@ -2169,7 +2169,19 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                 secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
               }
               if (doors > 0) {
-                secDoors = Math.floor(doors / numSections) + (j < doors % numSections ? 1 : 0);
+                if (config.customDoors) {
+                  const hasLeftDoor = config.leftDoor !== undefined ? !!config.leftDoor : (doors === 1 || doors >= 2);
+                  const hasRightDoor = config.rightDoor !== undefined ? !!config.rightDoor : (doors >= 2);
+                  if (j === 0) {
+                    secDoors = hasLeftDoor ? 1 : 0;
+                  } else if (j === numSections - 1) {
+                    secDoors = hasRightDoor ? 1 : 0;
+                  } else {
+                    secDoors = 0;
+                  }
+                } else {
+                  secDoors = Math.floor(doors / numSections) + (j < doors % numSections ? 1 : 0);
+                }
               }
 
               const sectionH = bodyHeight - 10;
