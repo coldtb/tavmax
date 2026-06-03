@@ -4234,35 +4234,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
         }
       }
 
-      // 4. Add selection outline (bounding box helper and translucent selection mesh)
-      if (selectedModuleId) {
-        const selectedGroup = furnitureGroup.children.find((g) => g.name === selectedModuleId);
-        if (selectedGroup) {
-          // BoxHelper for wireframe edges (warm amber color)
-          const boxHelper = new THREE.BoxHelper(selectedGroup, new THREE.Color('#f59e0b'));
-          dimsGroup.add(boxHelper);
-
-          // Translucent selection box mesh
-          const bbox = new THREE.Box3().setFromObject(selectedGroup);
-          const size = new THREE.Vector3();
-          bbox.getSize(size);
-          const center = new THREE.Vector3();
-          bbox.getCenter(center);
-
-          // Add a tiny padding to the translucent box so it doesn't z-fight with cabinet faces
-          const selectGeo = new THREE.BoxGeometry(size.x + 6, size.y + 6, size.z + 6);
-          const selectMat = new THREE.MeshBasicMaterial({
-            color: '#f59e0b',
-            transparent: true,
-            opacity: 0.08,
-            depthWrite: false,
-            side: THREE.DoubleSide
-          });
-          const selectMesh = new THREE.Mesh(selectGeo, selectMat);
-          selectMesh.position.copy(center);
-          dimsGroup.add(selectMesh);
-        }
-      }
+      // Selection outline removed at user request
 
       if ((window as any).tavmaxLog) {
         (window as any).tavmaxLog(`buildFurnitureModel completed successfully for project: ${project.id}`);
