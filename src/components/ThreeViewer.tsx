@@ -1390,6 +1390,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
       const projectModules = project.modules || [];
       projectModules.forEach((mod) => {
+        console.log("[ThreeViewer] Rendering module:", mod.id, "type:", mod.type, "config:", mod.config);
         if ((window as any).tavmaxLog) {
           (window as any).tavmaxLog(`Rendering module: ${mod.id} (${mod.name}), type: ${mod.type}, config: ${JSON.stringify(mod.config)}`);
         }
@@ -2801,7 +2802,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           addBoard(S-2*P, bodyH, 3, 0, midY, -hs+1.5, hdfMat, 'Ар тал (ХДФ)', 'Ар тал');
 
           // ── DOORS — only on FRONT ARM +Z face (x from -hs to 0) ─────────────
-          const cornerDoors = config.doors !== undefined ? Number(config.doors) : 2;
+          const cornerDoors = (config.doors !== undefined && Number(config.doors) !== 0) ? Number(config.doors) : 2;
           if (cornerDoors > 0) {
             const dH = bodyH - 10;
             const armW = hs - 2*P; // usable width of front arm opening

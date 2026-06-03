@@ -1481,7 +1481,7 @@ export const Editor: React.FC = () => {
                   )}
 
                   {/* Doors config or count */}
-                  {(selectedMod.type === 'custom' || selectedMod.type === 'kitchen_lower' || selectedMod.type === 'kitchen_upper' || selectedMod.type === 'built_in_hood' || selectedMod.type === 'sink' || selectedMod.type === 'cabinet' || selectedMod.type === 'vitrine' || selectedMod.type === 'cooktop' || selectedMod.type === 'wardrobe') && (
+                  {(selectedMod.type === 'custom' || selectedMod.type === 'kitchen_lower' || selectedMod.type === 'kitchen_upper' || selectedMod.type === 'built_in_hood' || selectedMod.type === 'sink' || selectedMod.type === 'cabinet' || selectedMod.type === 'vitrine' || selectedMod.type === 'cooktop' || selectedMod.type === 'wardrobe' || selectedMod.type === 'corner_lower' || selectedMod.type === 'corner_upper') && (
                     <div className="flex flex-col gap-2">
                       <div className="flex justify-between items-center">
                         <label className="text-xs text-neutral-400 font-semibold">Хаалганы тохиргоо</label>
