@@ -2174,12 +2174,15 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               }
               if (doors > 0) {
                 if (config.customDoors) {
-                  const hasLeftDoor = config.leftDoor !== undefined ? !!config.leftDoor : (doors === 1 || doors >= 2);
-                  const hasRightDoor = config.rightDoor !== undefined ? !!config.rightDoor : (doors >= 2);
+                  const leftDoorVal = config.leftDoor !== undefined ? config.leftDoor : (doors === 1 || doors >= 2 ? 1 : 0);
+                  const rightDoorVal = config.rightDoor !== undefined ? config.rightDoor : (doors >= 2 ? 1 : 0);
+                  const leftDoorCount = typeof leftDoorVal === 'number' ? leftDoorVal : (leftDoorVal ? 1 : 0);
+                  const rightDoorCount = typeof rightDoorVal === 'number' ? rightDoorVal : (rightDoorVal ? 1 : 0);
+
                   if (j === 0) {
-                    secDoors = hasLeftDoor ? (panel.width >= 550 ? 2 : 1) : 0;
+                    secDoors = leftDoorCount;
                   } else if (j === numSections - 1) {
-                    secDoors = hasRightDoor ? (panel.width >= 550 ? 2 : 1) : 0;
+                    secDoors = rightDoorCount;
                   } else {
                     secDoors = 0;
                   }
@@ -2743,12 +2746,15 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
                 // Distribute doors across sections
                 if (config.customDoors) {
-                  const hasLeftDoor = config.leftDoor !== undefined ? !!config.leftDoor : (doors === 1 || doors >= 2);
-                  const hasRightDoor = config.rightDoor !== undefined ? !!config.rightDoor : (doors >= 2);
+                  const leftDoorVal = config.leftDoor !== undefined ? config.leftDoor : (doors === 1 || doors >= 2 ? 1 : 0);
+                  const rightDoorVal = config.rightDoor !== undefined ? config.rightDoor : (doors >= 2 ? 1 : 0);
+                  const leftDoorCount = typeof leftDoorVal === 'number' ? leftDoorVal : (leftDoorVal ? 1 : 0);
+                  const rightDoorCount = typeof rightDoorVal === 'number' ? rightDoorVal : (rightDoorVal ? 1 : 0);
+
                   if (j === 0) {
-                    secDoors = hasLeftDoor ? (panel.width >= 550 ? 2 : 1) : 0;
+                    secDoors = leftDoorCount;
                   } else if (j === numSections - 1) {
-                    secDoors = hasRightDoor ? (panel.width >= 550 ? 2 : 1) : 0;
+                    secDoors = rightDoorCount;
                   } else {
                     secDoors = 0;
                   }

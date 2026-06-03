@@ -1506,48 +1506,89 @@ export const Editor: React.FC = () => {
 
                       {((config.customDoors !== undefined ? config.customDoors : (selectedMod.type === 'custom')) && selectedMod.type !== 'cabinet') ? (
                         <div className="flex flex-col gap-1.5 w-full">
-                          <div className="flex gap-6 mt-1 bg-[#0c0d12]/50 border border-white/5 p-3 rounded-xl">
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                id="leftDoor"
-                                checked={config.leftDoor !== undefined ? !!config.leftDoor : (Number(config.doors) === 1 || Number(config.doors) >= 2)}
-                                onChange={(e) => {
-                                  const hasLeft = e.target.checked;
-                                  const hasRight = config.rightDoor !== undefined ? !!config.rightDoor : (Number(config.doors) >= 2);
-                                  updateActiveConfig({
-                                    leftDoor: hasLeft,
-                                    rightDoor: hasRight,
-                                    doors: (hasLeft ? 1 : 0) + (hasRight ? 1 : 0)
-                                  });
-                                }}
-                                className="w-4 h-4 bg-[#0c0d12] border border-white/10 rounded accent-amber-500 cursor-pointer"
-                              />
-                              <label htmlFor="leftDoor" className="text-xs text-neutral-300 font-medium select-none cursor-pointer">Зүүн хаалга</label>
+                          <div className="flex flex-col gap-2.5 mt-1 bg-[#0c0d12]/50 border border-white/5 p-3 rounded-xl">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-neutral-300 font-medium">Зүүн хаалганы тоо</span>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const curr = typeof config.leftDoor === 'number' ? config.leftDoor : (config.leftDoor !== false ? 1 : 0);
+                                    const nextVal = Math.max(0, curr - 1);
+                                    const rightVal = typeof config.rightDoor === 'number' ? config.rightDoor : (config.rightDoor !== false ? 1 : 0);
+                                    updateActiveConfig({
+                                      leftDoor: nextVal,
+                                      doors: nextVal + rightVal
+                                    });
+                                  }}
+                                  className="w-6 h-6 flex items-center justify-center rounded-md bg-neutral-800 hover:bg-red-500/20 hover:text-red-400 text-neutral-400 font-bold text-sm transition-all cursor-pointer border border-white/5"
+                                >
+                                  −
+                                </button>
+                                <span className="w-6 text-center text-xs text-white font-bold">
+                                  {typeof config.leftDoor === 'number' ? config.leftDoor : (config.leftDoor !== false ? 1 : 0)}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const curr = typeof config.leftDoor === 'number' ? config.leftDoor : (config.leftDoor !== false ? 1 : 0);
+                                    const nextVal = Math.min(10, curr + 1);
+                                    const rightVal = typeof config.rightDoor === 'number' ? config.rightDoor : (config.rightDoor !== false ? 1 : 0);
+                                    updateActiveConfig({
+                                      leftDoor: nextVal,
+                                      doors: nextVal + rightVal
+                                    });
+                                  }}
+                                  className="w-6 h-6 flex items-center justify-center rounded-md bg-neutral-800 hover:bg-emerald-500/20 hover:text-emerald-400 text-neutral-400 font-bold text-sm transition-all cursor-pointer border border-white/5"
+                                >
+                                  +
+                                </button>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                id="rightDoor"
-                                checked={config.rightDoor !== undefined ? !!config.rightDoor : (Number(config.doors) >= 2)}
-                                onChange={(e) => {
-                                  const hasRight = e.target.checked;
-                                  const hasLeft = config.leftDoor !== undefined ? !!config.leftDoor : (Number(config.doors) === 1 || Number(config.doors) >= 2);
-                                  updateActiveConfig({
-                                    leftDoor: hasLeft,
-                                    rightDoor: hasRight,
-                                    doors: (hasLeft ? 1 : 0) + (hasRight ? 1 : 0)
-                                  });
-                                }}
-                                className="w-4 h-4 bg-[#0c0d12] border border-white/10 rounded accent-amber-500 cursor-pointer"
-                              />
-                              <label htmlFor="rightDoor" className="text-xs text-neutral-300 font-medium select-none cursor-pointer">Баруун хаалга</label>
+
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-neutral-300 font-medium">Баруун хаалганы тоо</span>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const curr = typeof config.rightDoor === 'number' ? config.rightDoor : (config.rightDoor !== false ? 1 : 0);
+                                    const nextVal = Math.max(0, curr - 1);
+                                    const leftVal = typeof config.leftDoor === 'number' ? config.leftDoor : (config.leftDoor !== false ? 1 : 0);
+                                    updateActiveConfig({
+                                      rightDoor: nextVal,
+                                      doors: leftVal + nextVal
+                                    });
+                                  }}
+                                  className="w-6 h-6 flex items-center justify-center rounded-md bg-neutral-800 hover:bg-red-500/20 hover:text-red-400 text-neutral-400 font-bold text-sm transition-all cursor-pointer border border-white/5"
+                                >
+                                  −
+                                </button>
+                                <span className="w-6 text-center text-xs text-white font-bold">
+                                  {typeof config.rightDoor === 'number' ? config.rightDoor : (config.rightDoor !== false ? 1 : 0)}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const curr = typeof config.rightDoor === 'number' ? config.rightDoor : (config.rightDoor !== false ? 1 : 0);
+                                    const nextVal = Math.min(10, curr + 1);
+                                    const leftVal = typeof config.leftDoor === 'number' ? config.leftDoor : (config.leftDoor !== false ? 1 : 0);
+                                    updateActiveConfig({
+                                      rightDoor: nextVal,
+                                      doors: leftVal + nextVal
+                                    });
+                                  }}
+                                  className="w-6 h-6 flex items-center justify-center rounded-md bg-neutral-800 hover:bg-emerald-500/20 hover:text-emerald-400 text-neutral-400 font-bold text-sm transition-all cursor-pointer border border-white/5"
+                                >
+                                  +
+                                </button>
+                              </div>
                             </div>
                           </div>
 
                           {(() => {
-                            const hasLeft = config.leftDoor !== undefined ? !!config.leftDoor : (Number(config.doors) === 1 || Number(config.doors) >= 2);
-                            const hasRight = config.rightDoor !== undefined ? !!config.rightDoor : (Number(config.doors) >= 2);
+                            const hasLeft = typeof config.leftDoor === 'number' ? config.leftDoor > 0 : (config.leftDoor !== undefined ? !!config.leftDoor : (Number(config.doors) === 1 || Number(config.doors) >= 2));
+                            const hasRight = typeof config.rightDoor === 'number' ? config.rightDoor > 0 : (config.rightDoor !== undefined ? !!config.rightDoor : (Number(config.doors) >= 2));
                             const baseH = config.hasLegs ? Number(config.height) - 100 : Number(config.height);
                             const defaultDWidth = Number(config.width) >= 800 ? (Number(config.width) - 10) / 2 : (Number(config.width) - 10);
 
