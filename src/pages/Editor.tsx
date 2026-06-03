@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useProjectStore, getCabinetSections } from '../store/projectStore';
 import { ThreeViewer } from '../components/ThreeViewer';
 import { TemplateThumbnail } from '../components/TemplateThumbnail';
-import { Sparkles, Eye, Ruler, Grid, Layers, Move, RefreshCw, Send, Check, Plus, Trash2, Box, Copy, Magnet, Printer, X, FileText, HelpCircle, Info, ChevronLeft, ChevronRight, Columns, AlignLeft } from 'lucide-react';
+import { Sparkles, Eye, Ruler, Grid, Layers, Move, RefreshCw, Send, Check, Plus, Trash2, Box, Copy, Magnet, Printer, X, FileText, HelpCircle, Info, ChevronLeft, ChevronRight, Columns, AlignLeft, Loader2 } from 'lucide-react';
 
 const COLOR_PALETTE = [
   // Pastel / Warm
@@ -580,6 +580,21 @@ export const Editor: React.FC = () => {
   const [layoutSaveSuccess, setLayoutSaveSuccess] = useState(false);
   // Print spec sheet modal
   const [showPrintModal, setShowPrintModal] = useState(false);
+  const [emailToSend, setEmailToSend] = useState('');
+  const [emailSending, setEmailSending] = useState(false);
+
+  const handleSendEmailSimulate = () => {
+    if (!emailToSend || !emailToSend.includes('@')) {
+      alert('Зөв цахим шуудангийн хаяг оруулна уу.');
+      return;
+    }
+    setEmailSending(true);
+    setTimeout(() => {
+      setEmailSending(false);
+      alert(`Сонгосон PDF тохиргоог ${emailToSend} хаяг руу амжилттай илгээлээ!`);
+      setEmailToSend('');
+    }, 2000);
+  };
 
   const handleAddCustomPart = (e: React.FormEvent) => {
     e.preventDefault();
@@ -3134,13 +3149,43 @@ return (
                     }
                   }
                 }}
-                className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold text-xs rounded-xl cursor-pointer transition-all"
+                className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold text-xs rounded-xl cursor-pointer transition-all shrink-0"
               >
                 <Printer size={14} /> Хэвлэх / PDF хадгалах
               </button>
+
+              {/* Simulated Email Sending Form */}
+              <div className="flex items-center gap-2 border-l border-white/10 pl-3 bg-neutral-900/60 p-1.5 rounded-xl border border-white/5">
+                <input
+                  type="email"
+                  placeholder="Захиалагчийн и-мэйл..."
+                  value={emailToSend}
+                  onChange={(e) => setEmailToSend(e.target.value)}
+                  className="bg-neutral-950 border border-white/10 rounded-lg px-2.5 py-1.5 text-[11px] text-white placeholder:text-neutral-500 w-44 outline-none focus:border-cyan-500 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={handleSendEmailSimulate}
+                  disabled={emailSending}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 disabled:bg-neutral-800 text-white font-bold text-[11px] rounded-lg cursor-pointer transition-all shrink-0"
+                >
+                  {emailSending ? (
+                    <>
+                      <Loader2 size={12} className="animate-spin" />
+                      Илгээж байна...
+                    </>
+                  ) : (
+                    <>
+                      <Send size={12} />
+                      Илгээх
+                    </>
+                  )}
+                </button>
+              </div>
+
               <button
                 onClick={() => setShowPrintModal(false)}
-                className="p-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white rounded-xl cursor-pointer transition-all"
+                className="p-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white rounded-xl cursor-pointer transition-all shrink-0"
               >
                 <X size={16} />
               </button>
