@@ -2048,7 +2048,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
                   for (let i = 0; i < secDoors; i++) {
                     const doorX = dx - panel.width / 2 + defaultDoorW / 2 + i * (defaultDoorW + 4);
-                    const isLeftHinged = secDoors > 1 ? (i % 2 === 0) : (dx <= 0);
+                    const isLeftHinged = secDoors > 1 ? (i < Math.ceil(secDoors / 2)) : (dx <= 0);
                     const doorUserData = {
                       id: `${mod.id}-section-${j}-door-${i}`,
                       isLeftHinged,
@@ -2105,7 +2105,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                 const doorX = -halfW + 5 + doorW / 2 + i * doorW;
                 const doorH = bodyHeight - 10;
                 const doorY = legHeight + 5 + doorH / 2;
-                const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+                const isLeftHinged = doors > 1 ? (i < Math.ceil(doors / 2)) : (doorX <= 0);
                 const doorUserData = {
                   id: `${mod.id}-door-${i}`,
                   isLeftHinged,
@@ -2242,7 +2242,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                 doorY = legHeight + drawerStackH + doorH / 2 + 5;
               }
 
-              const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+              const isLeftHinged = doors > 1 ? (i < Math.ceil(doors / 2)) : (doorX <= 0);
               const doorMesh = addBoard(
                 doorW - 4,
                 doorH,
@@ -2395,7 +2395,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
                 for (let i = 0; i < secDoors; i++) {
                   const doorX = dx - panel.width / 2 + defaultDoorW / 2 + i * (defaultDoorW + 4);
-                  const isLeftHinged = secDoors > 1 ? (i % 2 === 0) : (dx <= 0);
+                  const isLeftHinged = secDoors > 1 ? (i < Math.ceil(secDoors / 2)) : (dx <= 0);
                   const doorMesh = addBoard(
                     doorW - 4,
                     doorH,
@@ -2521,7 +2521,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                   const doorX = -halfW + 5 + doorW / 2 + i * doorW;
                   const doorH = bodyHeight - 10;
                   const doorY = legHeight + bodyHeight / 2;
-                  const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+                  const isLeftHinged = doors > 1 ? (i < Math.ceil(doors / 2)) : (doorX <= 0);
                   const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга', {
                     id: `${mod.id}-door-${i}`,
                     isLeftHinged,
@@ -2610,7 +2610,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
                 for (let i = 0; i < doors; i++) {
                   const doorX = -halfW + 5 + doorW / 2 + i * doorW;
-                  const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+                  const isLeftHinged = doors > 1 ? (i < Math.ceil(doors / 2)) : (doorX <= 0);
                   const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга', {
                     id: `${mod.id}-door-${i}`,
                     isLeftHinged,
@@ -2805,7 +2805,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             const dW = cornerDoors > 1 ? (armW - 4) / cornerDoors : armW - 4;
             for (let i = 0; i < Math.min(cornerDoors, 2); i++) {
               const doorX = -hs + P + dW/2 + i * (dW + 4);
-              const isLeftHinged = cornerDoors > 1 ? (i % 2 === 0) : (doorX <= 0);
+              const isLeftHinged = cornerDoors > 1 ? (i < Math.ceil(cornerDoors / 2)) : (doorX <= 0);
               const doorMesh = addBoard(dW, dH, P, doorX, midY, hs + P/2, doorMat, `Хаалга ${i+1}`, 'Хаалга', {
                 id: `${mod.id}-door-${i}`,
                 isLeftHinged,
@@ -2942,7 +2942,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
                   for (let i = 0; i < secDoors; i++) {
                     const doorX = dx - panel.width / 2 + doorW / 2 + i * (doorW + 4);
-                    const isLeftHinged = secDoors > 1 ? (i % 2 === 0) : (dx <= 0);
+                    const isLeftHinged = secDoors > 1 ? (i < Math.ceil(secDoors / 2)) : (dx <= 0);
                     const doorUserData = {
                       id: `${mod.id}-section-${j}-door-${i}`,
                       isLeftHinged,
@@ -3019,7 +3019,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
                   for (let i = 0; i < count; i++) {
                     const doorX = panelStartX + defaultSingleW / 2 + i * (defaultSingleW + 4);
-                    const isLeftHinged = count > 1 ? (i % 2 === 0) : isLeftSide;
+                    const isLeftHinged = count > 1 ? (i < Math.ceil(count / 2)) : isLeftSide;
                     const handleSide = isLeftHinged ? 1 : -1;
                     const upperDoorUserData = {
                       id: `${mod.id}-door-${isLeftSide ? 'left' : 'right'}-${i}`,
@@ -3067,7 +3067,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                   const doorX = -halfW + 5 + doorW / 2 + i * doorW;
                   const doorH = height - 10;
                   const doorY = height / 2;
-                  const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+                  const isLeftHinged = doors > 1 ? (i < Math.ceil(doors / 2)) : (doorX <= 0);
                   const doorUserData = {
                     id: `${mod.id}-door-${i}`,
                     isLeftHinged,
@@ -3345,7 +3345,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                 const doorX = -halfW + 5 + doorW / 2 + i * doorW;
                 const doorH = bodyHeight - 10;
                 const doorY = legHeight + bodyHeight / 2;
-                const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+                const isLeftHinged = doors > 1 ? (i < Math.ceil(doors / 2)) : (doorX <= 0);
                 const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга', {
                   id: `${mod.id}-door-${i}`,
                   isLeftHinged,
@@ -3519,7 +3519,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               const doorW = (width - 10) / doors;
               for (let i = 0; i < doors; i++) {
                 const doorX = -halfW + 5 + doorW / 2 + i * doorW;
-                const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+                const isLeftHinged = doors > 1 ? (i < Math.ceil(doors / 2)) : (doorX <= 0);
                 const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'Шүүгээний хаалга', 'Хаалга', {
                   id: `${mod.id}-door-${i}`,
                   isLeftHinged,
@@ -3580,7 +3580,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               
               for (let i = 0; i < doors; i++) {
                 const doorX = -halfW + 5 + doorW / 2 + i * doorW;
-                const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+                const isLeftHinged = doors > 1 ? (i < Math.ceil(doors / 2)) : (doorX <= 0);
                 const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, 'Печний шүүгээний дээд хаалга', 'Хаалга', {
                   id: `${mod.id}-door-${i}`,
                   isLeftHinged,
@@ -3763,7 +3763,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
             for (let i = 0; i < doors; i++) {
               const doorX = -halfW + 5 + doorW / 2 + i * doorW;
-              const isLeftHinged = doors > 1 ? (i % 2 === 0) : (doorX <= 0);
+              const isLeftHinged = doors > 1 ? (i < Math.ceil(doors / 2)) : (doorX <= 0);
 
               const doorMesh = addBoard(doorW - 4, doorH, 4, doorX, doorY, halfD + 9, vitrineGlassMat, 'Шилэн хаалга (Төмөр араамтай)', 'Хаалга', {
                 id: `${mod.id}-door-${i}`,
