@@ -2786,7 +2786,7 @@ return (
                     ].map(({ color, label }) => (
                       <button
                         key={color}
-                        onClick={() => setRoomWallColor(color)}
+                        onClick={() => { setRoomWallColor(color); setShowRoom(true); }}
                         className={`w-6 h-6 rounded-md border-2 transition-all cursor-pointer hover:scale-110 ${
                           roomWallColor === color ? 'border-amber-500 ring-2 ring-amber-500/30 scale-110' : 'border-white/10'
                         }`}
@@ -2810,7 +2810,7 @@ return (
                     ].map(({ type, label, icon, color }) => (
                       <button
                         key={type}
-                        onClick={() => setRoomFloorType(type)}
+                        onClick={() => { setRoomFloorType(type); setShowRoom(true); }}
                         className={`flex flex-col items-center gap-0.5 p-1 rounded-md border transition-all cursor-pointer ${
                           roomFloorType === type
                             ? 'border-amber-500 bg-amber-500/10 text-amber-400 font-bold'
@@ -2843,6 +2843,7 @@ return (
                           setRoomWidth(preset.w);
                           setRoomDepth(preset.d);
                           setRoomHeight(preset.h);
+                          setShowRoom(true);
                         }}
                         className="flex-1 text-[8px] font-bold bg-neutral-800/80 hover:bg-amber-500 hover:text-neutral-950 text-neutral-400 py-1.5 rounded transition-all cursor-pointer border border-white/5"
                         type="button"
@@ -2862,7 +2863,7 @@ return (
                         max={10000}
                         step={100}
                         value={roomWidth}
-                        onChange={(e) => setRoomWidth(Number(e.target.value))}
+                        onChange={(e) => { setRoomWidth(Number(e.target.value)); setShowRoom(true); }}
                         className="flex-1 h-1 accent-amber-500 cursor-pointer"
                       />
                       <div className="flex items-center gap-0.5 shrink-0">
@@ -2874,6 +2875,7 @@ return (
                           onChange={(e) => {
                             const val = Math.max(1000, Math.min(10000, Number(e.target.value) || 0));
                             setRoomWidth(val);
+                            setShowRoom(true);
                           }}
                           className="w-13 bg-[#1e2330] text-amber-400 font-bold text-[9px] px-1 py-0.5 rounded border border-white/10 text-right focus:outline-none focus:border-amber-500"
                         />
@@ -2890,7 +2892,7 @@ return (
                         max={10000}
                         step={100}
                         value={roomDepth}
-                        onChange={(e) => setRoomDepth(Number(e.target.value))}
+                        onChange={(e) => { setRoomDepth(Number(e.target.value)); setShowRoom(true); }}
                         className="flex-1 h-1 accent-amber-500 cursor-pointer"
                       />
                       <div className="flex items-center gap-0.5 shrink-0">
@@ -2902,6 +2904,7 @@ return (
                           onChange={(e) => {
                             const val = Math.max(1000, Math.min(10000, Number(e.target.value) || 0));
                             setRoomDepth(val);
+                            setShowRoom(true);
                           }}
                           className="w-13 bg-[#1e2330] text-amber-400 font-bold text-[9px] px-1 py-0.5 rounded border border-white/10 text-right focus:outline-none focus:border-amber-500"
                         />
@@ -2918,7 +2921,7 @@ return (
                         max={6000}
                         step={100}
                         value={roomHeight}
-                        onChange={(e) => setRoomHeight(Number(e.target.value))}
+                        onChange={(e) => { setRoomHeight(Number(e.target.value)); setShowRoom(true); }}
                         className="flex-1 h-1 accent-amber-500 cursor-pointer"
                       />
                       <div className="flex items-center gap-0.5 shrink-0">
@@ -2930,6 +2933,7 @@ return (
                           onChange={(e) => {
                             const val = Math.max(1500, Math.min(6000, Number(e.target.value) || 0));
                             setRoomHeight(val);
+                            setShowRoom(true);
                           }}
                           className="w-13 bg-[#1e2330] text-amber-400 font-bold text-[9px] px-1 py-0.5 rounded border border-white/10 text-right focus:outline-none focus:border-amber-500"
                         />
