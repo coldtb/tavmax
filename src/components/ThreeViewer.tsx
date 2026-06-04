@@ -1694,7 +1694,9 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             config.doorStyle === 'classic' && 
             !['fridge', 'oven', 'microwave', 'cooktop'].includes(mod.type) &&
             !name.includes('шил') && 
-            !name.includes('Шил');
+            !name.includes('Шил') &&
+            w >= 120 &&
+            h >= 120;
           
           if (isDoorOrDrawer) {
             console.log(`[ThreeViewer:addBoard] name="${name}" category="${category}" isDrawerFront=${isDrawerFront} doorStyle="${config?.doorStyle}" isClassicDoor=${isClassicDoor} modType="${mod.type}"`);
@@ -2551,7 +2553,8 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
               // Distribute drawers and doors across all sections
               if (drawers > 0) {
-                if (config.customDoors) {
+                const hasCustomDrawers = config.leftDrawers !== undefined || config.rightDrawers !== undefined || config.middleDrawers !== undefined;
+                if (config.customDoors && hasCustomDrawers) {
                   if (j === 0) {
                     secDrawers = config.leftDrawers !== undefined ? Number(config.leftDrawers) : 0;
                   } else if (j === numSections - 1) {
@@ -2564,7 +2567,8 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                 }
               }
               if (doors > 0) {
-                if (config.customDoors) {
+                const hasCustomDoors = config.leftDoor !== undefined || config.rightDoor !== undefined;
+                if (config.customDoors && hasCustomDoors) {
                   const leftDoorVal = config.leftDoor !== undefined ? config.leftDoor : (doors === 1 || doors >= 2 ? 1 : 0);
                   const rightDoorVal = config.rightDoor !== undefined ? config.rightDoor : (doors >= 2 ? 1 : 0);
                   const leftDoorCount = typeof leftDoorVal === 'number' ? leftDoorVal : (leftDoorVal ? 1 : 0);
@@ -4173,7 +4177,8 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
             // Distribute drawers and doors across all sections
             if (drawers > 0) {
-              if (config.customDoors) {
+              const hasCustomDrawers = config.leftDrawers !== undefined || config.rightDrawers !== undefined || config.middleDrawers !== undefined;
+              if (config.customDoors && hasCustomDrawers) {
                 if (j === 0) {
                   secDrawers = config.leftDrawers !== undefined ? Number(config.leftDrawers) : 0;
                 } else if (j === numSections - 1) {
@@ -4186,7 +4191,8 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
               }
             }
             if (doors > 0) {
-              if (config.customDoors) {
+              const hasCustomDoors = config.leftDoor !== undefined || config.rightDoor !== undefined;
+              if (config.customDoors && hasCustomDoors) {
                 const leftDoorVal = config.leftDoor !== undefined ? config.leftDoor : (doors === 1 || doors >= 2 ? 1 : 0);
                 const rightDoorVal = config.rightDoor !== undefined ? config.rightDoor : (doors >= 2 ? 1 : 0);
                 const leftDoorCount = typeof leftDoorVal === 'number' ? leftDoorVal : (leftDoorVal ? 1 : 0);

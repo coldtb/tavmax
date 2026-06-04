@@ -472,7 +472,8 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
 
           // Distribute drawers and doors across all sections
           if (drawers > 0) {
-            if (config.customDoors) {
+            const hasCustomDrawers = config.leftDrawers !== undefined || config.rightDrawers !== undefined || config.middleDrawers !== undefined;
+            if (config.customDoors && hasCustomDrawers) {
               if (j === 0) {
                 secDrawers = config.leftDrawers !== undefined ? Number(config.leftDrawers) : 0;
               } else if (j === numSections - 1) {
@@ -485,7 +486,8 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
             }
           }
           if (doors > 0) {
-            if (config.customDoors) {
+            const hasCustomDoors = config.leftDoor !== undefined || config.rightDoor !== undefined;
+            if (config.customDoors && hasCustomDoors) {
               const leftDoorVal = config.leftDoor !== undefined ? config.leftDoor : (doors === 1 || doors >= 2 ? 1 : 0);
               const rightDoorVal = config.rightDoor !== undefined ? config.rightDoor : (doors >= 2 ? 1 : 0);
               const leftDoorCount = typeof leftDoorVal === 'number' ? leftDoorVal : (leftDoorVal ? 1 : 0);
@@ -982,7 +984,8 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
 
         // Distribute drawers and doors across all sections
         if (drawers > 0) {
-          if (config.customDoors) {
+          const hasCustomDrawers = config.leftDrawers !== undefined || config.rightDrawers !== undefined || config.middleDrawers !== undefined;
+          if (config.customDoors && hasCustomDrawers) {
             if (j === 0) {
               secDrawers = config.leftDrawers !== undefined ? Number(config.leftDrawers) : 0;
             } else if (j === numSections - 1) {
@@ -995,7 +998,8 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
           }
         }
         if (doors > 0) {
-          if (config.customDoors) {
+          const hasCustomDoors = config.leftDoor !== undefined || config.rightDoor !== undefined;
+          if (config.customDoors && hasCustomDoors) {
             const leftDoorVal = config.leftDoor !== undefined ? config.leftDoor : (doors === 1 || doors >= 2 ? 1 : 0);
             const rightDoorVal = config.rightDoor !== undefined ? config.rightDoor : (doors >= 2 ? 1 : 0);
             const leftDoorCount = typeof leftDoorVal === 'number' ? leftDoorVal : (leftDoorVal ? 1 : 0);
