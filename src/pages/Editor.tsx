@@ -3031,12 +3031,13 @@ return (
                     setShowRoomPanel(!showRoomPanel);
                   }
                 }}
-                className={`p-2 rounded-lg transition-all cursor-pointer ${
-                  showRoom ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-neutral-800 text-neutral-400 border border-transparent hover:text-white'
+                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                  showRoom ? 'bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 font-bold' : 'bg-neutral-800 text-neutral-400 border border-transparent hover:text-white hover:bg-neutral-750'
                 }`}
-                title="Өрөөний орчин: Хана, шал, мод/чулуу/плитка сонгох"
+                title="Өрөөний орчин: Хана, шал, өрөөний хэмжээ сонгох"
               >
-                <Home size={16} />
+                <Home size={15} />
+                <span className="text-[11px] font-bold uppercase tracking-wider">Өрөөний хэмжээ</span>
               </button>
               {showRoomPanel && (
                 <div className="absolute top-full right-0 mt-2 w-[280px] bg-[#12141c]/95 border border-white/10 rounded-xl shadow-2xl p-3 backdrop-blur-md z-50 animate-in fade-in zoom-in-95 duration-150">
