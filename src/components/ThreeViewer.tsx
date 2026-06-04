@@ -1690,10 +1690,14 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           // Classic style applies to doors AND drawer fronts
           const isDrawerFront = category === 'Шургуулга';
           const isDoorOrDrawer = category === 'Хаалга' || isDrawerFront;
-          const isClassicDoor = isDoorOrDrawer && config.doorStyle === 'classic' && !name.includes('шил') && !name.includes('Шил');
+          const isClassicDoor = isDoorOrDrawer && 
+            config.doorStyle === 'classic' && 
+            !['fridge', 'oven', 'microwave', 'cooktop'].includes(mod.type) &&
+            !name.includes('шил') && 
+            !name.includes('Шил');
           
           if (isDoorOrDrawer) {
-            console.log(`[ThreeViewer:addBoard] name="${name}" category="${category}" isDrawerFront=${isDrawerFront} doorStyle="${config?.doorStyle}" isClassicDoor=${isClassicDoor}`);
+            console.log(`[ThreeViewer:addBoard] name="${name}" category="${category}" isDrawerFront=${isDrawerFront} doorStyle="${config?.doorStyle}" isClassicDoor=${isClassicDoor} modType="${mod.type}"`);
           }
           
           let geom: THREE.BufferGeometry;
