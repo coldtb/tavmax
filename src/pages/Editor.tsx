@@ -2028,7 +2028,7 @@ export const Editor: React.FC = () => {
                         )}
 
                         {/* Door width/height sliders — show for supported types if doors > 0 */}
-                        {(['custom', 'kitchen_lower', 'cabinet', 'sink'].includes(selectedMod.type) && Number(config.doors) > 0) && (() => {
+                        {(['custom', 'kitchen_lower', 'kitchen_upper', 'cabinet', 'vitrine', 'wardrobe', 'sink', 'built_in_hood', 'cooktop', 'bookshelf'].includes(selectedMod.type) && Number(config.doors) > 0) && (() => {
                           const baseH = config.hasLegs ? Number(config.height) - 100 : Number(config.height);
                           const defaultDWidth = Number(config.width) >= 800 ? (Number(config.width) - 10) / 2 : (Number(config.width) - 10);
 
