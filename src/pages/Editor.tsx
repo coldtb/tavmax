@@ -77,8 +77,7 @@ export const Editor: React.FC = () => {
     const val = localStorage.getItem('tavmax-room-height');
     return val ? Number(val) : 2700;
   });
-  const [showRoomPanel, setShowRoomPanel] = useState(false);
-
+  const [roomConfigExpanded, setRoomConfigExpanded] = useState(false);
   useEffect(() => {
     localStorage.setItem('tavmax-show-room', String(showRoom));
   }, [showRoom]);
@@ -2665,6 +2664,194 @@ return (
             <span className="ml-auto text-[9px] text-neutral-500 font-semibold bg-neutral-800 px-1.5 py-0.5 rounded">{filteredBuiltInTemplates.length}</span>
           </div>
 
+          {/* Өрөөний тохиргоо (Room Settings) */}
+          <div className="border-b border-white/5 bg-[#171b26]/50">
+            <button
+              onClick={() => setRoomConfigExpanded(!roomConfigExpanded)}
+              className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 transition-all cursor-pointer"
+              type="button"
+            >
+              <div className="flex items-center gap-2">
+                <Home size={13} className="text-emerald-400 shrink-0" />
+                <span className="font-bold text-white text-xs">🏠 ӨРӨӨНИЙ ХЭМЖЭЭ, ОРЧИН</span>
+              </div>
+              <span className={`text-[9px] px-1.5 py-0.5 rounded font-extrabold transition-all duration-200 ${roomConfigExpanded ? 'bg-emerald-500 text-neutral-950 rotate-0' : 'bg-neutral-800 text-neutral-400'}`}>
+                {roomConfigExpanded ? 'НЭЭЛТТЭЙ' : 'ХААЛТТАЙ'}
+              </span>
+            </button>
+
+            {roomConfigExpanded && (
+              <div className="px-4 pb-4 pt-1 space-y-3.5 border-t border-white/5 bg-[#0f1118]/80 text-xs">
+                {/* Wall Color */}
+                <div>
+                  <label className="text-[9px] text-neutral-400 font-semibold uppercase tracking-wider mb-1.5 block">Ханын өнгө</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { color: '#ffffff', label: 'Цагаан' },
+                      { color: '#f5f0eb', label: 'Тос' },
+                      { color: '#e8e5e0', label: 'Саарал' },
+                      { color: '#e0e8f0', label: 'Цэнхэр' },
+                      { color: '#d5dfd5', label: 'Ногоон' },
+                      { color: '#e8ddd0', label: 'Бор' },
+                    ].map(({ color, label }) => (
+                      <button
+                        key={color}
+                        onClick={() => setRoomWallColor(color)}
+                        className={`w-6 h-6 rounded-md border-2 transition-all cursor-pointer hover:scale-110 ${
+                          roomWallColor === color ? 'border-amber-500 ring-2 ring-amber-500/30 scale-110' : 'border-white/10'
+                        }`}
+                        style={{ backgroundColor: color }}
+                        title={label}
+                        type="button"
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Floor Type */}
+                <div>
+                  <label className="text-[9px] text-neutral-400 font-semibold uppercase tracking-wider mb-1.5 block">Шалны төрөл</label>
+                  <div className="grid grid-cols-4 gap-1">
+                    {[
+                      { type: 'wood' as const, label: 'Мод', icon: '🪵', color: '#b8956a' },
+                      { type: 'tile' as const, label: 'Плитка', icon: '🔲', color: '#d4d0cc' },
+                      { type: 'marble' as const, label: 'Гантиг', icon: '💎', color: '#f0ece8' },
+                      { type: 'concrete' as const, label: 'Бетон', icon: '🏗️', color: '#7a7a7a' },
+                    ].map(({ type, label, icon, color }) => (
+                      <button
+                        key={type}
+                        onClick={() => setRoomFloorType(type)}
+                        className={`flex flex-col items-center gap-0.5 p-1 rounded-md border transition-all cursor-pointer ${
+                          roomFloorType === type
+                            ? 'border-amber-500 bg-amber-500/10 text-amber-400 font-bold'
+                            : 'border-white/5 bg-white/0 text-neutral-400 hover:text-white'
+                        }`}
+                        type="button"
+                      >
+                        <div className="w-4.5 h-4.5 rounded" style={{ backgroundColor: color }} />
+                        <span className="text-[8px] font-bold uppercase leading-none mt-1">{label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Room Dimensions */}
+                <div className="space-y-2.5">
+                  <label className="text-[9px] text-neutral-400 font-semibold uppercase tracking-wider block">Өрөөний хэмжээ</label>
+                  
+                  {/* Quick Presets */}
+                  <div className="flex gap-1">
+                    {[
+                      { label: '3х3м', w: 3000, d: 3000, h: 2700 },
+                      { label: '4х3м', w: 4000, d: 3000, h: 2700 },
+                      { label: '5х4м', w: 5000, d: 4000, h: 2700 },
+                      { label: '6х5м', w: 6000, d: 5000, h: 2800 },
+                    ].map((preset) => (
+                      <button
+                        key={preset.label}
+                        onClick={() => {
+                          setRoomWidth(preset.w);
+                          setRoomDepth(preset.d);
+                          setRoomHeight(preset.h);
+                        }}
+                        className="flex-1 text-[8px] font-bold bg-neutral-800/80 hover:bg-amber-500 hover:text-neutral-950 text-neutral-400 py-1.5 rounded transition-all cursor-pointer border border-white/5"
+                        type="button"
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="space-y-2">
+                    {/* Width */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] text-neutral-500 w-8 shrink-0">Өргөн</span>
+                      <input
+                        type="range"
+                        min={1000}
+                        max={10000}
+                        step={100}
+                        value={roomWidth}
+                        onChange={(e) => setRoomWidth(Number(e.target.value))}
+                        className="flex-1 h-1 accent-amber-500 cursor-pointer"
+                      />
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <input
+                          type="number"
+                          min={1000}
+                          max={10000}
+                          value={roomWidth}
+                          onChange={(e) => {
+                            const val = Math.max(1000, Math.min(10000, Number(e.target.value) || 0));
+                            setRoomWidth(val);
+                          }}
+                          className="w-13 bg-[#1e2330] text-amber-400 font-bold text-[9px] px-1 py-0.5 rounded border border-white/10 text-right focus:outline-none focus:border-amber-500"
+                        />
+                        <span className="text-[8px] text-neutral-500 font-bold">мм</span>
+                      </div>
+                    </div>
+
+                    {/* Depth */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] text-neutral-500 w-8 shrink-0">Гүн</span>
+                      <input
+                        type="range"
+                        min={1000}
+                        max={10000}
+                        step={100}
+                        value={roomDepth}
+                        onChange={(e) => setRoomDepth(Number(e.target.value))}
+                        className="flex-1 h-1 accent-amber-500 cursor-pointer"
+                      />
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <input
+                          type="number"
+                          min={1000}
+                          max={10000}
+                          value={roomDepth}
+                          onChange={(e) => {
+                            const val = Math.max(1000, Math.min(10000, Number(e.target.value) || 0));
+                            setRoomDepth(val);
+                          }}
+                          className="w-13 bg-[#1e2330] text-amber-400 font-bold text-[9px] px-1 py-0.5 rounded border border-white/10 text-right focus:outline-none focus:border-amber-500"
+                        />
+                        <span className="text-[8px] text-neutral-500 font-bold">мм</span>
+                      </div>
+                    </div>
+
+                    {/* Height */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] text-neutral-500 w-8 shrink-0">Өндөр</span>
+                      <input
+                        type="range"
+                        min={1500}
+                        max={6000}
+                        step={100}
+                        value={roomHeight}
+                        onChange={(e) => setRoomHeight(Number(e.target.value))}
+                        className="flex-1 h-1 accent-amber-500 cursor-pointer"
+                      />
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <input
+                          type="number"
+                          min={1500}
+                          max={6000}
+                          value={roomHeight}
+                          onChange={(e) => {
+                            const val = Math.max(1500, Math.min(6000, Number(e.target.value) || 0));
+                            setRoomHeight(val);
+                          }}
+                          className="w-13 bg-[#1e2330] text-amber-400 font-bold text-[9px] px-1 py-0.5 rounded border border-white/10 text-right focus:outline-none focus:border-amber-500"
+                        />
+                        <span className="text-[8px] text-neutral-500 font-bold">мм</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Category Filters */}
           <div className="px-3 py-2 border-b border-white/5 bg-[#12141c]/45 flex gap-1 overflow-x-auto scrollbar-none whitespace-nowrap sticky top-[45px] z-10 shrink-0">
             {[
@@ -3024,213 +3211,27 @@ return (
             <div className="relative">
               <button
                 onClick={() => {
-                  if (!showRoom) {
-                    setShowRoom(true);
-                    setShowRoomPanel(true);
-                  } else {
-                    setShowRoomPanel(!showRoomPanel);
+                  setShowRoom(true);
+                  setRoomConfigExpanded(!roomConfigExpanded);
+                  if (isMobile) {
+                    setMobileTab('templates');
                   }
+                  // Auto scroll the left sidebar container to the top to make sure it is in view
+                  setTimeout(() => {
+                    const scrollContainer = document.querySelector('.lg\\:col-span-3 .overflow-y-auto');
+                    if (scrollContainer) {
+                      scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }, 50);
                 }}
                 className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                  showRoom ? 'bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 font-bold' : 'bg-neutral-800 text-neutral-400 border border-transparent hover:text-white hover:bg-neutral-750'
+                  roomConfigExpanded ? 'bg-emerald-500 text-neutral-950 font-bold' : 'bg-neutral-800 text-neutral-400 border border-transparent hover:text-white hover:bg-neutral-750'
                 }`}
                 title="Өрөөний орчин: Хана, шал, өрөөний хэмжээ сонгох"
               >
                 <Home size={15} />
                 <span className="text-[11px] font-bold uppercase tracking-wider">Өрөөний хэмжээ</span>
               </button>
-              {showRoomPanel && (
-                <div className="absolute top-full right-0 mt-2 w-[280px] bg-[#12141c]/95 border border-white/10 rounded-xl shadow-2xl p-3 backdrop-blur-md z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-bold text-white uppercase tracking-wider">🏠 Өрөөний орчин</span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setShowRoom(!showRoom)}
-                        className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                          showRoom ? 'bg-emerald-500 text-neutral-950' : 'bg-neutral-700 text-neutral-400'
-                        }`}
-                        type="button"
-                      >
-                        {showRoom ? 'ON' : 'OFF'}
-                      </button>
-                      <button onClick={() => setShowRoomPanel(false)} className="text-neutral-500 hover:text-white cursor-pointer" type="button">
-                        <X size={14} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {showRoom && (
-                    <div className="space-y-3">
-                      {/* Wall Color */}
-                      <div>
-                        <label className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider mb-1 block">Ханын өнгө</label>
-                        <div className="flex flex-wrap gap-1.5">
-                          {[
-                            { color: '#ffffff', label: 'Цагаан' },
-                            { color: '#f5f0eb', label: 'Тос' },
-                            { color: '#e8e5e0', label: 'Саарал' },
-                            { color: '#e0e8f0', label: 'Цэнхэр' },
-                            { color: '#d5dfd5', label: 'Ногоон' },
-                            { color: '#e8ddd0', label: 'Бор' },
-                          ].map(({ color, label }) => (
-                            <button
-                              key={color}
-                              onClick={() => setRoomWallColor(color)}
-                              className={`w-7 h-7 rounded-lg border-2 transition-all cursor-pointer hover:scale-110 ${
-                                roomWallColor === color ? 'border-amber-500 ring-2 ring-amber-500/30 scale-110' : 'border-white/10'
-                              }`}
-                              style={{ backgroundColor: color }}
-                              title={label}
-                              type="button"
-                            />
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Floor Type */}
-                      <div>
-                        <label className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider mb-1 block">Шалны төрөл</label>
-                        <div className="grid grid-cols-4 gap-1.5">
-                          {[
-                            { type: 'wood' as const, label: 'Мод', icon: '🪵', color: '#b8956a' },
-                            { type: 'tile' as const, label: 'Плитка', icon: '🔲', color: '#d4d0cc' },
-                            { type: 'marble' as const, label: 'Гантиг', icon: '💎', color: '#f0ece8' },
-                            { type: 'concrete' as const, label: 'Бетон', icon: '🏗️', color: '#7a7a7a' },
-                          ].map(({ type, label, icon, color }) => (
-                            <button
-                              key={type}
-                              onClick={() => setRoomFloorType(type)}
-                              className={`flex flex-col items-center gap-0.5 p-1.5 rounded-lg border transition-all cursor-pointer ${
-                                roomFloorType === type
-                                  ? 'border-amber-500 bg-amber-500/10 text-amber-400'
-                                  : 'border-white/10 bg-white/5 text-neutral-400 hover:text-white hover:border-white/20'
-                              }`}
-                              type="button"
-                            >
-                              <div className="w-5 h-5 rounded" style={{ backgroundColor: color }} />
-                              <span className="text-[8px] font-bold uppercase">{icon} {label}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Room Dimensions */}
-                      <div className="space-y-2.5">
-                        <label className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider block">Өрөөний хэмжээ</label>
-                        
-                        {/* Quick Presets */}
-                        <div className="flex gap-1">
-                          {[
-                            { label: '3х3м', w: 3000, d: 3000, h: 2700 },
-                            { label: '4х3м', w: 4000, d: 3000, h: 2700 },
-                            { label: '5х4м', w: 5000, d: 4000, h: 2700 },
-                            { label: '6х5м', w: 6000, d: 5000, h: 2800 },
-                          ].map((preset) => (
-                            <button
-                              key={preset.label}
-                              onClick={() => {
-                                setRoomWidth(preset.w);
-                                setRoomDepth(preset.d);
-                                setRoomHeight(preset.h);
-                              }}
-                              className="flex-1 text-[8px] font-bold bg-neutral-800/80 hover:bg-amber-500 hover:text-neutral-950 text-neutral-400 py-1.5 rounded transition-all cursor-pointer border border-white/5"
-                              type="button"
-                            >
-                              {preset.label}
-                            </button>
-                          ))}
-                        </div>
-
-                        <div className="space-y-2">
-                          {/* Width */}
-                          <div className="flex items-center gap-2">
-                            <span className="text-[9px] text-neutral-500 w-8 shrink-0">Өргөн</span>
-                            <input
-                              type="range"
-                              min={1000}
-                              max={10000}
-                              step={100}
-                              value={roomWidth}
-                              onChange={(e) => setRoomWidth(Number(e.target.value))}
-                              className="flex-1 h-1 accent-amber-500 cursor-pointer"
-                            />
-                            <div className="flex items-center gap-0.5 shrink-0">
-                              <input
-                                type="number"
-                                min={1000}
-                                max={10000}
-                                value={roomWidth}
-                                onChange={(e) => {
-                                  const val = Math.max(1000, Math.min(10000, Number(e.target.value) || 0));
-                                  setRoomWidth(val);
-                                }}
-                                className="w-14 bg-neutral-850 text-amber-400 font-bold text-[9px] px-1 py-0.5 rounded border border-white/10 text-right focus:outline-none focus:border-amber-500"
-                              />
-                              <span className="text-[8px] text-neutral-500 font-bold">мм</span>
-                            </div>
-                          </div>
-
-                          {/* Depth */}
-                          <div className="flex items-center gap-2">
-                            <span className="text-[9px] text-neutral-500 w-8 shrink-0">Гүн</span>
-                            <input
-                              type="range"
-                              min={1000}
-                              max={10000}
-                              step={100}
-                              value={roomDepth}
-                              onChange={(e) => setRoomDepth(Number(e.target.value))}
-                              className="flex-1 h-1 accent-amber-500 cursor-pointer"
-                            />
-                            <div className="flex items-center gap-0.5 shrink-0">
-                              <input
-                                type="number"
-                                min={1000}
-                                max={10000}
-                                value={roomDepth}
-                                onChange={(e) => {
-                                  const val = Math.max(1000, Math.min(10000, Number(e.target.value) || 0));
-                                  setRoomDepth(val);
-                                }}
-                                className="w-14 bg-neutral-850 text-amber-400 font-bold text-[9px] px-1 py-0.5 rounded border border-white/10 text-right focus:outline-none focus:border-amber-500"
-                              />
-                              <span className="text-[8px] text-neutral-500 font-bold">мм</span>
-                            </div>
-                          </div>
-
-                          {/* Height */}
-                          <div className="flex items-center gap-2">
-                            <span className="text-[9px] text-neutral-500 w-8 shrink-0">Өндөр</span>
-                            <input
-                              type="range"
-                              min={1500}
-                              max={6000}
-                              step={100}
-                              value={roomHeight}
-                              onChange={(e) => setRoomHeight(Number(e.target.value))}
-                              className="flex-1 h-1 accent-amber-500 cursor-pointer"
-                            />
-                            <div className="flex items-center gap-0.5 shrink-0">
-                              <input
-                                type="number"
-                                min={1500}
-                                max={6000}
-                                value={roomHeight}
-                                onChange={(e) => {
-                                  const val = Math.max(1500, Math.min(6000, Number(e.target.value) || 0));
-                                  setRoomHeight(val);
-                                }}
-                                className="w-14 bg-neutral-850 text-amber-400 font-bold text-[9px] px-1 py-0.5 rounded border border-white/10 text-right focus:outline-none focus:border-amber-500"
-                              />
-                              <span className="text-[8px] text-neutral-500 font-bold">мм</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
             <div className="w-px h-5 bg-white/10 mx-0.5 self-center" />
             <button
