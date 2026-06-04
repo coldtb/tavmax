@@ -140,7 +140,7 @@ export const Editor: React.FC = () => {
   const getCategoryByType = (type: string, id?: string) => {
     if (id === 'tall_kitchen' || id === 'tall_kitchen_open') return 'kitchen';
     if (['nightstand', 'nightstand_r', 'dresser', 'tall_wardrobe_drawer', 'dressing_table', 'shoe_cabinet'].includes(id || '')) return 'bedroom';
-    if (['wardrobe'].includes(type)) return 'bedroom';
+    if (['wardrobe', 'bed'].includes(type)) return 'bedroom';
     if (['kitchen_lower', 'kitchen_upper', 'sink', 'built_in_hood', 'fridge', 'cooktop', 'hood', 'microwave', 'oven', 'dishwasher'].includes(type)) return 'kitchen';
     if (['bookshelf', 'cabinet', 'tv_unit', 'vitrine'].includes(type)) return 'living';
     return 'other';
@@ -543,6 +543,60 @@ export const Editor: React.FC = () => {
     },
 
     // ─── Унтлагын өрөөний тавилга ───
+    {
+      id: 'bed_double',
+      name: '🛏️ Хос ор (Double Bed)',
+      type: 'bed' as const,
+      config: {
+        width: 1600,
+        height: 900,
+        depth: 2100,
+        shelves: 0,
+        drawers: 0,
+        doors: 0,
+        hasLegs: false,
+        handleType: 'none' as const,
+        materialId: 'mat-3',
+        doorMaterialId: 'mat-3',
+        color: '#faf9f6'
+      }
+    },
+    {
+      id: 'bed_single',
+      name: '🛏️ Ганц ор (Single Bed)',
+      type: 'bed' as const,
+      config: {
+        width: 900,
+        height: 800,
+        depth: 2000,
+        shelves: 0,
+        drawers: 0,
+        doors: 0,
+        hasLegs: false,
+        handleType: 'none' as const,
+        materialId: 'mat-3',
+        doorMaterialId: 'mat-3',
+        color: '#faf9f6'
+      }
+    },
+    {
+      id: 'bed_king',
+      name: '🛏️ Том ор (King Bed)',
+      type: 'bed' as const,
+      config: {
+        width: 2000,
+        height: 1000,
+        depth: 2200,
+        shelves: 0,
+        drawers: 0,
+        doors: 0,
+        hasLegs: false,
+        handleType: 'none' as const,
+        materialId: 'mat-1',
+        doorMaterialId: 'mat-1',
+        color: '#faf9f6'
+      }
+    },
     {
       id: 'nightstand',
       name: '🛏️ Шөнийн тумбочка (Зүүн)',

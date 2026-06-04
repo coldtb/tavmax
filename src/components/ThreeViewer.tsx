@@ -3877,6 +3877,108 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
           addBoard(12, 12, 3, halfW / 3, height - 25, halfD + 22, new THREE.MeshBasicMaterial({ color: '#22c55e' }), 'Дэлгэц', 'Их бие');
           const dwHnd = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, width - 60, 16), new THREE.MeshStandardMaterial({ color: '#d4d4d4', metalness: 0.95, roughness: 0.05 }));
           dwHnd.rotation.z = Math.PI / 2; dwHnd.position.set(0, height - 50, 12); dwPnl.add(dwHnd);
+        } else if (mod.type === 'bed') {
+          // ── Bed (Ор) ───────────────────────────────────────────────────────
+          const bedLegH = 150; // Leg height
+          const frameH = 40;   // Frame rail thickness
+          const headboardH = Math.min(height, 900); // Headboard height from floor
+          const footboardH = Math.min(height * 0.45, 450);
+          const mattressH = 200; // Mattress thickness
+          const mattressInset = 20; // Inset from frame edges
+
+          // Material: Body wood for frame, soft fabric for mattress
+          const frameMat = bodyMat;
+          const mattressMat = new THREE.MeshStandardMaterial({
+            color: '#f5f0eb', roughness: 0.95, metalness: 0.0,
+          });
+          const mattressTopMat = new THREE.MeshStandardMaterial({
+            color: '#ffffff', roughness: 0.85, metalness: 0.0,
+          });
+          const pillowMat = new THREE.MeshStandardMaterial({
+            color: '#ffffff', roughness: 0.9, metalness: 0.0,
+          });
+
+          // 1. Headboard (толгойн хэсэг)
+          addBoard(width, headboardH, 30, 0, headboardH / 2, -halfD + 15, frameMat, 'Толгойн хавтан (Headboard)', 'Хажуу хана');
+
+          // 2. Footboard (хөлийн хэсэг)
+          addBoard(width, footboardH, 25, 0, footboardH / 2, halfD - 12.5, frameMat, 'Хөлийн хавтан (Footboard)', 'Хажуу хана');
+
+          // 3. Side rails (хажуу дам нуруу)
+          const railY = bedLegH + frameH / 2;
+          const railLen = depth - 55; // Between head and foot boards
+          addBoard(30, frameH, railLen, -halfW + 15, railY, 0, frameMat, 'Хажуу дам нуруу (Зүүн)', 'Хажуу хана');
+          addBoard(30, frameH, railLen, halfW - 15, railY, 0, frameMat, 'Хажуу дам нуруу (Баруун)', 'Хажуу хана');
+
+          // 4. Slats (ламель хавтангууд)
+          const slatCount = Math.max(6, Math.floor(depth / 120));
+          const slatSpacing = railLen / (slatCount + 1);
+          for (let i = 0; i < slatCount; i++) {
+            const sz = -railLen / 2 + (i + 1) * slatSpacing;
+            addBoard(width - 60, 12, 60, 0, bedLegH + frameH + 6, sz, frameMat, `Ламель ${i + 1}`, 'Доод тавиур');
+          }
+
+          // 5. Legs (хөлүүд - 4 ширхэг)
+          const legSize = 50;
+          const legGeo = new THREE.BoxGeometry(legSize, bedLegH, legSize);
+          const legMat = new THREE.MeshStandardMaterial({ color: getMaterialMesh(config.materialId).color, roughness: 0.6 });
+          const legPositions = [
+            [-halfW + legSize / 2 + 5, bedLegH / 2, -halfD + legSize / 2 + 30],
+            [halfW - legSize / 2 - 5, bedLegH / 2, -halfD + legSize / 2 + 30],
+            [-halfW + legSize / 2 + 5, bedLegH / 2, halfD - legSize / 2 - 25],
+            [halfW - legSize / 2 - 5, bedLegH / 2, halfD - legSize / 2 - 25],
+          ];
+          legPositions.forEach((pos, li) => {
+            const leg = new THREE.Mesh(legGeo, legMat);
+            leg.position.set(pos[0], pos[1], pos[2]);
+            leg.castShadow = true;
+            leg.receiveShadow = true;
+            leg.userData = {
+              baseX: pos[0], baseY: pos[1], baseZ: pos[2],
+              expX: (pos[0] > 0 ? 1 : -1) * 40, expY: -20, expZ: (pos[2] > 0 ? 1 : -1) * 40,
+              category: 'Хөл', name: `Ор хөл ${li + 1}`
+            };
+            moduleGroup.add(leg);
+          });
+
+          // 6. Mattress (матрас)
+          const mY = bedLegH + frameH + 12 + mattressH / 2;
+          const mW = width - mattressInset * 2 - 30;
+          const mD = depth - 55 - mattressInset;
+          addBoard(mW, mattressH, mD, 0, mY, 5, mattressMat, 'Матрас', 'Их бие');
+
+          // 7. Mattress top cover (дэвсгэр)
+          addBoard(mW + 20, 8, mD + 15, 0, mY + mattressH / 2 + 4, 10, mattressTopMat, 'Дэвсгэр хөнжил', 'Их бие');
+
+          // 8. Pillows (дэрнүүд)
+          const pillowW = Math.min(mW / 2 - 30, 450);
+          const pillowGeo = new THREE.BoxGeometry(pillowW, 60, 200);
+          // Round pillow edges
+          const pillowY = mY + mattressH / 2 + 35;
+          const pillowZ = -halfD + 130;
+
+          const pillow1 = new THREE.Mesh(pillowGeo, pillowMat);
+          pillow1.position.set(-pillowW / 2 - 15, pillowY, pillowZ);
+          pillow1.rotation.x = -0.05;
+          pillow1.castShadow = true;
+          pillow1.userData = {
+            baseX: -pillowW / 2 - 15, baseY: pillowY, baseZ: pillowZ,
+            expX: -30, expY: 40, expZ: -20,
+            category: 'Их бие', name: 'Дэр (Зүүн)'
+          };
+          moduleGroup.add(pillow1);
+
+          const pillow2 = new THREE.Mesh(pillowGeo, pillowMat);
+          pillow2.position.set(pillowW / 2 + 15, pillowY, pillowZ);
+          pillow2.rotation.x = -0.05;
+          pillow2.castShadow = true;
+          pillow2.userData = {
+            baseX: pillowW / 2 + 15, baseY: pillowY, baseZ: pillowZ,
+            expX: 30, expY: 40, expZ: -20,
+            category: 'Их бие', name: 'Дэр (Баруун)'
+          };
+          moduleGroup.add(pillow2);
+
         } else if (mod.type === 'vitrine') {
           // ── Glass Vitrine Display Cabinet (Шилэн витрин шүүгээ) ───────────
           const vitrineGlassMat = new THREE.MeshStandardMaterial({
