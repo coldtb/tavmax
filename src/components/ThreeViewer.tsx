@@ -3279,9 +3279,9 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                 }
 
                 if (secDoors > 0) {
-                  // Always use auto-calculated door dimensions — never constrain by doorWidth/doorHeight slider
-                  const doorW = (panel.width - 4 * (secDoors - 1)) / secDoors;
-                  const doorH = height - 10;
+                  const defaultDoorW = (panel.width - 4 * (secDoors - 1)) / secDoors;
+                  const doorW = config.doorWidth && config.customDoors ? Math.min(defaultDoorW, Number(config.doorWidth)) : defaultDoorW;
+                  const doorH = config.doorHeight && config.customDoors ? Math.min(height - 10, Number(config.doorHeight)) : (height - 10);
                   const doorY = 5 + doorH / 2;
 
                   for (let i = 0; i < secDoors; i++) {
@@ -3358,8 +3358,10 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                   const panelStartX = isLeftSide
                     ? -halfW + 5
                     : (leftDoorCount > 0 ? 0 : -halfW + 5);
-                  // Always auto-calculate single door width — never constrain by slider value
                   const defaultSingleW = (panelW - 4 * (count - 1)) / count;
+                  const doorW = config.doorWidth && config.customDoors ? Math.min(defaultSingleW, Number(config.doorWidth)) : defaultSingleW;
+                  const doorH = config.doorHeight && config.customDoors ? Math.min(height - 10, Number(config.doorHeight)) : (height - 10);
+                  const doorY = 5 + doorH / 2;
 
                   for (let i = 0; i < count; i++) {
                     const doorX = panelStartX + defaultSingleW / 2 + i * (defaultSingleW + 4);
@@ -3369,7 +3371,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                       id: `${mod.id}-door-${isLeftSide ? 'left' : 'right'}-${i}`,
                       isLeftHinged,
                       doorCenterX: doorX,
-                      doorWidth: defaultSingleW - 4
+                      doorWidth: doorW - 4
                     };
 
                     if (isGlass) {
@@ -3405,12 +3407,12 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
                 renderDoorsForSide(leftDoorCount, true);
                 renderDoorsForSide(rightDoorCount, false);
               } else {
-                // Standard split doors
-                const doorW = (width - 10) / doors;
+                const defaultDoorW = (width - 10) / doors;
+                const doorW = config.doorWidth && config.customDoors ? Math.min(defaultDoorW, Number(config.doorWidth)) : defaultDoorW;
+                const doorH = config.doorHeight && config.customDoors ? Math.min(height - 10, Number(config.doorHeight)) : (height - 10);
+                const doorY = 5 + doorH / 2;
                 for (let i = 0; i < doors; i++) {
-                  const doorX = -halfW + 5 + doorW / 2 + i * doorW;
-                  const doorH = height - 10;
-                  const doorY = height / 2;
+                  const doorX = -halfW + 5 + defaultDoorW / 2 + i * defaultDoorW;
                   const isLeftHinged = doors > 1 ? (i < Math.ceil(doors / 2)) : (doorX <= 0);
                   const doorUserData = {
                     id: `${mod.id}-door-${i}`,
