@@ -1661,11 +1661,11 @@ export const useProjectStore = create<ProjectState>()(
     const projectConfig = state.activeProject.config || {};
     const config = {
       ...incomingConfig,
-      materialId: projectConfig.materialId !== undefined ? projectConfig.materialId : incomingConfig.materialId,
-      doorMaterialId: projectConfig.doorMaterialId !== undefined ? projectConfig.doorMaterialId : incomingConfig.doorMaterialId,
-      doorStyle: projectConfig.doorStyle !== undefined ? projectConfig.doorStyle : incomingConfig.doorStyle,
-      color: projectConfig.color !== undefined ? projectConfig.color : incomingConfig.color,
-      bodyColor: projectConfig.bodyColor !== undefined ? projectConfig.bodyColor : incomingConfig.bodyColor,
+      materialId: incomingConfig.materialId !== undefined ? incomingConfig.materialId : (projectConfig.materialId !== undefined ? projectConfig.materialId : 'mat-3'),
+      doorMaterialId: incomingConfig.doorMaterialId !== undefined ? incomingConfig.doorMaterialId : (projectConfig.doorMaterialId !== undefined ? projectConfig.doorMaterialId : 'mat-3'),
+      doorStyle: incomingConfig.doorStyle !== undefined ? incomingConfig.doorStyle : (projectConfig.doorStyle !== undefined ? projectConfig.doorStyle : 'flat'),
+      color: incomingConfig.color !== undefined ? incomingConfig.color : (projectConfig.color !== undefined ? projectConfig.color : '#faf9f6'),
+      bodyColor: incomingConfig.bodyColor !== undefined ? incomingConfig.bodyColor : projectConfig.bodyColor,
     };
 
     const modules = state.activeProject.modules || [];

@@ -625,8 +625,8 @@ export const Editor: React.FC = () => {
         doors: 0,
         hasLegs: false,
         handleType: 'none' as const,
-        materialId: 'mat-1',
-        doorMaterialId: 'mat-1',
+        materialId: 'mat-3',
+        doorMaterialId: 'mat-3',
         color: '#faf9f6'
       }
     },
@@ -1913,94 +1913,90 @@ export const Editor: React.FC = () => {
                               </div>
                             </div>
                           </div>
-
-                          {/* Door width/height sliders — only show for custom type where they affect rendering */}
-                          {selectedMod.type === 'custom' && (() => {
-                            const hasLeft = typeof config.leftDoor === 'number' ? config.leftDoor > 0 : (config.leftDoor !== undefined ? !!config.leftDoor : (Number(config.doors) === 1 || Number(config.doors) >= 2));
-                            const hasRight = typeof config.rightDoor === 'number' ? config.rightDoor > 0 : (config.rightDoor !== undefined ? !!config.rightDoor : (Number(config.doors) >= 2));
-                            const baseH = config.hasLegs ? Number(config.height) - 100 : Number(config.height);
-                            const defaultDWidth = Number(config.width) >= 800 ? (Number(config.width) - 10) / 2 : (Number(config.width) - 10);
-
-                            if (!hasLeft && !hasRight) return null;
-
-                            return (
-                              <div className="grid grid-cols-2 gap-4 mt-2 bg-[#0c0d12]/30 border border-white/5 p-3 rounded-xl">
-                                <div className="flex flex-col gap-1.5">
-                                  <div className="flex justify-between items-center text-[11px] text-neutral-400">
-                                    <span>Хаалганы өргөн</span>
-                                    <div className="flex items-center gap-0.5">
-                                      <input
-                                        type="number"
-                                        value={config.doorWidth || Math.round(defaultDWidth)}
-                                        onChange={(e) => updateActiveConfig({ doorWidth: parseInt(e.target.value) || 0 })}
-                                        onBlur={(e) => {
-                                          const val = Math.max(100, Math.min(Number(config.width), parseInt(e.target.value) || 100));
-                                          updateActiveConfig({ doorWidth: val });
-                                        }}
-                                        className="w-12 bg-[#0c0d12] border border-white/10 rounded px-1 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                      />
-                                      <span>мм</span>
-                                    </div>
-                                  </div>
-                                  <input
-                                    type="range"
-                                    min={100}
-                                    max={Number(config.width)}
-                                    step={10}
-                                    value={config.doorWidth || Math.round(defaultDWidth)}
-                                    onChange={(e) => updateActiveConfig({ doorWidth: parseInt(e.target.value) })}
-                                    className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                                  />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                  <div className="flex justify-between items-center text-[11px] text-neutral-400">
-                                    <span>Хаалганы өндөр</span>
-                                    <div className="flex items-center gap-0.5">
-                                      <input
-                                        type="number"
-                                        value={config.doorHeight || Math.round(baseH - 10)}
-                                        onChange={(e) => updateActiveConfig({ doorHeight: parseInt(e.target.value) || 0 })}
-                                        onBlur={(e) => {
-                                          const val = Math.max(100, Math.min(baseH, parseInt(e.target.value) || 100));
-                                          updateActiveConfig({ doorHeight: val });
-                                        }}
-                                        className="w-12 bg-[#0c0d12] border border-white/10 rounded px-1 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                      />
-                                      <span>мм</span>
-                                    </div>
-                                  </div>
-                                  <input
-                                    type="range"
-                                    min={100}
-                                    max={baseH}
-                                    step={10}
-                                    value={config.doorHeight || Math.round(baseH - 10)}
-                                    onChange={(e) => updateActiveConfig({ doorHeight: parseInt(e.target.value) })}
-                                    className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                                  />
-                                </div>
-                              </div>
-                            );
-                          })()}
                         </div>
                       ) : (
-                        <div className="flex flex-col gap-1.5 mt-1 bg-[#0c0d12]/30 border border-white/5 p-3 rounded-xl">
-                          <label className="text-[11px] text-neutral-400 font-semibold">Хаалганы тоо</label>
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => updateActiveConfig({ doors: Math.max(0, Number(config.doors) - 1) })}
-                              className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0c0d12] border border-white/10 text-white text-base font-bold hover:border-amber-500/60 transition-all"
-                            >−</button>
-                            <span className="flex-1 text-center text-white text-sm font-bold">{Number(config.doors)}</span>
-                            <button
-                              type="button"
-                              onClick={() => updateActiveConfig({ doors: Math.min(10, Number(config.doors) + 1) })}
-                              className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0c0d12] border border-white/10 text-white text-base font-bold hover:border-amber-500/60 transition-all"
-                            >+</button>
+                          <div className="flex flex-col gap-1.5 mt-1 bg-[#0c0d12]/30 border border-white/5 p-3 rounded-xl">
+                            <label className="text-[11px] text-neutral-400 font-semibold">Хаалганы тоо</label>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => updateActiveConfig({ doors: Math.max(0, Number(config.doors) - 1) })}
+                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0c0d12] border border-white/10 text-white text-base font-bold hover:border-amber-500/60 transition-all"
+                              >−</button>
+                              <span className="flex-1 text-center text-white text-sm font-bold">{Number(config.doors)}</span>
+                              <button
+                                type="button"
+                                onClick={() => updateActiveConfig({ doors: Math.min(10, Number(config.doors) + 1) })}
+                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0c0d12] border border-white/10 text-white text-base font-bold hover:border-amber-500/60 transition-all"
+                              >+</button>
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
+
+                        {/* Door width/height sliders — show for supported types if doors > 0 */}
+                        {(['custom', 'kitchen_lower', 'cabinet', 'sink'].includes(selectedMod.type) && Number(config.doors) > 0) && (() => {
+                          const baseH = config.hasLegs ? Number(config.height) - 100 : Number(config.height);
+                          const defaultDWidth = Number(config.width) >= 800 ? (Number(config.width) - 10) / 2 : (Number(config.width) - 10);
+
+                          return (
+                            <div className="grid grid-cols-2 gap-4 mt-2 bg-[#0c0d12]/30 border border-white/5 p-3 rounded-xl">
+                              <div className="flex flex-col gap-1.5">
+                                <div className="flex justify-between items-center text-[11px] text-neutral-400">
+                                  <span>Хаалганы өргөн</span>
+                                  <div className="flex items-center gap-0.5">
+                                    <input
+                                      type="number"
+                                      value={config.doorWidth || Math.round(defaultDWidth)}
+                                      onChange={(e) => updateActiveConfig({ doorWidth: parseInt(e.target.value) || 0, customDoors: true })}
+                                      onBlur={(e) => {
+                                        const val = Math.max(100, Math.min(Number(config.width), parseInt(e.target.value) || 100));
+                                        updateActiveConfig({ doorWidth: val, customDoors: true });
+                                      }}
+                                      className="w-12 bg-[#0c0d12] border border-white/10 rounded px-1 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    />
+                                    <span>мм</span>
+                                  </div>
+                                </div>
+                                <input
+                                  type="range"
+                                  min={100}
+                                  max={Number(config.width)}
+                                  step={10}
+                                  value={config.doorWidth || Math.round(defaultDWidth)}
+                                  onChange={(e) => updateActiveConfig({ doorWidth: parseInt(e.target.value), customDoors: true })}
+                                  className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1.5">
+                                <div className="flex justify-between items-center text-[11px] text-neutral-400">
+                                  <span>Хаалганы өндөр</span>
+                                  <div className="flex items-center gap-0.5">
+                                    <input
+                                      type="number"
+                                      value={config.doorHeight || Math.round(baseH - 10)}
+                                      onChange={(e) => updateActiveConfig({ doorHeight: parseInt(e.target.value) || 0, customDoors: true })}
+                                      onBlur={(e) => {
+                                        const val = Math.max(100, Math.min(baseH, parseInt(e.target.value) || 100));
+                                        updateActiveConfig({ doorHeight: val, customDoors: true });
+                                      }}
+                                      className="w-12 bg-[#0c0d12] border border-white/10 rounded px-1 py-0.5 text-right text-amber-500 font-bold outline-none focus:border-amber-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    />
+                                    <span>мм</span>
+                                  </div>
+                                </div>
+                                <input
+                                  type="range"
+                                  min={100}
+                                  max={baseH}
+                                  step={10}
+                                  value={config.doorHeight || Math.round(baseH - 10)}
+                                  onChange={(e) => updateActiveConfig({ doorHeight: parseInt(e.target.value), customDoors: true })}
+                                  className="w-full h-1 bg-neutral-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                />
+                              </div>
+                            </div>
+                          );
+                        })()}
 
                       {/* Door/Drawer Style Selection (Хавтгай vs Классик) */}
                       {(Number(config.doors) > 0 || Number(config.drawers) > 0) && (
