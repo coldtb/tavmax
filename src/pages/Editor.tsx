@@ -2900,27 +2900,7 @@ return (
                 );
               })}
             </div>
-            <div className="mt-2 flex gap-1.5">
-              <button
-                onClick={() => resetModulePositions()}
-                className="flex-1 text-[9px] text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 rounded-lg py-1.5 font-bold uppercase tracking-wider transition-all cursor-pointer border border-amber-500/10"
-                type="button"
-              >
-                Тэгшлэх
-              </button>
-              <button
-                onClick={() => {
-                  if ((activeProject.modules || []).length === 0) return;
-                  if (confirm('3D дэлгэцийн бүх хайрцгийг устгах уу?')) {
-                    clearAllModules();
-                  }
-                }}
-                className="flex-1 text-[9px] text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg py-1.5 font-bold uppercase tracking-wider transition-all cursor-pointer border border-red-500/10"
-                type="button"
-              >
-                Бүгдийг устгах
-              </button>
-            </div>
+            <button onClick={() => resetModulePositions()} className="mt-1.5 w-full text-[9px] text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 rounded-lg py-1 font-bold uppercase tracking-wider transition-all cursor-pointer">Тэгшлэх</button>
           </div>
 
           {/* Custom Templates Section — always visible */}
@@ -3244,13 +3224,12 @@ return (
                     }
                   }, 50);
                 }}
-                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                  roomConfigExpanded ? 'bg-emerald-500 text-neutral-950 font-bold' : 'bg-neutral-800 text-neutral-400 border border-transparent hover:text-white hover:bg-neutral-750'
+                className={`p-2 rounded-lg transition-all cursor-pointer ${
+                  roomConfigExpanded ? 'bg-emerald-500 text-neutral-950 font-bold border border-emerald-600' : 'bg-neutral-800 text-neutral-400 border border-transparent hover:text-white hover:bg-neutral-750'
                 }`}
                 title="Өрөөний орчин: Хана, шал, өрөөний хэмжээ сонгох"
               >
-                <Home size={15} />
-                <span className="text-[11px] font-bold uppercase tracking-wider">Өрөөний хэмжээ</span>
+                <Home size={16} />
               </button>
             </div>
             <div className="w-px h-5 bg-white/10 mx-0.5 self-center" />
