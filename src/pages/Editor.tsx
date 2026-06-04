@@ -2900,7 +2900,27 @@ return (
                 );
               })}
             </div>
-            <button onClick={() => resetModulePositions()} className="mt-1.5 w-full text-[9px] text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 rounded-lg py-1 font-bold uppercase tracking-wider transition-all cursor-pointer">Тэгшлэх</button>
+            <div className="mt-2 flex gap-1.5">
+              <button
+                onClick={() => resetModulePositions()}
+                className="flex-1 text-[9px] text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 rounded-lg py-1.5 font-bold uppercase tracking-wider transition-all cursor-pointer border border-amber-500/10"
+                type="button"
+              >
+                Тэгшлэх
+              </button>
+              <button
+                onClick={() => {
+                  if ((activeProject.modules || []).length === 0) return;
+                  if (confirm('3D дэлгэцийн бүх хайрцгийг устгах уу?')) {
+                    clearAllModules();
+                  }
+                }}
+                className="flex-1 text-[9px] text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg py-1.5 font-bold uppercase tracking-wider transition-all cursor-pointer border border-red-500/10"
+                type="button"
+              >
+                Бүгдийг устгах
+              </button>
+            </div>
           </div>
 
           {/* Custom Templates Section — always visible */}
@@ -3107,7 +3127,7 @@ return (
       {/* MIDDLE COLUMN: 3D Visualizer Canvas (col-span-6 on desktop, h-[920px]) */}
       <div className={`lg:col-span-9 flex flex-col gap-4 ${isMobile ? (mobileTab === '3d' ? 'flex h-[55vh]' : 'hidden') : 'flex h-[920px]'}`}>
         {/* Visualizer HUD controls */}
-        <div className="flex justify-between items-center gap-4 bg-[#12141c] border border-white/5 px-4 py-3 rounded-xl overflow-x-auto scrollbar-none whitespace-nowrap">
+        <div className="flex flex-wrap lg:flex-nowrap justify-between items-center gap-3 bg-[#12141c] border border-white/5 px-4 py-3 rounded-xl">
           <div className="flex gap-2 shrink-0">
             <button
               onClick={() => setShowHelpModal(true)}
