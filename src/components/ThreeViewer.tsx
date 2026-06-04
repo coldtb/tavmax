@@ -2547,7 +2547,17 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
               // Distribute drawers and doors across all sections
               if (drawers > 0) {
-                secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
+                if (config.customDoors) {
+                  if (j === 0) {
+                    secDrawers = config.leftDrawers !== undefined ? Number(config.leftDrawers) : 0;
+                  } else if (j === numSections - 1) {
+                    secDrawers = config.rightDrawers !== undefined ? Number(config.rightDrawers) : 0;
+                  } else {
+                    secDrawers = config.middleDrawers !== undefined ? Number(config.middleDrawers) : 0;
+                  }
+                } else {
+                  secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
+                }
               }
               if (doors > 0) {
                 if (config.customDoors) {
@@ -4159,10 +4169,35 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
 
             // Distribute drawers and doors across all sections
             if (drawers > 0) {
-              secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
+              if (config.customDoors) {
+                if (j === 0) {
+                  secDrawers = config.leftDrawers !== undefined ? Number(config.leftDrawers) : 0;
+                } else if (j === numSections - 1) {
+                  secDrawers = config.rightDrawers !== undefined ? Number(config.rightDrawers) : 0;
+                } else {
+                  secDrawers = config.middleDrawers !== undefined ? Number(config.middleDrawers) : 0;
+                }
+              } else {
+                secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
+              }
             }
             if (doors > 0) {
-              secDoors = Math.floor(doors / numSections) + (j < doors % numSections ? 1 : 0);
+              if (config.customDoors) {
+                const leftDoorVal = config.leftDoor !== undefined ? config.leftDoor : (doors === 1 || doors >= 2 ? 1 : 0);
+                const rightDoorVal = config.rightDoor !== undefined ? config.rightDoor : (doors >= 2 ? 1 : 0);
+                const leftDoorCount = typeof leftDoorVal === 'number' ? leftDoorVal : (leftDoorVal ? 1 : 0);
+                const rightDoorCount = typeof rightDoorVal === 'number' ? rightDoorVal : (rightDoorVal ? 1 : 0);
+
+                if (j === 0) {
+                  secDoors = leftDoorCount;
+                } else if (j === numSections - 1) {
+                  secDoors = rightDoorCount;
+                } else {
+                  secDoors = 0;
+                }
+              } else {
+                secDoors = Math.floor(doors / numSections) + (j < doors % numSections ? 1 : 0);
+              }
             }
 
             const sectionH = bodyHeight - 10;

@@ -1813,17 +1813,26 @@ export const Editor: React.FC = () => {
                     <div className="flex flex-col gap-2">
                       <div className="flex justify-between items-center">
                         <label className="text-xs text-neutral-400 font-semibold">Хаалганы тохиргоо</label>
-                        {selectedMod.type !== 'cabinet' && (
+                        {(selectedMod.type !== 'cabinet' || (config.partitions !== undefined && Number(config.partitions) > 0)) && (
                           <label className="flex items-center gap-1.5 cursor-pointer text-[10px] text-neutral-400 select-none hover:text-white transition-all">
                             <input
                               type="checkbox"
                               checked={config.customDoors !== undefined ? !!config.customDoors : (selectedMod.type === 'custom')}
                               onChange={(e) => {
                                 const isCustom = e.target.checked;
-                                updateActiveConfig({
-                                  customDoors: isCustom,
-                                  doors: isCustom ? ((config.leftDoor !== false ? 1 : 0) + (config.rightDoor !== false ? 1 : 0)) : 2
-                                });
+                                if (isCustom) {
+                                  const currentDrawers = config.drawers || 0;
+                                  updateActiveConfig({
+                                    customDoors: true,
+                                    leftDrawers: currentDrawers,
+                                    rightDrawers: 0,
+                                    doors: ((config.leftDoor !== false ? 1 : 0) + (config.rightDoor !== false ? 1 : 0))
+                                  });
+                                } else {
+                                  updateActiveConfig({
+                                    customDoors: false
+                                  });
+                                }
                               }}
                               className="w-3.5 h-3.5 bg-[#0c0d12] border border-white/10 rounded accent-amber-500 cursor-pointer"
                             />
@@ -1832,7 +1841,7 @@ export const Editor: React.FC = () => {
                         )}
                       </div>
 
-                      {((config.customDoors !== undefined ? config.customDoors : (selectedMod.type === 'custom')) && selectedMod.type !== 'cabinet') ? (
+                      {((config.customDoors !== undefined ? config.customDoors : (selectedMod.type === 'custom'))) ? (
                         <div className="flex flex-col gap-1.5 w-full">
                           <div className="flex flex-col gap-2.5 mt-1 bg-[#0c0d12]/50 border border-white/5 p-3 rounded-xl">
                             <div className="flex items-center justify-between">
@@ -1912,6 +1921,91 @@ export const Editor: React.FC = () => {
                                 </button>
                               </div>
                             </div>
+
+                            {/* Drawers config (if cabinet/custom/kitchen_lower) */}
+                            {(selectedMod.type === 'kitchen_lower' || selectedMod.type === 'custom' || selectedMod.type === 'cabinet') && (
+                              <>
+                                <div className="h-px bg-white/5 my-1" />
+                                
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-neutral-300 font-medium">Зүүн шургуулганы тоо</span>
+                                  <div className="flex items-center gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const curr = Number(config.leftDrawers) || 0;
+                                        const nextVal = Math.max(0, curr - 1);
+                                        const rightVal = Number(config.rightDrawers) || 0;
+                                        updateActiveConfig({
+                                          leftDrawers: nextVal,
+                                          drawers: nextVal + rightVal
+                                        });
+                                      }}
+                                      className="w-6 h-6 flex items-center justify-center rounded-md bg-neutral-800 hover:bg-red-500/20 hover:text-red-400 text-neutral-400 font-bold text-sm transition-all cursor-pointer border border-white/5"
+                                    >
+                                      −
+                                    </button>
+                                    <span className="w-6 text-center text-xs text-white font-bold">
+                                      {Number(config.leftDrawers) || 0}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const curr = Number(config.leftDrawers) || 0;
+                                        const nextVal = Math.min(10, curr + 1);
+                                        const rightVal = Number(config.rightDrawers) || 0;
+                                        updateActiveConfig({
+                                          leftDrawers: nextVal,
+                                          drawers: nextVal + rightVal
+                                        });
+                                      }}
+                                      className="w-6 h-6 flex items-center justify-center rounded-md bg-neutral-800 hover:bg-emerald-500/20 hover:text-emerald-400 text-neutral-400 font-bold text-sm transition-all cursor-pointer border border-white/5"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-neutral-300 font-medium">Баруун шургуулганы тоо</span>
+                                  <div className="flex items-center gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const curr = Number(config.rightDrawers) || 0;
+                                        const nextVal = Math.max(0, curr - 1);
+                                        const leftVal = Number(config.leftDrawers) || 0;
+                                        updateActiveConfig({
+                                          rightDrawers: nextVal,
+                                          drawers: leftVal + nextVal
+                                        });
+                                      }}
+                                      className="w-6 h-6 flex items-center justify-center rounded-md bg-neutral-800 hover:bg-red-500/20 hover:text-red-400 text-neutral-400 font-bold text-sm transition-all cursor-pointer border border-white/5"
+                                    >
+                                      −
+                                    </button>
+                                    <span className="w-6 text-center text-xs text-white font-bold">
+                                      {Number(config.rightDrawers) || 0}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const curr = Number(config.rightDrawers) || 0;
+                                        const nextVal = Math.min(10, curr + 1);
+                                        const leftVal = Number(config.leftDrawers) || 0;
+                                        updateActiveConfig({
+                                          rightDrawers: nextVal,
+                                          drawers: leftVal + nextVal
+                                        });
+                                      }}
+                                      className="w-6 h-6 flex items-center justify-center rounded-md bg-neutral-800 hover:bg-emerald-500/20 hover:text-emerald-400 text-neutral-400 font-bold text-sm transition-all cursor-pointer border border-white/5"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                </div>
+                              </>
+                            )}
                           </div>
                         </div>
                       ) : (
