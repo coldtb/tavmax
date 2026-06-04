@@ -139,6 +139,7 @@ export const Editor: React.FC = () => {
 
   const getCategoryByType = (type: string, id?: string) => {
     if (id === 'tall_kitchen' || id === 'tall_kitchen_open') return 'kitchen';
+    if (['nightstand', 'nightstand_r', 'dresser', 'tall_wardrobe_drawer', 'dressing_table', 'shoe_cabinet'].includes(id || '')) return 'bedroom';
     if (['wardrobe'].includes(type)) return 'bedroom';
     if (['kitchen_lower', 'kitchen_upper', 'sink', 'built_in_hood', 'fridge', 'cooktop', 'hood', 'microwave', 'oven', 'dishwasher'].includes(type)) return 'kitchen';
     if (['bookshelf', 'cabinet', 'tv_unit', 'vitrine'].includes(type)) return 'living';
@@ -538,6 +539,119 @@ export const Editor: React.FC = () => {
         color: '#faf9f6',
         glassLeft: true,
         glassRight: false
+      }
+    },
+
+    // ─── Унтлагын өрөөний тавилга ───
+    {
+      id: 'nightstand',
+      name: '🛏️ Шөнийн тумбочка (Зүүн)',
+      type: 'cabinet' as const,
+      config: {
+        width: 450,
+        height: 500,
+        depth: 400,
+        shelves: 0,
+        drawers: 2,
+        doors: 0,
+        hasLegs: true,
+        handleType: 'minimal' as const,
+        materialId: 'mat-3',
+        doorMaterialId: 'mat-3',
+        color: '#faf9f6'
+      }
+    },
+    {
+      id: 'nightstand_r',
+      name: '🛏️ Шөнийн тумбочка (Баруун)',
+      type: 'cabinet' as const,
+      config: {
+        width: 450,
+        height: 500,
+        depth: 400,
+        shelves: 1,
+        drawers: 1,
+        doors: 1,
+        hasLegs: true,
+        handleType: 'minimal' as const,
+        materialId: 'mat-3',
+        doorMaterialId: 'mat-3',
+        color: '#faf9f6'
+      }
+    },
+    {
+      id: 'dresser',
+      name: '🪟 Комод / Будалт',
+      type: 'cabinet' as const,
+      config: {
+        width: 1200,
+        height: 850,
+        depth: 500,
+        shelves: 0,
+        drawers: 6,
+        doors: 0,
+        partitions: 1,
+        hasLegs: true,
+        handleType: 'modern' as const,
+        materialId: 'mat-3',
+        doorMaterialId: 'mat-3',
+        color: '#faf9f6'
+      }
+    },
+    {
+      id: 'tall_wardrobe_drawer',
+      name: '👔 Хувцасны шкаф + Шургуулга',
+      type: 'wardrobe' as const,
+      config: {
+        width: 1200,
+        height: 2200,
+        depth: 600,
+        shelves: 3,
+        drawers: 3,
+        doors: 2,
+        partitions: 1,
+        hasLegs: false,
+        handleType: 'modern' as const,
+        materialId: 'mat-3',
+        doorMaterialId: 'mat-3',
+        color: '#faf9f6'
+      }
+    },
+    {
+      id: 'dressing_table',
+      name: '💄 Будлааны ширээ',
+      type: 'cabinet' as const,
+      config: {
+        width: 1000,
+        height: 750,
+        depth: 450,
+        shelves: 0,
+        drawers: 4,
+        doors: 0,
+        partitions: 1,
+        hasLegs: true,
+        handleType: 'minimal' as const,
+        materialId: 'mat-3',
+        doorMaterialId: 'mat-3',
+        color: '#faf9f6'
+      }
+    },
+    {
+      id: 'shoe_cabinet',
+      name: '👟 Гутлын тавиур',
+      type: 'cabinet' as const,
+      config: {
+        width: 900,
+        height: 1100,
+        depth: 350,
+        shelves: 4,
+        drawers: 1,
+        doors: 2,
+        hasLegs: true,
+        handleType: 'minimal' as const,
+        materialId: 'mat-3',
+        doorMaterialId: 'mat-3',
+        color: '#faf9f6'
       }
     },
 
