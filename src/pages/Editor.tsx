@@ -56,13 +56,47 @@ export const Editor: React.FC = () => {
   const [snapping, setSnapping] = useState(true);
   const [measureMode, setMeasureMode] = useState(false);
   const [viewMode, setViewMode] = useState<'perspective' | 'front' | 'top' | 'side'>('perspective');
-  const [showRoom, setShowRoom] = useState(false);
-  const [roomWallColor, setRoomWallColor] = useState('#f5f0eb');
-  const [roomFloorType, setRoomFloorType] = useState<'wood' | 'tile' | 'marble' | 'concrete'>('wood');
-  const [roomWidth, setRoomWidth] = useState(4000);
-  const [roomDepth, setRoomDepth] = useState(3000);
-  const [roomHeight, setRoomHeight] = useState(2700);
+  const [showRoom, setShowRoom] = useState(() => {
+    return localStorage.getItem('tavmax-show-room') === 'true';
+  });
+  const [roomWallColor, setRoomWallColor] = useState(() => {
+    return localStorage.getItem('tavmax-room-wall-color') || '#f5f0eb';
+  });
+  const [roomFloorType, setRoomFloorType] = useState<'wood' | 'tile' | 'marble' | 'concrete'>(() => {
+    return (localStorage.getItem('tavmax-room-floor-type') as any) || 'wood';
+  });
+  const [roomWidth, setRoomWidth] = useState(() => {
+    const val = localStorage.getItem('tavmax-room-width');
+    return val ? Number(val) : 4000;
+  });
+  const [roomDepth, setRoomDepth] = useState(() => {
+    const val = localStorage.getItem('tavmax-room-depth');
+    return val ? Number(val) : 3000;
+  });
+  const [roomHeight, setRoomHeight] = useState(() => {
+    const val = localStorage.getItem('tavmax-room-height');
+    return val ? Number(val) : 2700;
+  });
   const [showRoomPanel, setShowRoomPanel] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('tavmax-show-room', String(showRoom));
+  }, [showRoom]);
+  useEffect(() => {
+    localStorage.setItem('tavmax-room-wall-color', roomWallColor);
+  }, [roomWallColor]);
+  useEffect(() => {
+    localStorage.setItem('tavmax-room-floor-type', roomFloorType);
+  }, [roomFloorType]);
+  useEffect(() => {
+    localStorage.setItem('tavmax-room-width', String(roomWidth));
+  }, [roomWidth]);
+  useEffect(() => {
+    localStorage.setItem('tavmax-room-depth', String(roomDepth));
+  }, [roomDepth]);
+  useEffect(() => {
+    localStorage.setItem('tavmax-room-height', String(roomHeight));
+  }, [roomHeight]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showTemplatePanel, setShowTemplatePanel] = useState(true);
   const [panelWidth, setPanelWidth] = useState(320);
@@ -3080,47 +3114,115 @@ return (
                       </div>
 
                       {/* Room Dimensions */}
-                      <div className="space-y-2">
+                      <div className="space-y-2.5">
                         <label className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider block">Өрөөний хэмжээ</label>
-                        <div className="space-y-1.5">
+                        
+                        {/* Quick Presets */}
+                        <div className="flex gap-1">
+                          {[
+                            { label: '3х3м', w: 3000, d: 3000, h: 2700 },
+                            { label: '4х3м', w: 4000, d: 3000, h: 2700 },
+                            { label: '5х4м', w: 5000, d: 4000, h: 2700 },
+                            { label: '6х5м', w: 6000, d: 5000, h: 2800 },
+                          ].map((preset) => (
+                            <button
+                              key={preset.label}
+                              onClick={() => {
+                                setRoomWidth(preset.w);
+                                setRoomDepth(preset.d);
+                                setRoomHeight(preset.h);
+                              }}
+                              className="flex-1 text-[8px] font-bold bg-neutral-800/80 hover:bg-amber-500 hover:text-neutral-950 text-neutral-400 py-1.5 rounded transition-all cursor-pointer border border-white/5"
+                              type="button"
+                            >
+                              {preset.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="space-y-2">
+                          {/* Width */}
                           <div className="flex items-center gap-2">
-                            <span className="text-[9px] text-neutral-500 w-12">Өргөн</span>
+                            <span className="text-[9px] text-neutral-500 w-8 shrink-0">Өргөн</span>
                             <input
                               type="range"
-                              min={2000}
-                              max={8000}
+                              min={1000}
+                              max={10000}
                               step={100}
                               value={roomWidth}
                               onChange={(e) => setRoomWidth(Number(e.target.value))}
                               className="flex-1 h-1 accent-amber-500 cursor-pointer"
                             />
-                            <span className="text-[9px] text-amber-400 font-bold w-14 text-right">{roomWidth}мм</span>
+                            <div className="flex items-center gap-0.5 shrink-0">
+                              <input
+                                type="number"
+                                min={1000}
+                                max={10000}
+                                value={roomWidth}
+                                onChange={(e) => {
+                                  const val = Math.max(1000, Math.min(10000, Number(e.target.value) || 0));
+                                  setRoomWidth(val);
+                                }}
+                                className="w-14 bg-neutral-850 text-amber-400 font-bold text-[9px] px-1 py-0.5 rounded border border-white/10 text-right focus:outline-none focus:border-amber-500"
+                              />
+                              <span className="text-[8px] text-neutral-500 font-bold">мм</span>
+                            </div>
                           </div>
+
+                          {/* Depth */}
                           <div className="flex items-center gap-2">
-                            <span className="text-[9px] text-neutral-500 w-12">Гүн</span>
+                            <span className="text-[9px] text-neutral-500 w-8 shrink-0">Гүн</span>
                             <input
                               type="range"
-                              min={2000}
-                              max={8000}
+                              min={1000}
+                              max={10000}
                               step={100}
                               value={roomDepth}
                               onChange={(e) => setRoomDepth(Number(e.target.value))}
                               className="flex-1 h-1 accent-amber-500 cursor-pointer"
                             />
-                            <span className="text-[9px] text-amber-400 font-bold w-14 text-right">{roomDepth}мм</span>
+                            <div className="flex items-center gap-0.5 shrink-0">
+                              <input
+                                type="number"
+                                min={1000}
+                                max={10000}
+                                value={roomDepth}
+                                onChange={(e) => {
+                                  const val = Math.max(1000, Math.min(10000, Number(e.target.value) || 0));
+                                  setRoomDepth(val);
+                                }}
+                                className="w-14 bg-neutral-850 text-amber-400 font-bold text-[9px] px-1 py-0.5 rounded border border-white/10 text-right focus:outline-none focus:border-amber-500"
+                              />
+                              <span className="text-[8px] text-neutral-500 font-bold">мм</span>
+                            </div>
                           </div>
+
+                          {/* Height */}
                           <div className="flex items-center gap-2">
-                            <span className="text-[9px] text-neutral-500 w-12">Өндөр</span>
+                            <span className="text-[9px] text-neutral-500 w-8 shrink-0">Өндөр</span>
                             <input
                               type="range"
-                              min={2000}
-                              max={8000}
+                              min={1500}
+                              max={6000}
                               step={100}
                               value={roomHeight}
                               onChange={(e) => setRoomHeight(Number(e.target.value))}
                               className="flex-1 h-1 accent-amber-500 cursor-pointer"
                             />
-                            <span className="text-[9px] text-amber-400 font-bold w-14 text-right">{roomHeight}мм</span>
+                            <div className="flex items-center gap-0.5 shrink-0">
+                              <input
+                                type="number"
+                                min={1500}
+                                max={6000}
+                                value={roomHeight}
+                                onChange={(e) => {
+                                  const val = Math.max(1500, Math.min(6000, Number(e.target.value) || 0));
+                                  setRoomHeight(val);
+                                }}
+                                className="w-14 bg-neutral-850 text-amber-400 font-bold text-[9px] px-1 py-0.5 rounded border border-white/10 text-right focus:outline-none focus:border-amber-500"
+                              />
+                              <span className="text-[8px] text-neutral-500 font-bold">мм</span>
+                            </div>
                           </div>
                         </div>
                       </div>
