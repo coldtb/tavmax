@@ -3207,7 +3207,7 @@ return (
       </div>
 
       {/* MIDDLE COLUMN: 3D Visualizer Canvas (col-span-6 on desktop, h-[920px]) */}
-      <div className={`lg:col-span-9 flex flex-col gap-4 ${isMobile ? (mobileTab === '3d' ? 'flex h-[55vh]' : 'hidden') : 'flex h-[920px]'}`}>
+      <div className={`lg:col-span-9 flex flex-col gap-4 ${isMobile ? (mobileTab === '3d' ? 'flex h-auto w-full' : 'hidden') : 'flex h-[920px]'}`}>
         {/* Visualizer HUD controls */}
         <div className="flex flex-wrap lg:flex-nowrap justify-between items-center gap-3 bg-[#12141c] border border-white/5 px-4 py-3 rounded-xl">
           <div className="flex gap-2 shrink-0">
@@ -3217,7 +3217,7 @@ return (
               title="Ашиглах зааварчилгаа нээх"
             >
               <HelpCircle size={11} className="shrink-0" />
-              <span>💡 Тусламж</span>
+              <span>{isMobile ? '💡 Заавар' : '💡 Тусламж'}</span>
             </button>
             <div className="w-px h-5 bg-white/10 mx-0.5 self-center" />
             <button
@@ -3227,7 +3227,7 @@ return (
               }`}
               title="3D орон зайд чөлөөтэй эргүүлж харах"
             >
-              3D Харагдац
+              {isMobile ? '3D' : '3D Харагдац'}
             </button>
             <button
               onClick={() => setViewMode('front')}
@@ -3236,7 +3236,7 @@ return (
               }`}
               title="Тавилгыг яг урдаас нь тэгш харах"
             >
-              Урдаас
+              {isMobile ? 'Урд' : 'Урдаас'}
             </button>
             <button
               onClick={() => setViewMode('top')}
@@ -3245,7 +3245,7 @@ return (
               }`}
               title="Тавилгыг дээрээс нь тэгш харах"
             >
-              Дээрээс
+              {isMobile ? 'Дээр' : 'Дээрээс'}
             </button>
             <button
               onClick={() => setViewMode('side')}
@@ -3254,7 +3254,7 @@ return (
               }`}
               title="Тавилгыг хажуу талаас нь тэгш харах"
             >
-              Хажуугаас
+              {isMobile ? 'Хажуу' : 'Хажуугаас'}
             </button>
           </div>
           <div className="flex gap-1.5 shrink-0">
@@ -3352,7 +3352,11 @@ return (
 
         {/* 3D Canvas element wrapper */}
         <div
-          className={`flex-1 rounded-2xl overflow-hidden border transition-all relative ${
+          className={`rounded-2xl overflow-hidden border transition-all relative ${
+            isMobile
+              ? (showFloatingConfig ? 'h-[40vh] w-full' : 'h-[72vh] w-full')
+              : 'flex-1'
+          } ${
             isDragOver ? 'border-amber-500 shadow-lg shadow-amber-500/10' : 'border-transparent hover:border-amber-500/30'
           }`}
           onDragOver={(e) => {
@@ -3692,7 +3696,7 @@ return (
             );
           })()}
 
-          {showFloatingConfig && selectedMod && (
+          {!isMobile && showFloatingConfig && selectedMod && (
             <>
               {/* Backdrop — click to close */}
               <div
@@ -3710,6 +3714,16 @@ return (
             </>
           )}
         </div>
+
+        {isMobile && showFloatingConfig && selectedMod && (
+          <div
+            className="w-full flex flex-col gap-0 bg-[#0e1018] border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+            style={{ maxHeight: '45vh' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {renderConfigurator(true)}
+          </div>
+        )}
       </div>
       {/* RIGHT COLUMN REMOVED — settings accessible via right-click floating overlay */}
       <div className="hidden">
