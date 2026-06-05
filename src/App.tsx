@@ -229,7 +229,7 @@ export const App: React.FC = () => {
       </div>
 
       {/* Floating Debug Panel */}
-      <div className="fixed bottom-4 right-4 z-[999999] flex flex-col items-end gap-2">
+      <div className="hidden lg:flex fixed bottom-4 right-4 z-[999999] flex-col items-end gap-2">
         <button
           onClick={() => setShowDebug(!showDebug)}
           className="px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-[10px] font-bold text-amber-500 hover:bg-neutral-800 transition-colors shadow-xl shadow-black/50 cursor-pointer"
