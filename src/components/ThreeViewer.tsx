@@ -1036,17 +1036,17 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
         if (raycaster.ray.intersectPlane(dragPlane, dragIntersection)) {
           const targetPos = dragIntersection.clone().add(dragOffset);
           let targetX = targetPos.x;
-        let targetZ = targetPos.z;
+          let targetZ = targetPos.z;
+          const currentModules = projectRef.current.modules || [];
+          const activeModId = draggedGroup.name;
+          const activeMod = currentModules.find(m => m.id === activeModId);
+          const activeW = activeMod ? activeMod.config.width : 600;
+          const activeD = activeMod ? activeMod.config.depth : 600;
 
           if (enableSnappingRef.current) {
             const SNAP_THRESHOLD = 100; // snap if within 100mm
-            const currentModules = projectRef.current.modules || [];
-            const activeModId = draggedGroup.name;
-            const activeMod = currentModules.find(m => m.id === activeModId);
  
             if (activeMod) {
-              const activeW = activeMod.config.width;
-              const activeD = activeMod.config.depth;
               const activeRot = activeMod.rotation || 0;
               const activeCos = Math.cos(activeRot);
               const activeSin = Math.sin(activeRot);
