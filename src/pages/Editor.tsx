@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useProjectStore, getCabinetSections } from '../store/projectStore';
-import { ThreeViewer } from '../components/ThreeViewer';
+import { ThreeViewer, type ThreeViewerRef } from '../components/ThreeViewer';
 import { exportProjectToPDF } from '../utils/pdfExport';
 import { runNestingOptimizer } from '../utils/nesting';
 import type { NestingPartInput } from '../utils/nesting';
@@ -49,6 +49,8 @@ export const Editor: React.FC = () => {
     loadLayout,
     clearAllModules,
   } = useProjectStore();
+
+  const threeViewerRef = useRef<ThreeViewerRef>(null);
 
   const [explode, setExplode] = useState(false);
   const [showDimensions, setShowDimensions] = useState(true);
@@ -1361,14 +1363,20 @@ export const Editor: React.FC = () => {
                     {/* Drawers count */}
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs text-neutral-400 font-semibold">Шургуулганы тоо</label>
-                      <input
-                        type="number"
-                        min={0}
-                        max={10}
-                        value={config.drawers}
-                        onChange={(e) => updateActiveConfig({ drawers: Math.max(0, parseInt(e.target.value) || 0) })}
-                        className="w-full bg-[#0c0d12] border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-amber-500"
-                      />
+                      {['kitchen_lower', 'cabinet', 'wardrobe', 'custom'].includes(selectedMod.type) ? (
+                        <input
+                          type="number"
+                          min={0}
+                          max={10}
+                          value={config.drawers}
+                          onChange={(e) => updateActiveConfig({ drawers: Math.max(0, parseInt(e.target.value) || 0) })}
+                          className="w-full bg-[#0c0d12] border border-white/10 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-amber-500"
+                        />
+                      ) : (
+                        <div className="w-full bg-[#0c0d12]/30 border border-white/5 rounded-xl px-3 py-2 text-neutral-600 text-[10px] font-semibold italic flex items-center justify-center min-h-[38px] select-none" title="Энэ шүүгээний загвар шургуулга дэмжихгүй">
+                          Энэ загварт боломжгүй
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -3366,19 +3374,19 @@ return (
             // 1. Try template drop (add new module)
             const tplId = e.dataTransfer.getData('text/plain');
             if (tplId) {
+              let tpl;
               if (tplId.startsWith('custom-')) {
                 const realId = tplId.replace('custom-', '');
-                const tpl = customTemplates.find((t) => t.id === realId);
-                if (tpl) {
-                  addModuleToActive(tpl.type, tpl.config, tpl.name);
-                  return;
-                }
+                tpl = customTemplates.find((t) => t.id === realId);
               } else {
-                const tpl = templates.find((t) => t.id === tplId);
-                if (tpl) {
-                  addModuleToActive(tpl.type, tpl.config, tpl.name);
-                  return;
-                }
+                tpl = templates.find((t) => t.id === tplId);
+              }
+              if (tpl) {
+                const pt = threeViewerRef.current?.get3DPoint(e.clientX, e.clientY);
+                const isUpper = tpl.type === 'kitchen_upper' || tpl.type === 'hood' || tpl.type === 'built_in_hood' || tpl.type === 'microwave';
+                const initialCoords = pt ? { x: Math.round(pt.x), y: isUpper ? 1400 : 0, z: Math.round(pt.z) } : undefined;
+                addModuleToActive(tpl.type, tpl.config, tpl.name, initialCoords);
+                return;
               }
             }
 
@@ -3414,6 +3422,7 @@ return (
           )}
 
           <ThreeViewer
+            ref={threeViewerRef}
             project={activeProject}
             materials={materials}
             explode={explode}

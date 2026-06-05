@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useImperativeHandle } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import type { Project, Material } from '../data/mockData';
@@ -6,7 +6,11 @@ import { useProjectStore, getCabinetSections, getCabinetFrontPanels } from '../s
 import { Box } from 'lucide-react';
 
 
-interface ThreeViewerProps {
+export interface ThreeViewerRef {
+  get3DPoint: (clientX: number, clientY: number) => { x: number, y: number, z: number } | null;
+}
+
+export interface ThreeViewerProps {
   project: Project;
   materials: Material[];
   explode: boolean;     // Explode view state
@@ -165,7 +169,7 @@ const getMarbleTexture = () => {
   return cachedMarbleTex;
 };
 
-export const ThreeViewer: React.FC<ThreeViewerProps> = ({
+export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
   project,
   materials,
   explode,
@@ -182,7 +186,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
   roomWidth = 4000,
   roomDepth = 3000,
   roomHeight = 2700,
-}) => {
+}, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -225,6 +229,24 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
     console.log("ThreeViewer: openDoors changed to", openDoors);
     openDoorsRef.current = openDoors;
   }, [openDoors]);
+
+  useImperativeHandle(ref, () => ({
+    get3DPoint: (clientX: number, clientY: number) => {
+      if (!rendererRef.current || !cameraRef.current) return null;
+      const rect = rendererRef.current.domElement.getBoundingClientRect();
+      const x = ((clientX - rect.left) / rect.width) * 2 - 1;
+      const y = -((clientY - rect.top) / rect.height) * 2 + 1;
+      
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(new THREE.Vector2(x, y), cameraRef.current);
+      
+      const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+      const point = new THREE.Vector3();
+      raycaster.ray.intersectPlane(groundPlane, point);
+      
+      return { x: point.x, y: point.y, z: point.z };
+    }
+  }));
 
   const selectedModuleId = useProjectStore((s) => s.selectedModuleId);
   const updateModulePosition = useProjectStore((s) => s.updateModulePosition);
@@ -511,6 +533,7 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
     let dragStartY = 0;
     let dragThresholdPassed = false;
     let activeDragType: 'module' | 'shelf' | 'partition' | null = null;
+    let clickedEmpty = false;
 
     try {
       // 1. Scene setup
@@ -1186,9 +1209,13 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
             }
           }
 
-          // Safety clamp to active workspace boundaries (5m x 4m)
-          targetX = Math.max(-5000, Math.min(5000, targetX || 0));
-          targetZ = Math.max(-4000, Math.min(4000, targetZ || 0));
+          // Safety clamp to active room boundaries (roomWidth x roomDepth)
+          const halfRoomW = Math.max(500, roomWidthRef.current / 2);
+          const halfRoomD = Math.max(500, roomDepthRef.current / 2);
+          const padX = Math.min(halfRoomW, activeW / 2);
+          const padZ = Math.min(halfRoomD, activeD / 2);
+          targetX = Math.max(-halfRoomW + padX, Math.min(halfRoomW - padX, targetX || 0));
+          targetZ = Math.max(-halfRoomD + padZ, Math.min(halfRoomD - padZ, targetZ || 0));
 
           draggedGroup.position.x = targetX;
           draggedGroup.position.z = targetZ;
@@ -4913,6 +4940,6 @@ export const ThreeViewer: React.FC<ThreeViewerProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default ThreeViewer;

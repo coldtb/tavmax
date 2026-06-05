@@ -38,7 +38,7 @@ interface ProjectState {
   changeActiveFurnitureType: (type: Project['furnitureType'], newConfig: FurnitureConfig) => void;
   
   // Multi-module layout operations
-  addModuleToActive: (type: CabinetModule['type'], config: FurnitureConfig, name?: string) => void;
+  addModuleToActive: (type: CabinetModule['type'], config: FurnitureConfig, name?: string, initialCoords?: { x: number, y: number, z: number }) => void;
   removeModuleFromActive: (moduleId: string) => void;
   updateModulePosition: (moduleId: string, x: number, y: number, z: number) => void;
   updateModuleRotation: (moduleId: string, rotationDeg: number) => void;
@@ -1709,7 +1709,7 @@ export const useProjectStore = create<ProjectState>()(
     };
   }),
 
-  addModuleToActive: (type, incomingConfig, name) => set((state) => {
+  addModuleToActive: (type, incomingConfig, name, initialCoords) => set((state) => {
     if (!state.activeProject) return {};
 
     const projectConfig = state.activeProject.config || {};
@@ -1728,22 +1728,27 @@ export const useProjectStore = create<ProjectState>()(
     let initialY = isUpper ? 1400 : 0;
     let initialZ = 0;
     
-    // Find currently selected module to place relative to it
-    const selectedMod = modules.find(m => m.id === state.selectedModuleId);
-    
-    if (selectedMod) {
-      // Place next to the selected module
-      initialX = selectedMod.xOffset + selectedMod.config.width / 2 + config.width / 2 + 10;
-      initialY = selectedMod.yOffset;
-      // Force correct height level if the selected module height is on a different row than the new module
-      if (isUpper && selectedMod.yOffset < 1000) {
-        initialY = 1400;
-      }
-      if (!isUpper && selectedMod.yOffset >= 1000) {
-        initialY = 0;
-      }
-      initialZ = selectedMod.zOffset;
+    if (initialCoords) {
+      initialX = initialCoords.x;
+      initialY = initialCoords.y !== undefined ? initialCoords.y : (isUpper ? 1400 : 0);
+      initialZ = initialCoords.z;
     } else {
+      // Find currently selected module to place relative to it
+      const selectedMod = modules.find(m => m.id === state.selectedModuleId);
+      
+      if (selectedMod) {
+        // Place next to the selected module
+        initialX = selectedMod.xOffset + selectedMod.config.width / 2 + config.width / 2 + 10;
+        initialY = selectedMod.yOffset;
+        // Force correct height level if the selected module height is on a different row than the new module
+        if (isUpper && selectedMod.yOffset < 1000) {
+          initialY = 1400;
+        }
+        if (!isUpper && selectedMod.yOffset >= 1000) {
+          initialY = 0;
+        }
+        initialZ = selectedMod.zOffset;
+      } else {
       // Fallback: row-aware rightmost positioning
       const upperModules = modules.filter(m => m.type === 'kitchen_upper' || m.type === 'hood' || m.type === 'built_in_hood' || m.type === 'microwave');
       const lowerModules = modules.filter(m => !(m.type === 'kitchen_upper' || m.type === 'hood' || m.type === 'built_in_hood' || m.type === 'microwave'));
@@ -1796,6 +1801,7 @@ export const useProjectStore = create<ProjectState>()(
         }
       }
     }
+  }
 
     const modId = `mod-${Date.now()}`;
     const newModule: CabinetModule = {
