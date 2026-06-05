@@ -10,7 +10,7 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigate }) => {
-  const { projects, deleteProject, addProject, materials, addCustomTemplate } = useProjectStore();
+  const { projects, addProject, materials, addCustomTemplate } = useProjectStore();
 
   const [showAiModal, setShowAiModal] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -231,13 +231,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigat
     (p) => p.id === 'proj-1' || p.id === 'proj-2' || p.id === 'proj-3' || p.id === 'proj-tv'
   );
 
-  const userProjects = projects.filter(
-    (p) => p.id !== 'proj-empty' && 
-           p.id !== 'proj-1' && 
-           p.id !== 'proj-2' && 
-           p.id !== 'proj-3' && 
-           p.id !== 'proj-tv'
-  );
 
   return (
     <div className="flex flex-col gap-10 pb-16 max-w-6xl mx-auto animate-fade-in text-neutral-200">
@@ -328,116 +321,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigat
 
 
 
-      {/* 6. USER'S RECENT PROJECTS */}
-      {userProjects.length > 0 && (
-        <div className="flex flex-col gap-4">
-          <div className="flex justify-between items-center">
-            <div className="flex flex-col gap-1">
-              <h2 className="font-display font-extrabold text-xl text-white">Миний сүүлийн загварууд</h2>
-              <p className="text-neutral-500 text-xs">Таны өмнө нь ажиллаж байсан, хадгалсан хувийн төслүүд.</p>
-            </div>
-            <button
-              onClick={() => {
-                if (confirm('Та бүх хувийн загвараа устгахдаа итгэлтэй байна уу?')) {
-                  userProjects.forEach((proj) => deleteProject(proj.id));
-                }
-              }}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-500/10 hover:bg-red-500 hover:text-neutral-950 text-red-400 text-xs font-bold transition-all border border-red-500/10 cursor-pointer"
-              title="Бүх хувийн загварыг устгах"
-            >
-              <Trash2 size={14} />
-              Бүгдийг устгах
-            </button>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {userProjects.map((proj) => {
-              const mat = materials.find((m) => m.id === proj.config.materialId) || materials[0];
-              const getProjectImage = (type: string) => {
-                if (type === 'wardrobe') return '/templates/wardrobe.png';
-                if (type === 'kitchen_lower') return '/templates/kitchen_lower.png';
-                if (type === 'bookshelf') return '/templates/bookshelf.png';
-                if (type === 'cabinet') return '/templates/tv.png';
-                return '/templates/empty.png';
-              };
-              return (
-                <div
-                  key={proj.id}
-                  className="bg-[#12141c] border border-white/5 hover:border-amber-500/30 rounded-2xl overflow-hidden shadow-lg transition-all group flex flex-col justify-between"
-                >
-                  <div className="p-6">
-                    <div className="flex justify-between items-start gap-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-xl bg-neutral-900 border border-white/5 overflow-hidden shrink-0">
-                          <img
-                            src={getProjectImage(proj.furnitureType)}
-                            alt={proj.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.src = '/templates/empty.png';
-                            }}
-                          />
-                        </div>
-                        <div>
-                          <h3 className="font-display font-bold text-white group-hover:text-amber-500 transition-colors text-base">
-                            {proj.name}
-                          </h3>
-                          <p className="text-xs text-neutral-500 mt-1">
-                            Шинэчлэсэн: {new Date(proj.updatedAt).toLocaleDateString('mn-MN')}
-                          </p>
-                        </div>
-                      </div>
-                      <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold uppercase tracking-wider shrink-0">
-                        Миний загвар
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2 bg-neutral-900/50 rounded-xl p-3 mt-5 text-[11px] text-neutral-400">
-                      <div>
-                        <span className="block text-[9px] text-neutral-500 uppercase">Өргөн</span>
-                        <span className="font-semibold text-white">{proj.config.width} мм</span>
-                      </div>
-                      <div>
-                        <span className="block text-[9px] text-neutral-500 uppercase">Өндөр</span>
-                        <span className="font-semibold text-white">{proj.config.height} мм</span>
-                      </div>
-                      <div>
-                        <span className="block text-[9px] text-neutral-500 uppercase">Гүн</span>
-                        <span className="font-semibold text-white">{proj.config.depth} мм</span>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex items-center gap-2">
-                      <span className="w-3.5 h-3.5 rounded-full border border-white/10" style={{ backgroundColor: mat.color }} />
-                      <span className="text-xs text-neutral-400">{mat.name} ({mat.thickness}мм)</span>
-                    </div>
-                  </div>
-
-                  <div className="px-6 py-4 bg-neutral-900/40 border-t border-white/5 flex justify-between items-center gap-4">
-                    <span className="text-sm font-bold text-amber-500">{proj.price.toLocaleString('mn-MN')} ₮</span>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => deleteProject(proj.id)}
-                        className="p-2 rounded-lg bg-neutral-800/50 hover:bg-red-500/20 text-neutral-400 hover:text-red-400 transition-colors cursor-pointer"
-                        title="Устгах"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                      <button
-                        onClick={() => handleOpenProject(proj)}
-                        className="px-4 py-2 bg-[#1c1d24] hover:bg-amber-500 hover:text-neutral-950 text-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border border-white/5"
-                      >
-                        Үргэлжлүүлэн засах
-                        <ArrowRight size={12} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* 7. AI IMAGE UPLOADER MODAL (Kept exact same functionality) */}
       {showAiModal && (
