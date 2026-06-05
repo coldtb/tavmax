@@ -157,6 +157,8 @@ export const Auth: React.FC = () => {
     setLoading(false);
     if (success) {
       window.location.reload();
+    } else {
+      setErrorMsg('Утасны дугаар эсвэл нууц үг буруу байна!');
     }
   };
 
@@ -391,6 +393,14 @@ export const Auth: React.FC = () => {
             <div className="text-center">
               <h2 className="font-display font-bold text-lg text-white">Системд нэвтрэх</h2>
               <p className="text-neutral-400 text-xs mt-1">Төслийн сандаа нэвтэрч орох</p>
+            </div>
+
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-[11px] text-amber-400 flex flex-col gap-1">
+              <span className="font-bold flex items-center gap-1">💡 Демо Бүртгэл:</span>
+              <div className="flex justify-between font-mono">
+                <span>Утас: 99118822</span>
+                <span>Нууц үг: password123</span>
+              </div>
             </div>
 
             <div className="flex flex-col gap-1.5">
