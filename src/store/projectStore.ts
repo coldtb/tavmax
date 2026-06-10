@@ -800,7 +800,8 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
 
     case 'fridge':
     case 'hood':
-    case 'tv_unit': {
+    case 'tv_unit':
+    case 'bed': {
       return [];
     }
 
