@@ -593,6 +593,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
       controls.maxPolarAngle = Math.PI / 2 + 0.1; // allow looking slightly underneath
       controls.minDistance = 300;
       controls.maxDistance = 12000;
+      controls.zoomToCursor = true; // Scroll zooms toward cursor position
       
       // Load saved camera and target state if available to prevent view jumping on mounting
       const savedCam = sessionStorage.getItem('tavmax-camera-pos');
