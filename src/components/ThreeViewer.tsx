@@ -2066,7 +2066,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
             const fPlinth = new THREE.Mesh(fPlinthGeo, bodyMat);
             fPlinth.castShadow = true;
             fPlinth.receiveShadow = true;
-            const fPlinthZ = halfD - 50;
+            const fPlinthZ = halfD - 9;
             fPlinth.position.set(0, 50, fPlinthZ);
             fPlinth.userData = {
               category: 'leg',
@@ -2085,7 +2085,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
             const bPlinth = new THREE.Mesh(bPlinthGeo, bodyMat);
             bPlinth.castShadow = true;
             bPlinth.receiveShadow = true;
-            const bPlinthZ = -halfD + 9;
+            const bPlinthZ = -halfD + 29;
             bPlinth.position.set(0, 50, bPlinthZ);
             bPlinth.userData = {
               category: 'leg',
@@ -2099,7 +2099,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
             moduleGroup.add(bPlinth);
 
             // Side plinth boards (Left & Right)
-            const sPlinthD = Math.max(10, depth - 68);
+            const sPlinthD = Math.max(10, depth - 47);
             const sPlinthGeo = new THREE.BoxGeometry(18, 100, sPlinthD);
             
             // Left side plinth
@@ -2107,7 +2107,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
             lPlinth.castShadow = true;
             lPlinth.receiveShadow = true;
             const lPlinthX = -halfW + 9;
-            const sidePlinthZ = halfD - 59 - sPlinthD / 2;
+            const sidePlinthZ = halfD - 18 - sPlinthD / 2;
             lPlinth.position.set(lPlinthX, 50, sidePlinthZ);
             lPlinth.userData = {
               category: 'leg',
@@ -3063,13 +3063,13 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
             } else {
               // Left plinth board
               const lpW = 18;
-              const lpD = S - 18;
+              const lpD = S - 38;
               const lpGeo = new THREE.BoxGeometry(lpW, 100, lpD);
               const lp = new THREE.Mesh(lpGeo, bodyMat);
               lp.castShadow = true;
               lp.receiveShadow = true;
               const lpX = -hs + 9;
-              const lpZ = 9;
+              const lpZ = 19;
               lp.position.set(lpX, 50, lpZ);
               lp.userData = { category: 'leg', baseX: lpX, baseY: 50, baseZ: lpZ, expX: -15, expY: -35, expZ: 0 };
               moduleGroup.add(lp);
@@ -3082,20 +3082,20 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
               bp.castShadow = true;
               bp.receiveShadow = true;
               const bpX = 0;
-              const bpZ = -hs + 9;
+              const bpZ = -hs + 29;
               bp.position.set(bpX, 50, bpZ);
               bp.userData = { category: 'leg', baseX: bpX, baseY: 50, baseZ: bpZ, expX: 0, expY: -35, expZ: -15 };
               moduleGroup.add(bp);
 
               // Right plinth board
               const rpW = 18;
-              const rpD = hs;
+              const rpD = hs - 38;
               const rpGeo = new THREE.BoxGeometry(rpW, 100, rpD);
               const rp = new THREE.Mesh(rpGeo, bodyMat);
               rp.castShadow = true;
               rp.receiveShadow = true;
               const rpX = hs - 9;
-              const rpZ = -hs / 2;
+              const rpZ = -hs / 2 + 19;
               rp.position.set(rpX, 50, rpZ);
               rp.userData = { category: 'leg', baseX: rpX, baseY: 50, baseZ: rpZ, expX: 15, expY: -35, expZ: 0 };
               moduleGroup.add(rp);
@@ -3115,13 +3115,13 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
 
               // Front arm right plinth board
               const farpW = 18;
-              const farpD = hs - 50;
+              const farpD = hs - 9;
               const farpGeo = new THREE.BoxGeometry(farpW, 100, farpD);
               const farp = new THREE.Mesh(farpGeo, bodyMat);
               farp.castShadow = true;
               farp.receiveShadow = true;
               const farpX = -9;
-              const farpZ = (hs - 50) / 2;
+              const farpZ = (hs - 9) / 2;
               farp.position.set(farpX, 50, farpZ);
               farp.userData = { category: 'leg', baseX: farpX, baseY: 50, baseZ: farpZ, expX: 15, expY: -35, expZ: 0 };
               moduleGroup.add(farp);
@@ -3134,7 +3134,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
               fafp.castShadow = true;
               fafp.receiveShadow = true;
               const fafpX = -hs / 2 - 9;
-              const fafpZ = hs - 50;
+              const fafpZ = hs - 9;
               fafp.position.set(fafpX, 50, fafpZ);
               fafp.userData = { category: 'leg', baseX: fafpX, baseY: 50, baseZ: fafpZ, expX: 0, expY: -35, expZ: 15 };
               moduleGroup.add(fafp);
