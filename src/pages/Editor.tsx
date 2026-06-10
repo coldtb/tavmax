@@ -866,15 +866,40 @@ export const Editor: React.FC = () => {
         });
       });
 
+      let userSheetW = 2440;
+      let userSheetH = 1220;
+      let userKerf = 4;
+      let userMargin = 10;
+      let userAllowRotation = true;
+
+      if (typeof window !== 'undefined') {
+        const savedSize = localStorage.getItem('tavmax-nesting-sheet-size');
+        if (savedSize === '2750x1830' || savedSize === '2440x1220' || savedSize === '3050x1830') {
+          const [w, h] = savedSize.split('x').map(x => parseInt(x));
+          userSheetW = w;
+          userSheetH = h;
+        }
+        const savedKerf = localStorage.getItem('tavmax-nesting-kerf');
+        if (savedKerf) userKerf = parseInt(savedKerf);
+
+        const savedMargin = localStorage.getItem('tavmax-nesting-margin');
+        if (savedMargin) userMargin = parseInt(savedMargin);
+
+        const savedRotation = localStorage.getItem('tavmax-nesting-allow-rotation');
+        if (savedRotation !== null) userAllowRotation = savedRotation === 'true';
+      }
+
       const allSheets: any[] = [];
       let globalSheetId = 1;
+      let totalBoardCost = 0;
 
       Object.entries(partsByMaterial).forEach(([matId, groupParts]) => {
+        const mat = materials.find((m) => m.id === matId) || materials[0];
         const isCountertopMat = matId === 'mat-ct-wood' || matId === 'mat-ct-stone';
-        const nestSheetW = isCountertopMat ? 4600 : 2750;
-        const nestSheetH = isCountertopMat ? 600 : 1830;
-        const nestRotation = isCountertopMat ? false : true;
-        const nestMargin = isCountertopMat ? 0 : 10;
+        const nestSheetW = isCountertopMat ? 4600 : userSheetW;
+        const nestSheetH = isCountertopMat ? 600 : userSheetH;
+        const nestRotation = isCountertopMat ? false : userAllowRotation;
+        const nestMargin = isCountertopMat ? 0 : userMargin;
 
         const groupPartsInput = groupParts.map((p) => {
           const partW = isCountertopMat ? Math.max(p.width, p.height) : p.width;
@@ -889,7 +914,7 @@ export const Editor: React.FC = () => {
         const sheets = runNestingOptimizer(groupPartsInput, {
           sheetWidth: nestSheetW,
           sheetHeight: nestSheetH,
-          kerf: 4,
+          kerf: userKerf,
           margin: nestMargin,
           allowRotation: nestRotation,
         });
@@ -901,34 +926,7 @@ export const Editor: React.FC = () => {
             materialId: matId,
           });
         });
-      });
 
-      let totalBoardCost = 0;
-      Object.entries(partsByMaterial).forEach(([matId, groupParts]) => {
-        const mat = materials.find((m) => m.id === matId) || materials[0];
-        const isCountertopMat = matId === 'mat-ct-wood' || matId === 'mat-ct-stone';
-        const nestSheetW = isCountertopMat ? 4600 : 2750;
-        const nestSheetH = isCountertopMat ? 600 : 1830;
-        const nestRotation = isCountertopMat ? false : true;
-        const nestMargin = isCountertopMat ? 0 : 10;
-
-        const groupPartsInput = groupParts.map((p) => {
-          const partW = isCountertopMat ? Math.max(p.width, p.height) : p.width;
-          const partH = isCountertopMat ? Math.min(p.width, p.height) : p.height;
-          return {
-            ...p,
-            width: partW,
-            height: partH,
-          };
-        });
-
-        const sheets = runNestingOptimizer(groupPartsInput, {
-          sheetWidth: nestSheetW,
-          sheetHeight: nestSheetH,
-          kerf: 4,
-          margin: nestMargin,
-          allowRotation: nestRotation,
-        });
         totalBoardCost += sheets.length * (mat?.price || 0);
       });
 

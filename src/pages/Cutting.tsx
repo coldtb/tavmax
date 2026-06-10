@@ -193,158 +193,6 @@ export const Cutting: React.FC = () => {
     });
   }, [activeProject]);
 
-  // Calculations for total price matching raw cost
-  const calculations = useMemo(() => {
-    if (!activeProject) return { board: 0, edge: 0, hardware: 0, labor: 0, subtotal: 0, profit: 0, vat: 0, total: 0 };
-
-    const partsInput: NestingPartInput[] = activeProject.parts.map((p) => ({
-      id: p.id,
-      name: p.name,
-      width: p.width,
-      height: p.height,
-      quantity: p.quantity,
-      materialId: p.materialId,
-    }));
-
-    let totalBoardCost = 0;
-    const materialGroups = new Map<string, typeof partsInput>();
-    partsInput.forEach((p) => {
-      if (!materialGroups.has(p.materialId)) materialGroups.set(p.materialId, []);
-      materialGroups.get(p.materialId)!.push(p);
-    });
-
-    materialGroups.forEach((groupParts, matId) => {
-      const mat = materials.find((m) => m.id === matId) || materials[0];
-      const isCountertopMat = matId === 'mat-ct-wood' || matId === 'mat-ct-stone';
-
-      const nestSheetW = isCountertopMat ? 4600 : 2750;
-      const nestSheetH = isCountertopMat ? 600 : 1830;
-      const nestRotation = isCountertopMat ? false : true;
-      const nestMargin = isCountertopMat ? 0 : 10;
-
-      const groupPartsInput = groupParts.map((p) => {
-        const partW = isCountertopMat ? Math.max(p.width, p.height) : p.width;
-        const partH = isCountertopMat ? Math.min(p.width, p.height) : p.height;
-        return {
-          ...p,
-          width: partW,
-          height: partH,
-        };
-      });
-
-      const sheets = runNestingOptimizer(groupPartsInput, {
-        sheetWidth: nestSheetW,
-        sheetHeight: nestSheetH,
-        kerf: 4,
-        margin: nestMargin,
-        allowRotation: nestRotation,
-      });
-      totalBoardCost += sheets.length * (mat?.price || 0);
-    });
-
-    let totalEdgeBandingCost = 0;
-    activeProject.parts.forEach((p) => {
-      if (p.edgeBanding !== 'none') {
-        const perimeter = (p.width + p.height) * 2;
-        const rate = p.edgeBanding === '2mm' ? 1.5 : 0.8;
-        totalEdgeBandingCost += perimeter * rate * p.quantity;
-      }
-    });
-
-    const hingesCount = activeProject.config.doors * 3;
-    const tracksCount = activeProject.config.drawers;
-    const hardwareCost = hingesCount * 8000 + tracksCount * 25000 + 40000;
-
-    const subtotal = totalBoardCost + totalEdgeBandingCost + hardwareCost;
-    return {
-      board: totalBoardCost,
-      edge: totalEdgeBandingCost,
-      hardware: hardwareCost,
-      labor: 0,
-      subtotal,
-      profit: 0,
-      vat: 0,
-      total: subtotal,
-    };
-  }, [activeProject, materials]);
-
-  const handleTriggerPDF = async () => {
-    if (!activeProject || pdfLoading) return;
-    setPdfLoading(true);
-    try {
-      const partsByMaterial: { [matId: string]: NestingPartInput[] } = {};
-      activeProject.parts.forEach((p) => {
-        if (!partsByMaterial[p.materialId]) {
-          partsByMaterial[p.materialId] = [];
-        }
-        partsByMaterial[p.materialId].push({
-          id: p.id,
-          name: p.name,
-          width: p.width,
-          height: p.height,
-          quantity: p.quantity,
-          materialId: p.materialId,
-        });
-      });
-
-      const allSheets: any[] = [];
-      let globalSheetId = 1;
-
-      Object.entries(partsByMaterial).forEach(([matId, groupParts]) => {
-        const isCountertopMat = matId === 'mat-ct-wood' || matId === 'mat-ct-stone';
-        const nestSheetW = isCountertopMat ? 4600 : 2750;
-        const nestSheetH = isCountertopMat ? 600 : 1830;
-        const nestRotation = isCountertopMat ? false : true;
-        const nestMargin = isCountertopMat ? 0 : 10;
-
-        const groupPartsInput = groupParts.map((p) => {
-          const partW = isCountertopMat ? Math.max(p.width, p.height) : p.width;
-          const partH = isCountertopMat ? Math.min(p.width, p.height) : p.height;
-          return {
-            ...p,
-            width: partW,
-            height: partH,
-          };
-        });
-
-        const sheets = runNestingOptimizer(groupPartsInput, {
-          sheetWidth: nestSheetW,
-          sheetHeight: nestSheetH,
-          kerf: 4,
-          margin: nestMargin,
-          allowRotation: nestRotation,
-        });
-
-        sheets.forEach((sheet) => {
-          allSheets.push({
-            ...sheet,
-            sheetId: globalSheetId++,
-            materialId: matId,
-          });
-        });
-      });
-
-      const threeImageDataUrl = sessionStorage.getItem('tavmax-three-screenshot');
-      await exportProjectToPDF({ ...activeProject, price: calculations.total }, materials, allSheets, threeImageDataUrl);
-    } catch (e) {
-      console.error('Error generating PDF:', e);
-    } finally {
-      setPdfLoading(false);
-    }
-  };
-
-  const handleTriggerDXF = () => {
-    if (!activeProject) return;
-    const dxfText = generatePartsDXF(activeProject.parts);
-    const blob = new Blob([dxfText], { type: 'application/dxf' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `TavMax_CAD_${activeProject.name}.dxf`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
   // Parse width and height from sheetSize string selection
   const sheetDimensions = useMemo(() => {
     const [w, h] = sheetSize.split('x').map((x) => parseInt(x));
@@ -412,6 +260,67 @@ export const Cutting: React.FC = () => {
 
     return allSheets;
   }, [activeProject, sheetDimensions, kerf, margin, allowRotation]);
+
+  // Calculations for total price matching raw cost
+  const calculations = useMemo(() => {
+    if (!activeProject) return { board: 0, edge: 0, hardware: 0, labor: 0, subtotal: 0, profit: 0, vat: 0, total: 0 };
+
+    let totalBoardCost = 0;
+    nestedSheets.forEach((sheet) => {
+      const mat = materials.find((m) => m.id === sheet.materialId) || materials[0];
+      totalBoardCost += mat?.price || 0;
+    });
+
+    let totalEdgeBandingCost = 0;
+    activeProject.parts.forEach((p) => {
+      if (p.edgeBanding !== 'none') {
+        const perimeter = (p.width + p.height) * 2;
+        const rate = p.edgeBanding === '2mm' ? 1.5 : 0.8;
+        totalEdgeBandingCost += perimeter * rate * p.quantity;
+      }
+    });
+
+    const hingesCount = activeProject.config.doors * 3;
+    const tracksCount = activeProject.config.drawers;
+    const hardwareCost = hingesCount * 8000 + tracksCount * 25000 + 40000;
+
+    const subtotal = totalBoardCost + totalEdgeBandingCost + hardwareCost;
+    return {
+      board: totalBoardCost,
+      edge: totalEdgeBandingCost,
+      hardware: hardwareCost,
+      labor: 0,
+      subtotal,
+      profit: 0,
+      vat: 0,
+      total: subtotal,
+    };
+  }, [activeProject, nestedSheets, materials]);
+
+  const handleTriggerPDF = async () => {
+    if (!activeProject || pdfLoading) return;
+    setPdfLoading(true);
+    try {
+      const threeImageDataUrl = sessionStorage.getItem('tavmax-three-screenshot');
+      await exportProjectToPDF({ ...activeProject, price: calculations.total }, materials, nestedSheets, threeImageDataUrl);
+    } catch (e) {
+      console.error('Error generating PDF:', e);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  const handleTriggerDXF = () => {
+    if (!activeProject) return;
+    const dxfText = generatePartsDXF(activeProject.parts);
+    const blob = new Blob([dxfText], { type: 'application/dxf' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `TavMax_CAD_${activeProject.name}.dxf`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   // Calculate global metrics
   const totalSheets = nestedSheets.length;
