@@ -302,7 +302,13 @@ export const Cutting: React.FC = () => {
     setPdfLoading(true);
     try {
       const threeImageDataUrl = sessionStorage.getItem('tavmax-three-screenshot');
-      await exportProjectToPDF({ ...activeProject, price: calculations.total }, materials, nestedSheets, threeImageDataUrl);
+      await exportProjectToPDF(
+        { ...activeProject, price: calculations.total },
+        materials,
+        nestedSheets,
+        threeImageDataUrl,
+        calculations
+      );
     } catch (e) {
       console.error('Error generating PDF:', e);
     } finally {

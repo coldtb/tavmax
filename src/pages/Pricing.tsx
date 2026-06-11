@@ -335,7 +335,14 @@ export const Pricing: React.FC = () => {
       });
     });
 
-    exportProjectToPDF({ ...activeProject, price: calculations.total }, materials, allSheets);
+    const threeImageDataUrl = sessionStorage.getItem('tavmax-three-screenshot');
+    exportProjectToPDF(
+      { ...activeProject, price: calculations.total },
+      materials,
+      allSheets,
+      threeImageDataUrl,
+      calculations
+    );
   };
 
   const handleTriggerDXF = () => {

@@ -12,11 +12,22 @@ const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
   return window.btoa(binary);
 };
 
+export interface PDFExportCosts {
+  board: number;
+  edge: number;
+  hardware: number;
+  labor: number;
+  profit: number;
+  vat?: number;
+  total: number;
+}
+
 export const exportProjectToPDF = async (
   project: Project,
   materials: Material[],
   sheets: NestedSheet[],
-  threeImageDataUrl?: string | null
+  threeImageDataUrl?: string | null,
+  costs?: PDFExportCosts
 ) => {
   const doc = new jsPDF({
     orientation: 'portrait',
@@ -122,6 +133,7 @@ export const exportProjectToPDF = async (
   doc.text('Тавилгын төрөл:', 20, y);
   doc.setFont(fontName, 'normal');
   const typeMap: Record<string, string> = {
+    custom: 'Хэрэглэгчийн загвар (Custom)',
     wardrobe: 'Шкаф / Хувцасны шүүгээ',
     kitchen_lower: 'Гал тогооны доод шүүгээ',
     kitchen_upper: 'Гал тогооны дээд шүүгээ',
@@ -164,13 +176,18 @@ export const exportProjectToPDF = async (
   doc.setFont(fontName, 'normal');
   doc.text(`${doorMaterial.name} (${doorMaterial.code}) - ${doorMaterial.thickness}мм`, 70, y);
 
-  // 3D image block
+  // 3D image block - pushed down to prevent overlap with text
+  const imgY = 185;
+  const imgH = 48;
+  const imgW = 140;
+  const imgX = 35;
+
   if (threeImageDataUrl) {
     try {
       doc.setDrawColor(200, 200, 200);
       doc.setLineWidth(0.25);
-      doc.rect(35, 152, 140, 72);
-      doc.addImage(threeImageDataUrl, 'PNG', 36, 153, 138, 70);
+      doc.rect(imgX, imgY, imgW, imgH);
+      doc.addImage(threeImageDataUrl, 'PNG', imgX + 1, imgY + 1, imgW - 2, imgH - 2);
     } catch (e) {
       console.error('Error adding image to PDF:', e);
     }
@@ -178,23 +195,23 @@ export const exportProjectToPDF = async (
     // Fallback decorative / placeholder
     doc.setDrawColor(220, 220, 220);
     doc.setLineWidth(0.2);
-    doc.rect(35, 152, 140, 72);
+    doc.rect(imgX, imgY, imgW, imgH);
     doc.setFont(fontName, 'bold');
     doc.setFontSize(10);
     doc.setTextColor(150, 150, 150);
-    doc.text('3D Загварын зураг', 105, 190, { align: 'center' });
+    doc.text('3D Загварын зураг', 105, imgY + imgH / 2 + 2, { align: 'center' });
   }
 
-  // Signatures
+  // Signatures - pushed down to prevent overlap
   doc.setFontSize(10);
   doc.setFont(fontName, 'bold');
-  doc.text('Тайлан бэлтгэсэн:', 20, 240);
+  doc.text('Тайлан бэлтгэсэн:', 20, 245);
   doc.setFont(fontName, 'normal');
-  doc.text('TavMax Дизайнер програм', 20, 246);
+  doc.text('TavMax Дизайнер програм', 20, 251);
 
   doc.setFont(fontName, 'bold');
-  doc.text('Зөвшөөрсөн (Захиалагч):', 120, 240);
-  doc.line(120, 255, 190, 255);
+  doc.text('Зөвшөөрсөн (Захиалагч):', 120, 245);
+  doc.line(120, 260, 190, 260);
 
   // ==========================================
   // PAGE 2: PARTS LIST
@@ -275,13 +292,44 @@ export const exportProjectToPDF = async (
   doc.setTextColor(217, 119, 6);
   doc.text('ТӨСЛИЙН ЗАРДАЛ, ҮНИЙН ТООЦООЛУУР', 10, 24);
 
-  // Compute detailed prices
-  const boardCost = project.price * 0.45;
-  const edgeCost = project.price * 0.08;
-  const hardwareCost = project.price * 0.15;
-  const laborCost = project.price * 0.15;
-  const profitCost = project.price * 0.17;
-  const totalCost = project.price;
+  // If costs are not provided, calculate them exactly to avoid guessing
+  let boardCost = 0;
+  let edgeCost = 0;
+  let hardwareCost = 0;
+  let laborCost = 0;
+  let profitCost = 0;
+  let totalCost = 0;
+
+  if (costs) {
+    boardCost = costs.board;
+    edgeCost = costs.edge;
+    hardwareCost = costs.hardware;
+    laborCost = costs.labor || 0;
+    profitCost = costs.profit || 0;
+    totalCost = costs.total;
+  } else {
+    // 1. Board cost from nesting sheets
+    sheets.forEach((sheet) => {
+      const mat = materials.find((m) => m.id === (sheet as any).materialId) || materials[0];
+      boardCost += mat?.price || 0;
+    });
+
+    // 2. Edge banding cost
+    project.parts.forEach((p) => {
+      if (p.edgeBanding && p.edgeBanding !== 'none') {
+        const perimeter = (p.width + p.height) * 2;
+        const rate = p.edgeBanding === '2mm' ? 1.5 : 0.8;
+        edgeCost += perimeter * rate * p.quantity;
+      }
+    });
+
+    // 3. Hardware cost
+    const hingesCount = (project.config.doors || 0) * 3;
+    const tracksCount = project.config.drawers || 0;
+    hardwareCost = hingesCount * 8000 + tracksCount * 25000 + 40000;
+
+    totalCost = boardCost + edgeCost + hardwareCost;
+  }
 
   let cy = 35;
   doc.setFontSize(11);
@@ -299,17 +347,27 @@ export const exportProjectToPDF = async (
       doc.setTextColor(60, 60, 60);
     }
     doc.text(label, 15, cy);
-    doc.text(`${value.toLocaleString('mn-MN')} MNT`, 140, cy);
+    doc.text(`${Math.round(value).toLocaleString('mn-MN')} MNT`, 140, cy);
     cy += 10;
   };
 
   drawCostRow('Үндсэн болон туслах хавтангийн зардал', boardCost);
   drawCostRow('Ирмэг хуулга болон наалтын зардал', edgeCost);
   drawCostRow('Тоноглол, нугас, шургуулганы чиглүүлэгч', hardwareCost);
-  doc.setFillColor(245, 245, 245);
-  drawCostRow('Ажлын хөлс, зүсэлт, угсралт', laborCost);
-  drawCostRow('Хүргэлт, суурилуулалтын зардал', totalCost * 0.05);
-  drawCostRow('Цэвэр ашиг (Profit Margin 17%)', profitCost);
+  
+  if (laborCost > 0) {
+    drawCostRow('Ажлын хөлс, зүсэлт, угсралт', laborCost);
+  }
+
+  const otherCost = totalCost - (boardCost + edgeCost + hardwareCost + laborCost + profitCost);
+  if (otherCost > 1) {
+    drawCostRow('Хүргэлт, суурилуулалтын зардал', otherCost);
+  }
+
+  if (profitCost > 0) {
+    drawCostRow('Цэвэр ашиг', profitCost);
+  }
+
   drawCostRow('НИЙТ САНАЛ БОЛГОЖ БУЙ ҮНЭ', totalCost, true);
 
   // Notes area
