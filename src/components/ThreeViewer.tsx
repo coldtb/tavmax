@@ -1120,103 +1120,63 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                 targetX += snapWallDX;
               }
 
-              // ── B. CABINET CORNER-TO-CORNER SNAPPING ──
-              // Find any corner of active mod that is close to any corner of another mod
-              let closestModuleCornerSnap = null;
-              let minModuleCornerDist = Infinity;
-
-              activeCorners = getActiveWorldCorners(targetX, targetZ);
-
-              currentModules.forEach((other) => {
-                if (other.id === activeModId) return;
-
-                const isOtherUpper = (other.type === 'kitchen_upper' || other.type === 'hood' || other.type === 'built_in_hood' || other.type === 'microwave');
-                if (isActiveUpper !== isOtherUpper) return;
-
-                const otherW = other.config.width;
-                const otherD = other.config.depth;
-                const otherRot = other.rotation || 0;
-                const otherCos = Math.cos(otherRot);
-                const otherSin = Math.sin(otherRot);
-
-                const otherLocals = [
-                  { x: -otherW / 2, z: -otherD / 2 }, // Back-Left
-                  { x: otherW / 2, z: -otherD / 2 },  // Back-Right
-                  { x: otherW / 2, z: otherD / 2 },   // Front-Right
-                  { x: -otherW / 2, z: otherD / 2 }   // Front-Left
-                ];
-
-                const otherCorners = otherLocals.map(lc => ({
-                  x: other.xOffset + lc.x * otherCos - lc.z * otherSin,
-                  z: other.zOffset + lc.x * otherSin + lc.z * otherCos
-                }));
-
-                activeCorners.forEach((ac) => {
-                  otherCorners.forEach((oc) => {
-                    const dx = oc.x - ac.x;
-                    const dz = oc.z - ac.z;
-                    const dist = Math.hypot(dx, dz);
-                    if (dist < SNAP_THRESHOLD && dist < minModuleCornerDist) {
-                      minModuleCornerDist = dist;
-                      closestModuleCornerSnap = { dx, dz };
-                    }
-                  });
-                });
-              });
-
-              if (closestModuleCornerSnap) {
-                // Apply the exact corner snap translation
-                targetX += closestModuleCornerSnap.dx;
-                targetZ += closestModuleCornerSnap.dz;
-              } else {
-                // ── C. FALLBACK TO STANDARD PARALLEL X/Z SNAPS ──
+              // ── B. CABINET EDGE-TO-EDGE X SNAPPING ──
+              // Only snap on X axis (side-by-side). Z snapping handled separately.
+              {
                 let closestSnapX = targetX;
-                let minDistanceX = Infinity;
-
-                let closestSnapZ = targetZ;
-                let minDistanceZ = Infinity;
+                let minDistX = Infinity;
 
                 currentModules.forEach((other) => {
                   if (other.id === activeModId) return;
-
-                  const otherW = other.config.width;
                   const isOtherUpper = (other.type === 'kitchen_upper' || other.type === 'hood' || other.type === 'built_in_hood' || other.type === 'microwave');
                   if (isActiveUpper !== isOtherUpper) return;
 
-                  // 1. Z-axis alignment snap (closest)
-                  const distZ = Math.abs(targetZ - other.zOffset);
-                  if (distZ < SNAP_THRESHOLD && distZ < minDistanceZ) {
-                    minDistanceZ = distZ;
-                    closestSnapZ = other.zOffset;
-                  }
+                  const otherW = other.config.width;
 
-                  // 2. X-axis side-by-side snap (closest)
-                  // Left edge of active to right edge of other
+                  // Left edge of active touches right edge of other
                   const gapL2R = (targetX - activeW / 2) - (other.xOffset + otherW / 2);
-                  const distL2R = Math.abs(gapL2R);
-                  if (distL2R < SNAP_THRESHOLD && distL2R < minDistanceX) {
-                    minDistanceX = distL2R;
+                  if (Math.abs(gapL2R) < SNAP_THRESHOLD && Math.abs(gapL2R) < minDistX) {
+                    minDistX = Math.abs(gapL2R);
                     closestSnapX = other.xOffset + otherW / 2 + activeW / 2;
                   }
 
-                  // Right edge of active to left edge of other
+                  // Right edge of active touches left edge of other
                   const gapR2L = (targetX + activeW / 2) - (other.xOffset - otherW / 2);
-                  const distR2L = Math.abs(gapR2L);
-                  if (distR2L < SNAP_THRESHOLD && distR2L < minDistanceX) {
-                    minDistanceX = distR2L;
+                  if (Math.abs(gapR2L) < SNAP_THRESHOLD && Math.abs(gapR2L) < minDistX) {
+                    minDistX = Math.abs(gapR2L);
                     closestSnapX = other.xOffset - otherW / 2 - activeW / 2;
                   }
+                });
+                if (minDistX < Infinity) {
+                  targetX = closestSnapX;
+                }
+              }
 
-                  // Center alignment on X axis (closest)
-                  const distCenter = Math.abs(targetX - other.xOffset);
-                  if (distCenter < SNAP_THRESHOLD && distCenter < minDistanceX) {
-                    minDistanceX = distCenter;
-                    closestSnapX = other.xOffset;
+              // ── C. BACK-FACE Z ALIGNMENT SNAP ──
+              // Align the back face of active module with the back face of other modules
+              {
+                let closestSnapZ = targetZ;
+                let minDistZ = Infinity;
+                const activeBackZ = targetZ - activeD / 2; // back face Z of active
+
+                currentModules.forEach((other) => {
+                  if (other.id === activeModId) return;
+                  const isOtherUpper = (other.type === 'kitchen_upper' || other.type === 'hood' || other.type === 'built_in_hood' || other.type === 'microwave');
+                  if (isActiveUpper !== isOtherUpper) return;
+
+                  const otherD = other.config.depth;
+                  const otherBackZ = other.zOffset - otherD / 2; // back face of other
+
+                  // Align back-face to back-face
+                  const distBackToBack = Math.abs(activeBackZ - otherBackZ);
+                  if (distBackToBack < SNAP_THRESHOLD && distBackToBack < minDistZ) {
+                    minDistZ = distBackToBack;
+                    closestSnapZ = otherBackZ + activeD / 2; // place so back faces align
                   }
                 });
-
-                targetX = closestSnapX;
-                targetZ = closestSnapZ;
+                if (minDistZ < Infinity) {
+                  targetZ = closestSnapZ;
+                }
               }
             }
           }
