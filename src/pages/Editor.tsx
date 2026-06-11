@@ -48,6 +48,7 @@ export const Editor: React.FC = () => {
     deleteLayout,
     loadLayout,
     clearAllModules,
+    updateMaterialPrice,
   } = useProjectStore();
 
   const threeViewerRef = useRef<ThreeViewerRef>(null);
@@ -2291,6 +2292,31 @@ export const Editor: React.FC = () => {
                           ))}
                         </div>
 
+                        {/* Selected Body Material Price Editor */}
+                        {(() => {
+                          const selectedMat = materials.find(m => m.id === config.materialId);
+                          if (!selectedMat) return null;
+                          return (
+                            <div className="flex items-center justify-between gap-3 bg-white/[0.02] border border-white/5 px-3 py-2 rounded-xl mt-1">
+                              <span className="text-[10px] text-neutral-400 font-semibold truncate max-w-[140px]">
+                                {selectedMat.name} (Хуудасны үнэ):
+                              </span>
+                              <div className="relative flex items-center w-[100px] shrink-0">
+                                <input
+                                  type="number"
+                                  value={selectedMat.price || ''}
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value) || 0;
+                                    updateMaterialPrice(selectedMat.id, val);
+                                  }}
+                                  className="w-full bg-[#0c0d12] border border-white/10 rounded-lg pl-2 pr-6 py-1 text-white text-[10px] outline-none focus:border-amber-500 font-mono text-right"
+                                />
+                                <span className="absolute right-2 text-[8px] text-neutral-500 font-bold pointer-events-none">₮</span>
+                              </div>
+                            </div>
+                          );
+                        })()}
+
                         {/* Body color palette */}
                         <div className="flex flex-col gap-2 pt-1">
                           <div className="flex justify-between items-center">
@@ -2403,6 +2429,31 @@ export const Editor: React.FC = () => {
                             </button>
                           ))}
                         </div>
+
+                        {/* Selected Door Material Price Editor */}
+                        {(() => {
+                          const selectedMat = materials.find(m => m.id === config.doorMaterialId);
+                          if (!selectedMat) return null;
+                          return (
+                            <div className="flex items-center justify-between gap-3 bg-white/[0.02] border border-white/5 px-3 py-2 rounded-xl mt-1">
+                              <span className="text-[10px] text-neutral-400 font-semibold truncate max-w-[140px]">
+                                {selectedMat.name} (Хуудасны үнэ):
+                              </span>
+                              <div className="relative flex items-center w-[100px] shrink-0">
+                                <input
+                                  type="number"
+                                  value={selectedMat.price || ''}
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value) || 0;
+                                    updateMaterialPrice(selectedMat.id, val);
+                                  }}
+                                  className="w-full bg-[#0c0d12] border border-white/10 rounded-lg pl-2 pr-6 py-1 text-white text-[10px] outline-none focus:border-amber-500 font-mono text-right"
+                                />
+                                <span className="absolute right-2 text-[8px] text-neutral-500 font-bold pointer-events-none">₮</span>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       {/* Custom Door Color Picker */}
