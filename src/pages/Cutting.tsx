@@ -266,10 +266,38 @@ export const Cutting: React.FC = () => {
     if (!activeProject) return { board: 0, edge: 0, hardware: 0, labor: 0, subtotal: 0, profit: 0, vat: 0, total: 0 };
 
     let totalBoardCost = 0;
-    nestedSheets.forEach((sheet) => {
-      const mat = materials.find((m) => m.id === sheet.materialId) || materials[0];
-      totalBoardCost += mat?.price || 0;
-    });
+    if (nestedSheets.length > 0) {
+      nestedSheets.forEach((sheet) => {
+        const mat = materials.find((m) => m.id === sheet.materialId) || materials[0];
+        const defaultMat = DEFAULT_MATERIALS.find((dm) => dm.id === sheet.materialId) || DEFAULT_MATERIALS[0];
+        const matPrice = mat && mat.price > 1000 ? mat.price : defaultMat.price;
+        totalBoardCost += matPrice;
+      });
+    } else if (activeProject.parts.length > 0) {
+      // Fallback: estimate sheet count based on total area if nestedSheets is empty
+      const [sheetW, sheetH] = sheetSize.split('x').map(x => parseInt(x));
+      const sheetArea = sheetW * sheetH;
+
+      // Group parts by material
+      const partsByMaterial: { [matId: string]: number } = {};
+      activeProject.parts.forEach((p) => {
+        partsByMaterial[p.materialId] = (partsByMaterial[p.materialId] || 0) + (p.width * p.height * p.quantity);
+      });
+
+      Object.entries(partsByMaterial).forEach(([matId, partsArea]) => {
+        const mat = materials.find((m) => m.id === matId) || materials[0];
+        const defaultMat = DEFAULT_MATERIALS.find((dm) => dm.id === matId) || DEFAULT_MATERIALS[0];
+        const matPrice = mat && mat.price > 1000 ? mat.price : defaultMat.price;
+
+        const isCountertopMat = matId === 'mat-ct-wood' || matId === 'mat-ct-stone';
+        const nestSheetW = isCountertopMat ? 4600 : sheetW;
+        const nestSheetH = isCountertopMat ? 600 : sheetH;
+        const currentSheetArea = nestSheetW * nestSheetH;
+
+        const sheetCount = Math.max(1, Math.ceil((partsArea * 1.25) / currentSheetArea));
+        totalBoardCost += sheetCount * matPrice;
+      });
+    }
 
     let totalEdgeBandingCost = 0;
     activeProject.parts.forEach((p) => {

@@ -2260,8 +2260,18 @@ export const useProjectStore = create<ProjectState>()(
           try {
             if (state.materials) {
               DEFAULT_MATERIALS.forEach((defaultMat) => {
-                if (!state.materials.some((m) => m.id === defaultMat.id)) {
+                const existingIndex = state.materials.findIndex((m) => m.id === defaultMat.id);
+                if (existingIndex === -1) {
                   state.materials.push(defaultMat);
+                } else {
+                  // Heal price if it is 0, NaN, or invalid in local storage
+                  const existingMat = state.materials[existingIndex];
+                  if (!existingMat.price || isNaN(existingMat.price) || existingMat.price <= 1000) {
+                    state.materials[existingIndex] = {
+                      ...existingMat,
+                      price: defaultMat.price
+                    };
+                  }
                 }
               });
             } else {

@@ -80,6 +80,8 @@ export const Pricing: React.FC = () => {
 
     materialGroups.forEach((groupParts, matId) => {
       const mat = materials.find((m) => m.id === matId) || materials[0];
+      const defaultMat = DEFAULT_MATERIALS.find((dm) => dm.id === matId) || DEFAULT_MATERIALS[0];
+      const matPrice = mat && mat.price > 1000 ? mat.price : defaultMat.price;
       const isCountertopMat = matId === 'mat-ct-wood' || matId === 'mat-ct-stone';
 
       const nestSheetW = isCountertopMat ? 4600 : userSheetW;
@@ -105,7 +107,16 @@ export const Pricing: React.FC = () => {
         margin: nestMargin,
         allowRotation: nestRotation,
       });
-      totalBoardCost += sheets.length * mat.price;
+
+      let sheetCount = sheets.length;
+      if (sheetCount === 0 && groupPartsInput.length > 0) {
+        // Fallback: estimate sheet count based on total area of parts if nesting returned 0 sheets
+        const partsArea = groupPartsInput.reduce((sum, p) => sum + p.width * p.height * p.quantity, 0);
+        const sheetArea = nestSheetW * nestSheetH;
+        sheetCount = Math.max(1, Math.ceil((partsArea * 1.25) / sheetArea));
+      }
+
+      totalBoardCost += sheetCount * matPrice;
     });
 
     // Simple pricing equations for edge banding (MNT per mm)

@@ -308,11 +308,38 @@ export const exportProjectToPDF = async (
     profitCost = costs.profit || 0;
     totalCost = costs.total;
   } else {
-    // 1. Board cost from nesting sheets
-    sheets.forEach((sheet) => {
-      const mat = materials.find((m) => m.id === (sheet as any).materialId) || materials[0];
-      boardCost += mat?.price || 0;
+    // 1. Board cost calculation with fallbacks
+    const partsByMaterial: { [matId: string]: number } = {};
+    project.parts.forEach((p) => {
+      partsByMaterial[p.materialId] = (partsByMaterial[p.materialId] || 0) + (p.width * p.height * p.quantity);
     });
+
+    if (sheets.length > 0) {
+      sheets.forEach((sheet) => {
+        const mat = materials.find((m) => m.id === (sheet as any).materialId) || materials[0];
+        const defaultMat = DEFAULT_MATERIALS.find((dm) => dm.id === (sheet as any).materialId) || DEFAULT_MATERIALS[0];
+        const matPrice = mat && mat.price > 1000 ? mat.price : defaultMat.price;
+        boardCost += matPrice;
+      });
+    } else if (project.parts.length > 0) {
+      // Fallback: estimate sheet count based on total area
+      const sheetW = 2440;
+      const sheetH = 1220;
+
+      Object.entries(partsByMaterial).forEach(([matId, partsArea]) => {
+        const mat = materials.find((m) => m.id === matId) || materials[0];
+        const defaultMat = DEFAULT_MATERIALS.find((dm) => dm.id === matId) || DEFAULT_MATERIALS[0];
+        const matPrice = mat && mat.price > 1000 ? mat.price : defaultMat.price;
+
+        const isCountertopMat = matId === 'mat-ct-wood' || matId === 'mat-ct-stone';
+        const nestSheetW = isCountertopMat ? 4600 : sheetW;
+        const nestSheetH = isCountertopMat ? 600 : sheetH;
+        const currentSheetArea = nestSheetW * nestSheetH;
+
+        const sheetCount = Math.max(1, Math.ceil((partsArea * 1.25) / currentSheetArea));
+        boardCost += sheetCount * matPrice;
+      });
+    }
 
     // 2. Edge banding cost
     project.parts.forEach((p) => {
