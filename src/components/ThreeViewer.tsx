@@ -1221,15 +1221,8 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
             }
           }
 
-          // Safety clamp: only enforce room boundaries when room is visible
-          if (showRoomRef.current) {
-            const halfRoomW = Math.max(500, roomWidthRef.current / 2);
-            const halfRoomD = Math.max(500, roomDepthRef.current / 2);
-            const padX = Math.min(halfRoomW, activeW / 2);
-            const padZ = Math.min(halfRoomD, activeD / 2);
-            targetX = Math.max(-halfRoomW + padX, Math.min(halfRoomW - padX, targetX || 0));
-            targetZ = Math.max(-halfRoomD + padZ, Math.min(halfRoomD - padZ, targetZ || 0));
-          }
+          // No hard clamp - wall snapping (A above) handles alignment near walls.
+          // Modules can be placed freely; they snap to walls when within threshold.
 
           draggedGroup.position.x = targetX;
           draggedGroup.position.z = targetZ;
