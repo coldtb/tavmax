@@ -204,6 +204,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
   const openDoorsRef = useRef(openDoors);
   const roomWidthRef = useRef(roomWidth);
   const roomDepthRef = useRef(roomDepth);
+  const showRoomRef = useRef(showRoom);
 
   useEffect(() => {
     roomWidthRef.current = roomWidth;
@@ -212,6 +213,10 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
   useEffect(() => {
     roomDepthRef.current = roomDepth;
   }, [roomDepth]);
+
+  useEffect(() => {
+    showRoomRef.current = showRoom;
+  }, [showRoom]);
 
   useEffect(() => {
     projectRef.current = project;
@@ -1045,7 +1050,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
           const activeD = activeMod ? activeMod.config.depth : 600;
 
           if (enableSnappingRef.current) {
-            const SNAP_THRESHOLD = 100; // snap if within 100mm
+            const SNAP_THRESHOLD = 30; // snap if within 30mm (was 100mm - caused sticky wall issue)
  
             if (activeMod) {
               const activeRot = activeMod.rotation || 0;
@@ -1070,16 +1075,22 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
 
               // ── A. WALL SNAPPING ──
               // Snap active back/side corners flush to the room walls
-              // 1. Z-axis Wall Snapping (Back Wall: Z = -roomDepthRef.current / 2)
+              // 1. Z-axis Wall Snapping (Back Wall and Front Wall)
               let activeCorners = getActiveWorldCorners(targetX, targetZ);
               let snapWallDZ = 0;
               let minWallDistZ = Infinity;
               activeCorners.forEach(ac => {
                 const backWallZ = -roomDepthRef.current / 2;
-                const dist = ac.z - backWallZ;
-                if (Math.abs(dist) < SNAP_THRESHOLD && Math.abs(dist) < Math.abs(minWallDistZ)) {
-                  minWallDistZ = dist;
+                const frontWallZ = roomDepthRef.current / 2;
+                const distBack = ac.z - backWallZ;
+                const distFront = ac.z - frontWallZ;
+                if (Math.abs(distBack) < SNAP_THRESHOLD && Math.abs(distBack) < Math.abs(minWallDistZ)) {
+                  minWallDistZ = distBack;
                   snapWallDZ = backWallZ - ac.z;
+                }
+                if (Math.abs(distFront) < SNAP_THRESHOLD && Math.abs(distFront) < Math.abs(minWallDistZ)) {
+                  minWallDistZ = distFront;
+                  snapWallDZ = frontWallZ - ac.z;
                 }
               });
               if (Math.abs(snapWallDZ) > 0) {
@@ -1210,13 +1221,15 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
             }
           }
 
-          // Safety clamp to active room boundaries (roomWidth x roomDepth)
-          const halfRoomW = Math.max(500, roomWidthRef.current / 2);
-          const halfRoomD = Math.max(500, roomDepthRef.current / 2);
-          const padX = Math.min(halfRoomW, activeW / 2);
-          const padZ = Math.min(halfRoomD, activeD / 2);
-          targetX = Math.max(-halfRoomW + padX, Math.min(halfRoomW - padX, targetX || 0));
-          targetZ = Math.max(-halfRoomD + padZ, Math.min(halfRoomD - padZ, targetZ || 0));
+          // Safety clamp: only enforce room boundaries when room is visible
+          if (showRoomRef.current) {
+            const halfRoomW = Math.max(500, roomWidthRef.current / 2);
+            const halfRoomD = Math.max(500, roomDepthRef.current / 2);
+            const padX = Math.min(halfRoomW, activeW / 2);
+            const padZ = Math.min(halfRoomD, activeD / 2);
+            targetX = Math.max(-halfRoomW + padX, Math.min(halfRoomW - padX, targetX || 0));
+            targetZ = Math.max(-halfRoomD + padZ, Math.min(halfRoomD - padZ, targetZ || 0));
+          }
 
           draggedGroup.position.x = targetX;
           draggedGroup.position.z = targetZ;
