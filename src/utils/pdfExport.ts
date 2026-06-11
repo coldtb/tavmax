@@ -380,15 +380,44 @@ export const exportProjectToPDF = async (
       doc.setFillColor(235, 213, 186); // Light amber fills for packed parts
       doc.rect(px, py, pw, ph, 'FD');
 
-      // Label inside the box
-      if (pw > 15 && ph > 6) {
-        doc.setFontSize(5.5);
+      // Label inside the box - show both name and size for clarity
+      if (pw > 12 && ph > 5) {
+        doc.setFontSize(4.5);
         doc.setFont(fontName, 'normal');
         doc.setTextColor(60, 40, 20);
-        
-        // Print part dimensions or name
-        const textLabel = `${part.width}x${part.height}`;
-        doc.text(textLabel, px + 1, py + ph/2 + 1);
+
+        // Center X and Y coordinates inside the part rect
+        const cx = px + pw / 2;
+        const cy = py + ph / 2;
+
+        // Clean name (e.g. remove module prefixes or trim spaces)
+        let displayName = part.name;
+        if (displayName.includes(' - ')) {
+          displayName = displayName.split(' - ')[1];
+        }
+
+        // Limit character length based on box width
+        const maxChars = Math.max(3, Math.floor(pw / 0.85));
+        if (displayName.length > maxChars) {
+          displayName = displayName.substring(0, Math.max(3, maxChars - 2)) + '..';
+        }
+
+        const sizeLabel = `${part.width}x${part.height}`;
+
+        if (ph > 8) {
+          // Print two lines: Name on top, dimensions below
+          doc.text(displayName, cx, cy - 0.8, { align: 'center' });
+          doc.text(sizeLabel, cx, cy + 1.8, { align: 'center' });
+        } else {
+          // Print one line: Name (or name + dimensions if space allows)
+          const combined = `${displayName} (${sizeLabel})`;
+          const maxCombinedChars = Math.max(3, Math.floor(pw / 0.75));
+          if (combined.length <= maxCombinedChars) {
+            doc.text(combined, cx, cy + 0.8, { align: 'center' });
+          } else {
+            doc.text(displayName, cx, cy + 0.8, { align: 'center' });
+          }
+        }
       }
     });
   }
