@@ -2711,12 +2711,8 @@ export const useProjectStore = create<ProjectState>()(
           }
           try {
             if (state.projects) {
-              // Map existing ones to fresh templates if they match
+              // Ensure modules are populated for all existing projects
               const existingMapped = state.projects.map((p) => {
-                const freshTemplate = INITIALIZED_PROJECTS.find(fit => fit.id === p.id);
-                if (freshTemplate) {
-                  return freshTemplate;
-                }
                 return p ? ensureProjectModules(p) : p;
               });
 
@@ -2731,12 +2727,7 @@ export const useProjectStore = create<ProjectState>()(
             }
 
             if (state.activeProject) {
-              const freshTemplate = INITIALIZED_PROJECTS.find(fit => fit.id === state.activeProject?.id);
-              if (freshTemplate) {
-                state.activeProject = freshTemplate;
-              } else {
-                state.activeProject = ensureProjectModules(state.activeProject);
-              }
+              state.activeProject = ensureProjectModules(state.activeProject);
             }
           } catch (e) {
             console.warn("Failed in onRehydrateStorage migration:", e);
