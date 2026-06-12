@@ -66,7 +66,7 @@ export interface Part {
 export interface CabinetModule {
   id: string;
   name: string;
-  type: 'wardrobe' | 'kitchen_lower' | 'kitchen_upper' | 'bookshelf' | 'tv_unit' | 'cabinet' | 'office_desk' | 'bed' | 'vanity' | 'fridge' | 'cooktop' | 'hood' | 'built_in_hood' | 'vitrine' | 'microwave' | 'sink' | 'corner_lower' | 'corner_upper' | 'oven' | 'dishwasher' | 'custom';
+  type: 'wardrobe' | 'kitchen_lower' | 'kitchen_upper' | 'bookshelf' | 'tv_unit' | 'cabinet' | 'office_desk' | 'bed' | 'vanity' | 'fridge' | 'cooktop' | 'hood' | 'built_in_hood' | 'vitrine' | 'microwave' | 'sink' | 'corner_lower' | 'corner_upper' | 'oven' | 'dishwasher' | 'kitchen_island' | 'custom';
   config: FurnitureConfig;
   parts: Part[];
   xOffset: number;
@@ -79,7 +79,7 @@ export interface CabinetModule {
 export interface Project {
   id: string;
   name: string;
-  furnitureType: 'wardrobe' | 'kitchen_lower' | 'kitchen_upper' | 'bookshelf' | 'tv_unit' | 'cabinet' | 'office_desk' | 'bed' | 'vanity' | 'fridge' | 'cooktop' | 'hood' | 'built_in_hood' | 'vitrine' | 'microwave' | 'sink' | 'corner_lower' | 'corner_upper' | 'custom';
+  furnitureType: 'wardrobe' | 'kitchen_lower' | 'kitchen_upper' | 'bookshelf' | 'tv_unit' | 'cabinet' | 'office_desk' | 'bed' | 'vanity' | 'fridge' | 'cooktop' | 'hood' | 'built_in_hood' | 'vitrine' | 'microwave' | 'sink' | 'corner_lower' | 'corner_upper' | 'kitchen_island' | 'custom';
   config: FurnitureConfig;
   parts: Part[];
   modules?: CabinetModule[];
@@ -365,6 +365,61 @@ export const INITIAL_PROJECTS: Project[] = [
     customerName: 'Захиалагч',
     customerPhone: '99009900',
     price: 1150000
+  },
+  {
+    id: 'proj-island',
+    name: 'Гал тогооны арал (3 хаалгатай, тавцан хажуутай)',
+    furnitureType: 'kitchen_island',
+    config: {
+      width: 1800,
+      height: 900,
+      depth: 900,
+      shelves: 0,
+      drawers: 0,
+      doors: 3,
+      hasLegs: false,
+      handleType: 'minimal',
+      materialId: 'mat-3',
+      doorMaterialId: 'mat-3',
+      color: '#faf9f6',
+      countertopType: 'wood',
+      countertopThickness: 40
+    },
+    parts: [],
+    modules: [
+      {
+        id: 'mod-island-cabinet',
+        name: 'Гал тогооны арал',
+        type: 'kitchen_island' as const,
+        config: {
+          width: 1800,
+          height: 900,
+          depth: 900,
+          shelves: 0,
+          drawers: 0,
+          doors: 3,
+          hasLegs: false,
+          handleType: 'minimal' as const,
+          materialId: 'mat-3',
+          doorMaterialId: 'mat-3',
+          color: '#faf9f6',
+          countertopType: 'wood' as const,
+          countertopThickness: 40,
+          partitions: 2,
+          dividerPositions: [600, 1200]
+        },
+        parts: [],
+        xOffset: 0,
+        yOffset: 0,
+        zOffset: 0
+      }
+    ],
+    createdAt: '2026-06-12T12:00:00Z',
+    updatedAt: '2026-06-12T12:00:00Z',
+    status: 'шинэ',
+    customerName: 'Захиалагч',
+    customerPhone: '99009900',
+    price: 1650000
   }
 ];
 

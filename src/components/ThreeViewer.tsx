@@ -2599,31 +2599,55 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
               }
             }
           }
-        } else if (mod.type === 'kitchen_lower') {
-          // Kitchen Lower Cabinet
-          buildLegs();
-          addBoard(18, bodyHeight, depth, -halfW + 9, legHeight + bodyHeight / 2, 0, bodyMat, 'Гал тогооны хажуу хана (Зүүн)', 'Хажуу хана');
-          addBoard(18, bodyHeight, depth, halfW - 9, legHeight + bodyHeight / 2, 0, bodyMat, 'Гал тогооны хажуу хана (Баруун)', 'Хажуу хана');
-          addBoard(width - 36, 18, depth, 0, legHeight + 9, 0, bodyMat, 'Доод суурь хавтан', 'Доод тавиур');
-          addBoard(width - 36, 18, 100, 0, height - 9, halfD - 50, bodyMat, 'Дээд холбоос хавтан (Урд)', 'Дээд тавиур');
-          addBoard(width - 36, 18, 100, 0, height - 9, -halfD + 50, bodyMat, 'Дээд холбоос хавтан (Ар)', 'Дээд тавиур');
-          addBoard(width, bodyHeight, 3, 0, legHeight + bodyHeight / 2, -halfD + 1.5, hdfMat, 'Ар тал (ХДФ)', 'Ар тал');
+        } else if (mod.type === 'kitchen_lower' || mod.type === 'kitchen_island') {
+          // Kitchen Lower Cabinet or Island
+          const isIsland = mod.type === 'kitchen_island';
+          const localLegHeight = isIsland ? 0 : legHeight;
+          const localBodyHeight = isIsland ? height : bodyHeight;
+          const ctT = config.countertopThickness ?? 40;
+          const localDoorZ = isIsland ? -halfD - 9 : halfD + 9;
+
+          if (!isIsland) {
+            buildLegs();
+          }
+
+          if (isIsland) {
+            // Waterfall side panels made of countertop material (thickness ctT)
+            const ctMat = getCountertopMaterial(config.countertopType || 'wood');
+            // Left waterfall side panel
+            addBoard(ctT, height - ctT, depth, -halfW + ctT/2, (height - ctT)/2, 0, ctMat, 'Модон хажуу хана (Зүүн)', 'Хажуу хана');
+            // Right waterfall side panel
+            addBoard(ctT, height - ctT, depth, halfW - ctT/2, (height - ctT)/2, 0, ctMat, 'Модон хажуу хана (Баруун)', 'Хажуу хана');
+            // Bottom panel inside (thickness 18)
+            addBoard(width - 2*ctT, 18, depth, 0, 9, 0, bodyMat, 'Доод суурь хавтан', 'Доод тавиур');
+            // Top connector rails inside
+            addBoard(width - 2*ctT, 18, 100, 0, height - ctT - 9, halfD - 50, bodyMat, 'Дээд холбоос хавтан (Урд)', 'Дээд тавиур');
+            addBoard(width - 2*ctT, 18, 100, 0, height - ctT - 9, -halfD + 50, bodyMat, 'Дээд холбоос хавтан (Ар)', 'Дээд тавиур');
+          } else {
+            addBoard(18, localBodyHeight, depth, -halfW + 9, localLegHeight + localBodyHeight / 2, 0, bodyMat, 'Гал тогооны хажуу хана (Зүүн)', 'Хажуу хана');
+            addBoard(18, localBodyHeight, depth, halfW - 9, localLegHeight + localBodyHeight / 2, 0, bodyMat, 'Гал тогооны хажуу хана (Баруун)', 'Хажуу хана');
+            addBoard(width - 36, 18, depth, 0, localLegHeight + 9, 0, bodyMat, 'Доод суурь хавтан', 'Доод тавиур');
+            addBoard(width - 36, 18, 100, 0, height - 9, halfD - 50, bodyMat, 'Дээд холбоос хавтан (Урд)', 'Дээд тавиур');
+            addBoard(width - 36, 18, 100, 0, height - 9, -halfD + 50, bodyMat, 'Дээд холбоос хавтан (Ар)', 'Дээд тавиур');
+            addBoard(width, localBodyHeight, 3, 0, localLegHeight + localBodyHeight / 2, -halfD + 1.5, hdfMat, 'Ар тал (ХДФ)', 'Ар тал');
+          }
 
           // Render Countertop if active
           if (config.countertopType && config.countertopType !== 'none') {
             const ctMat = getCountertopMaterial(config.countertopType);
-            const ctT = config.countertopThickness ?? 40;
             const isStone_kl = config.countertopType === 'stone';
             const ctHalf = ctT / 2;
+            
+            // For island, the countertop width is exactly width and sits on top of waterfall sides
             addBoard(
               width,
               ctT,
-              depth + 25,
+              isIsland ? depth : depth + 25,
               0,
-              height + ctHalf,
-              12.5,
+              isIsland ? height - ctHalf : height + ctHalf,
+              isIsland ? 0 : 12.5,
               ctMat,
-              isStone_kl ? 'Чулуун тавцан (Гал тогоо)' : 'Модон тавцан (Гал тогоо)',
+              isStone_kl ? 'Чулуун тавцан (Арал)' : 'Модон тавцан (Арал)',
               'Дээд тавиур'
             );
           }
@@ -2710,7 +2734,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                 const drH = drawerAreaH / secDrawers;
                 for (let i = 0; i < secDrawers; i++) {
                   const dy = startY + drH / 2 + i * drH;
-                  const drawerMesh = addBoard(panel.width, drH - 6, 18, dx, dy, halfD + 9, doorMat, `Шургуулганы нүүр ${i + 1}`, 'Шургуулга');
+                  const drawerMesh = addBoard(panel.width, drH - 6, 18, dx, dy, localDoorZ, doorMat, `Шургуулганы нүүр ${i + 1}`, 'Шургуулга');
 
                   if (handleType !== 'none') {
                     const handleGeom = new THREE.CylinderGeometry(4, 4, Math.min(120, panel.width * 0.4), 16);
@@ -2740,7 +2764,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                     18,
                     doorX,
                     doorY,
-                    halfD + 9,
+                    localDoorZ,
                     doorMat,
                     `Шүүгээний хаалга`,
                     'Хаалга',
@@ -2798,7 +2822,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
               const drH = (bodyHeight - 10) / drawers;
               for (let i = 0; i < drawers; i++) {
                 const dy = legHeight + drH / 2 + 5 + i * drH;
-                const drawerMesh = addBoard(width - 10, drH - 6, 18, 0, dy, halfD + 9, doorMat, `Шургуулганы нүүр ${i + 1}`, 'Шургуулга');
+                const drawerMesh = addBoard(width - 10, drH - 6, 18, 0, dy, localDoorZ, doorMat, `Шургуулганы нүүр ${i + 1}`, 'Шургуулга');
 
                 // Handle
                 if (handleType !== 'none') {
@@ -2821,7 +2845,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
 
                 if (hasLeftDoor) {
                   const doorX = width >= 800 ? -halfW + 5 + customDoorWidth / 2 : 0;
-                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Зүүн)`, 'Хаалга', {
+                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, localDoorZ, doorMat, `Шүүгээний хаалга (Зүүн)`, 'Хаалга', {
                     id: `${mod.id}-door-left`,
                     isLeftHinged: true,
                     doorCenterX: doorX,
@@ -2838,7 +2862,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                 }
                 if (hasRightDoor) {
                   const doorX = width >= 800 ? halfW - 5 - customDoorWidth / 2 : 0;
-                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Баруун)`, 'Хаалга', {
+                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, localDoorZ, doorMat, `Шүүгээний хаалга (Баруун)`, 'Хаалга', {
                     id: `${mod.id}-door-right`,
                     isLeftHinged: false,
                     doorCenterX: doorX,
@@ -2860,7 +2884,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                   const doorH = bodyHeight - 10;
                   const doorY = legHeight + bodyHeight / 2;
                   const isLeftHinged = doors > 1 ? (i < Math.ceil(doors / 2)) : (doorX <= 0);
-                  const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга', {
+                  const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, localDoorZ, doorMat, `Шүүгээний хаалга`, 'Хаалга', {
                     id: `${mod.id}-door-${i}`,
                     isLeftHinged,
                     doorCenterX: doorX,
@@ -2885,7 +2909,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
               // Render drawers stacked vertically at the top
               for (let j = 0; j < drawers; j++) {
                 const py = height - (drawers - j - 0.5) * singleDrawerH;
-                const drawerMesh = addBoard(width - 10, singleDrawerH - 10, 18, 0, py, halfD + 9, doorMat, `Шургуулганы нүүр ${j + 1}`, 'Шургуулга');
+                const drawerMesh = addBoard(width - 10, singleDrawerH - 10, 18, 0, py, localDoorZ, doorMat, `Шургуулганы нүүр ${j + 1}`, 'Шургуулга');
 
                 // Handle
                 if (handleType !== 'none') {
@@ -2909,7 +2933,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
 
                 if (hasLeftDoor) {
                   const doorX = width >= 800 ? -halfW + 5 + customDoorWidth / 2 : 0;
-                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Зүүн)`, 'Хаалга', {
+                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, localDoorZ, doorMat, `Шүүгээний хаалга (Зүүн)`, 'Хаалга', {
                     id: `${mod.id}-door-left`,
                     isLeftHinged: true,
                     doorCenterX: doorX,
@@ -2926,7 +2950,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                 }
                 if (hasRightDoor) {
                   const doorX = width >= 800 ? halfW - 5 - customDoorWidth / 2 : 0;
-                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга (Баруун)`, 'Хаалга', {
+                  const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, localDoorZ, doorMat, `Шүүгээний хаалга (Баруун)`, 'Хаалга', {
                     id: `${mod.id}-door-right`,
                     isLeftHinged: false,
                     doorCenterX: doorX,
@@ -2949,7 +2973,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                 for (let i = 0; i < doors; i++) {
                   const doorX = -halfW + 5 + doorW / 2 + i * doorW;
                   const isLeftHinged = doors > 1 ? (i < Math.ceil(doors / 2)) : (doorX <= 0);
-                  const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, halfD + 9, doorMat, `Шүүгээний хаалга`, 'Хаалга', {
+                  const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, localDoorZ, doorMat, `Шүүгээний хаалга`, 'Хаалга', {
                     id: `${mod.id}-door-${i}`,
                     isLeftHinged,
                     doorCenterX: doorX,

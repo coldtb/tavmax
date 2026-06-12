@@ -229,7 +229,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigat
 
   // Filter templates versus user custom designs
   const templateProjects = projects.filter(
-    (p) => p.id === 'proj-1' || p.id === 'proj-2' || p.id === 'proj-3' || p.id === 'proj-tv'
+    (p) => p.id === 'proj-1' || p.id === 'proj-2' || p.id === 'proj-3' || p.id === 'proj-tv' || p.id === 'proj-island'
   );
 
 

@@ -454,6 +454,112 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
       break;
     }
 
+    case 'kitchen_island': {
+      const baseHeight = height;
+      const ctT = config.countertopThickness || 40;
+      const bodyInsideWidth = width - 2 * ctT;
+      const parts: Part[] = [];
+      const edge = '2mm';
+
+      const isStone = config.countertopType === 'stone';
+      const ctMatId = isStone ? 'mat-ct-stone' : 'mat-ct-wood';
+
+      // 1. Countertop (width = depth, height = width)
+      parts.push({
+        id: 'p-ki-countertop',
+        name: isStone ? 'Чулуун тавцан (Арал)' : 'Модон тавцан (Арал)',
+        width: depth,
+        height: width,
+        quantity: 1,
+        materialId: ctMatId,
+        edgeBanding: 'all-sides',
+        category: 'Дээд тавиур'
+      });
+
+      // 2. Waterfall side panels (width = depth, height = baseHeight - ctT)
+      parts.push({
+        id: 'p-ki-side-l',
+        name: isStone ? 'Чулуун хажуу хана (Зүүн)' : 'Модон хажуу хана (Зүүн)',
+        width: depth,
+        height: baseHeight - ctT,
+        quantity: 1,
+        materialId: ctMatId,
+        edgeBanding: 'all-sides',
+        category: 'Хажуу хана'
+      });
+      parts.push({
+        id: 'p-ki-side-r',
+        name: isStone ? 'Чулуун хажуу хана (Баруун)' : 'Модон хажуу хана (Баруун)',
+        width: depth,
+        height: baseHeight - ctT,
+        quantity: 1,
+        materialId: ctMatId,
+        edgeBanding: 'all-sides',
+        category: 'Хажуу хана'
+      });
+
+      // 3. Bottom panel
+      parts.push({
+        id: 'p-ki-bot',
+        name: 'Доод суурь хавтан',
+        width: depth,
+        height: bodyInsideWidth,
+        quantity: 1,
+        materialId,
+        edgeBanding: '1mm',
+        category: 'Доод тавиур'
+      });
+
+      // 4. Top support rails
+      parts.push({
+        id: 'p-ki-top-rail',
+        name: 'Дээд холбоос хавтан',
+        width: 100,
+        height: bodyInsideWidth,
+        quantity: 2,
+        materialId,
+        edgeBanding: 'none',
+        category: 'Дээд тавиур'
+      });
+
+      // 5. Dividers (3 sections, so 2 dividers)
+      const insideHeight = baseHeight - ctT - 18;
+      for (let i = 0; i < 2; i++) {
+        parts.push({
+          id: `p-ki-div-${i}`,
+          name: `Дотор босоо хуваалт ${i + 1}`,
+          width: depth - 20,
+          height: insideHeight,
+          quantity: 1,
+          materialId,
+          edgeBanding: '1mm',
+          category: 'Хуваалт'
+        });
+      }
+
+      // 6. Doors (3 doors, opposite facing, same material as body!)
+      const sectionW = Math.round((bodyInsideWidth - 10) / 3);
+      for (let j = 0; j < 3; j++) {
+        parts.push({
+          id: `p-ki-door-${j}`,
+          name: `Аралны хаалга (Эсрэг тал)`,
+          width: sectionW - 4,
+          height: insideHeight - 6,
+          quantity: 1,
+          materialId, // Body material!
+          edgeBanding: edge,
+          category: 'Хаалга',
+          notes: 'Эсрэг тал руу онгойно'
+        });
+      }
+
+      return parts.map(p => ({
+        ...p,
+        width: Math.round(p.width),
+        height: Math.round(p.height)
+      }));
+    }
+
     case 'kitchen_lower': {
       // standard kitchen base height: 750 (excluding legs)
       const baseHeight = config.hasLegs ? height - 100 : height;
