@@ -4,7 +4,7 @@ import type { Material } from '../data/mockData';
 import { Search, Plus, Trash2, X, Layers } from 'lucide-react';
 
 export const Materials: React.FC = () => {
-  const { materials, updateMaterialPrice } = useProjectStore();
+  const { materials, updateMaterialPrice, addMaterial, deleteMaterial } = useProjectStore();
 
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -33,19 +33,17 @@ export const Materials: React.FC = () => {
   const handleCreateMaterial = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMat.name.trim() || !newMat.code.trim()) return;
-    materials.push({
+    const material: Material = {
       id: `mat-${Date.now()}`,
       ...newMat,
-    });
+    };
+    addMaterial(material);
     setShowAddModal(false);
     setNewMat({ name: '', code: '', category: 'MDF', thickness: 18, price: 0, stock: 0, supplier: '', color: '#cccccc' });
   };
 
   const handleDeleteMaterial = (id: string) => {
-    const idx = materials.findIndex((m) => m.id === id);
-    if (idx !== -1) materials.splice(idx, 1);
-    // force a re-render by setting state
-    setSearch((s) => s);
+    deleteMaterial(id);
   };
 
   // Category color badges

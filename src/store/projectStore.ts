@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Project, FurnitureConfig, Part, CabinetModule } from '../data/mockData';
+import type { Project, FurnitureConfig, Part, CabinetModule, Material } from '../data/mockData';
 import { DEFAULT_MATERIALS, INITIAL_PROJECTS } from '../data/mockData';
+import { supabase, isSupabaseConfigured, debounce } from '../utils/supabaseClient';
 
 export interface CabinetTemplate {
   id: string;
@@ -46,6 +47,9 @@ interface ProjectState {
   resetModulePositions: () => void;
   alignModulesSideBySide: () => void;
   updateMaterialPrice: (materialId: string, price: number) => void;
+  addMaterial: (material: Material) => void;
+  deleteMaterial: (id: string) => void;
+  syncWithCloud: () => Promise<void>;
 
   // Custom single-module templates
   customTemplates: CabinetTemplate[];
@@ -1263,6 +1267,31 @@ const ensureProjectModules = (project: Project): Project => {
 };
 
 
+const debouncedCloudSaveProject = debounce(async (project: Project) => {
+  if (!isSupabaseConfigured || !supabase) return;
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    await supabase.from('projects').upsert({
+      id: project.id,
+      user_id: user.id,
+      name: project.name,
+      furniture_type: project.furnitureType,
+      config: project.config,
+      parts: project.parts,
+      modules: project.modules || [],
+      status: project.status,
+      customer_name: project.customerName,
+      customer_phone: project.customerPhone,
+      price: project.price,
+      updated_at: new Date().toISOString()
+    });
+  } catch (e) {
+    console.error('Failed to sync project to Supabase:', e);
+  }
+}, 1000);
+
 const INITIALIZED_PROJECTS = INITIAL_PROJECTS.map(p => ensureProjectModules(p));
 
 export const useProjectStore = create<ProjectState>()(
@@ -1277,14 +1306,20 @@ export const useProjectStore = create<ProjectState>()(
 
   addProject: (project) => set((state) => {
     const initialized = ensureProjectModules(project);
+    debouncedCloudSaveProject(initialized);
     return { projects: [...state.projects, initialized] };
   }),
 
-  deleteProject: (id) => set((state) => ({
-    projects: state.projects.filter((p) => p.id !== id),
-    activeProject: state.activeProject?.id === id ? null : state.activeProject,
-    selectedModuleId: state.activeProject?.id === id ? null : state.selectedModuleId
-  })),
+  deleteProject: (id) => set((state) => {
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('projects').delete().eq('id', id).catch(console.error);
+    }
+    return {
+      projects: state.projects.filter((p) => p.id !== id),
+      activeProject: state.activeProject?.id === id ? null : state.activeProject,
+      selectedModuleId: state.activeProject?.id === id ? null : state.selectedModuleId
+    };
+  }),
 
   setActiveProject: (project) => set((state) => {
     if (!project) return { activeProject: null, selectedModuleId: null };
@@ -2129,9 +2164,163 @@ export const useProjectStore = create<ProjectState>()(
   }),
 
 
-  updateMaterialPrice: (materialId, price) => set((state) => ({
-    materials: state.materials.map((m) => m.id === materialId ? { ...m, price } : m)
-  })),
+  updateMaterialPrice: (materialId, price) => set((state) => {
+    const updated = state.materials.map((m) => m.id === materialId ? { ...m, price } : m);
+    const updatedMat = updated.find((m) => m.id === materialId);
+    
+    // Cloud sync
+    if (isSupabaseConfigured && supabase && updatedMat) {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          supabase.from('user_materials').upsert({
+            id: updatedMat.id,
+            user_id: user.id,
+            name: updatedMat.name,
+            code: updatedMat.code,
+            category: updatedMat.category,
+            thickness: updatedMat.thickness,
+            price: updatedMat.price,
+            stock: updatedMat.stock,
+            supplier: updatedMat.supplier || '',
+            color: updatedMat.color,
+            texture_url: updatedMat.textureUrl || ''
+          }).catch(console.error);
+        }
+      });
+    }
+
+    return { materials: updated };
+  }),
+
+  addMaterial: (material) => set((state) => {
+    const updated = [...state.materials, material];
+    
+    // Cloud sync
+    if (isSupabaseConfigured && supabase) {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          supabase.from('user_materials').upsert({
+            id: material.id,
+            user_id: user.id,
+            name: material.name,
+            code: material.code,
+            category: material.category,
+            thickness: material.thickness,
+            price: material.price,
+            stock: material.stock,
+            supplier: material.supplier || '',
+            color: material.color,
+            texture_url: material.textureUrl || ''
+          }).catch(console.error);
+        }
+      });
+    }
+
+    return { materials: updated };
+  }),
+
+  deleteMaterial: (id) => set((state) => {
+    const updated = state.materials.filter((m) => m.id !== id);
+
+    // Cloud sync
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('user_materials').delete().eq('id', id).catch(console.error);
+    }
+
+    return { materials: updated };
+  }),
+
+  syncWithCloud: async () => {
+    if (!isSupabaseConfigured || !supabase) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Fetch cloud materials
+      const { data: cloudMaterials, error: matError } = await supabase
+        .from('user_materials')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (!matError && cloudMaterials) {
+        const mappedMaterials: Material[] = cloudMaterials.map((cm: any) => ({
+          id: cm.id,
+          name: cm.name,
+          code: cm.code,
+          category: cm.category,
+          thickness: Number(cm.thickness),
+          price: Number(cm.price),
+          stock: Number(cm.stock),
+          supplier: cm.supplier,
+          color: cm.color,
+          textureUrl: cm.texture_url || undefined
+        }));
+
+        set((state) => {
+          const merged = [...DEFAULT_MATERIALS];
+          mappedMaterials.forEach((cm) => {
+            const idx = merged.findIndex((m) => m.id === cm.id);
+            if (idx === -1) {
+              merged.push(cm);
+            } else {
+              merged[idx] = cm;
+            }
+          });
+          return { materials: merged };
+        });
+      }
+
+      // Fetch cloud projects
+      const { data: cloudProjects, error: projError } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (!projError && cloudProjects) {
+        const mappedProjects: Project[] = cloudProjects.map((cp: any) => ({
+          id: cp.id,
+          name: cp.name,
+          furnitureType: cp.furniture_type as any,
+          config: cp.config,
+          parts: cp.parts,
+          modules: cp.modules,
+          status: cp.status as any,
+          customerName: cp.customer_name || '',
+          customerPhone: cp.customer_phone || '',
+          price: Number(cp.price),
+          createdAt: cp.created_at,
+          updatedAt: cp.updated_at
+        }));
+
+        set((state) => {
+          const merged = [...state.projects];
+          mappedProjects.forEach((cp) => {
+            const idx = merged.findIndex((p) => p.id === cp.id);
+            if (idx === -1) {
+              merged.push(cp);
+            } else {
+              merged[idx] = cp;
+            }
+          });
+
+          let active = state.activeProject;
+          if (active) {
+            const cloudActive = mappedProjects.find((p) => p.id === active?.id);
+            if (cloudActive) {
+              active = cloudActive;
+            }
+          }
+
+          return {
+            projects: merged,
+            activeProject: active
+          };
+        });
+      }
+    } catch (e) {
+      console.error('Failed to sync state with Supabase:', e);
+    }
+  },
 
   addCustomTemplate: (name, type, config) => set((state) => {
     const newTpl = {
@@ -2285,3 +2474,10 @@ export const useProjectStore = create<ProjectState>()(
     }
   )
 );
+
+// Auto-subscribe to active project changes to sync to the cloud
+useProjectStore.subscribe((state, prevState) => {
+  if (state.activeProject && state.activeProject !== prevState.activeProject) {
+    debouncedCloudSaveProject(state.activeProject);
+  }
+});

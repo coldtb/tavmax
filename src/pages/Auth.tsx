@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { Key, Phone, User, Lock, ShieldCheck, CheckCircle2, AlertCircle, Coins, CreditCard, Sparkles, Check, RefreshCw } from 'lucide-react';
+import { isSupabaseConfigured } from '../utils/supabaseClient';
 
 export const Auth: React.FC = () => {
   const { validateCode, register, login } = useAuthStore();
@@ -136,11 +137,18 @@ export const Auth: React.FC = () => {
       return;
     }
 
-    setLoading(true);
-    const success = await register(name, phone, activationCode, password);
-    setLoading(false);
-    if (success) {
-      setStep(3);
+    try {
+      setLoading(true);
+      const success = await register(name, phone, activationCode, password);
+      setLoading(false);
+      if (success) {
+        setStep(3);
+      } else {
+        setErrorMsg('Бүртгэл амжилтгүй боллоо. Мэдээллээ шалгана уу.');
+      }
+    } catch (err: any) {
+      setLoading(false);
+      setErrorMsg(err.message || 'Бүртгэл амжилтгүй боллоо. Таны утас аль хэдийн бүртгэгдсэн байж магадгүй.');
     }
   };
 
@@ -176,6 +184,19 @@ export const Auth: React.FC = () => {
           <span className="px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[10px] font-bold uppercase tracking-widest">
             SaaS Өөрөө Загварчлах Систем
           </span>
+          <div className="mt-2.5 flex justify-center">
+            {isSupabaseConfigured ? (
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-bold flex items-center gap-1 select-none">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                ҮҮЛЭН САНТАЙ ХОЛБОГДСОН (CLOUD)
+              </span>
+            ) : (
+              <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] font-bold flex items-center gap-1 select-none">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                ОФФЛАЙН ГОРИМ (LOCAL STORAGE)
+              </span>
+            )}
+          </div>
           <h1 className="font-display font-extrabold text-4xl tracking-tight bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 bg-clip-text text-transparent mt-3">
             TAVMAX
           </h1>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
 import { useProjectStore } from './store/projectStore';
+import { isSupabaseConfigured } from './utils/supabaseClient';
 import { Auth } from './pages/Auth';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Dashboard } from './pages/Dashboard';
@@ -32,8 +33,8 @@ if (typeof window !== 'undefined') {
 }
 
 export const App: React.FC = () => {
-  const { isLoggedIn, user, logout } = useAuthStore();
-  const { activeProject, setActiveProject } = useProjectStore();
+  const { isLoggedIn, user, logout, initializeAuth } = useAuthStore();
+  const { activeProject, setActiveProject, syncWithCloud } = useProjectStore();
 
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     return (localStorage.getItem('tavmax_theme') as 'dark' | 'light') || 'light';
@@ -69,6 +70,8 @@ export const App: React.FC = () => {
   const [logs, setLogs] = useState<string[]>([]);
 
   useEffect(() => {
+    initializeAuth().catch(console.error);
+
     const handleLog = (e: any) => {
       setLogs((prev) => [...prev, e.detail].slice(-30));
     };
@@ -80,7 +83,13 @@ export const App: React.FC = () => {
     }
 
     return () => window.removeEventListener('tavmax-log', handleLog);
-  }, []);
+  }, [initializeAuth]);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      syncWithCloud().catch(console.error);
+    }
+  }, [isLoggedIn, syncWithCloud]);
 
   // Authentication gate
   if (!isLoggedIn) {
@@ -126,6 +135,18 @@ export const App: React.FC = () => {
 
         {/* User Session status widget */}
         <div className="flex items-center gap-3.5 text-xs font-semibold text-neutral-300">
+          {isSupabaseConfigured ? (
+            <span className="px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-bold text-emerald-400 flex items-center gap-1 select-none" title="Үүлэн баазад холбогдсон">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              CLOUD
+            </span>
+          ) : (
+            <span className="px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[9px] font-bold text-amber-400 flex items-center gap-1 select-none" title="Оффлайн / Local Storage горим">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              LOCAL
+            </span>
+          )}
+
           <div className="hidden md:flex flex-col text-right">
             <span className="text-white font-bold">{user?.name}</span>
             <span className="text-[9px] text-neutral-500 uppercase">{user?.role === 'factory' ? 'Техникч' : 'Карпентер'}</span>
