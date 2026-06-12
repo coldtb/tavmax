@@ -4300,6 +4300,8 @@ return (
           { icon: '📚', label: 'Тавиур' },
           { icon: '🎨', label: 'Өнгө & Материал' },
           { icon: '💾', label: 'Хадгалах' },
+          { icon: '🏝️', label: 'Гал тогооны арал' },
+          { icon: '☁️', label: 'Үүлэн хадгалалт & Сан' },
         ];
         return (
           <div className="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-sm flex items-center justify-center p-3">
@@ -4689,6 +4691,7 @@ return (
                         ['🎨', 'Дурын өнгө', 'Hex кодоор (#ff5733) эсвэл өнгийн спектрт дарж дурын өнгийг оруулна'],
                         ['💾', 'Өнгө хадгалах', '«☆ Хадгалах» товч дарж дурын өнгөө хадгаллаа. Цаашид хурдан сонгоход ашиглана'],
                         ['🚪', 'Хаалганы өнгө', 'Их биеийн өнгөнөөс тусад нь хаалганы өнгийг тохируулна. «Классик» загварт цагаан MDF автомат болно'],
+                        ['📦', 'Хувийн материал', '«Материалын сан» цэсэнд үүсгэсэн өөрийн материалууд өнгө сонгох хэсэгт автоматаар нэмэгдэж орно (синхрончлогдоно).'],
                       ].map(([ic, t, d]) => (
                         <div key={t} className="flex gap-2 items-start bg-[#12141c] rounded-lg px-3 py-2 border border-white/5">
                           <span className="text-sm shrink-0">{ic}</span>
@@ -4754,6 +4757,139 @@ return (
                       <div className="bg-amber-500/8 border border-amber-500/20 rounded-lg p-2.5">
                         <p className="text-[10px] text-amber-300">💡 <strong>Зөвлөмж:</strong> Хэрэглэгчтэй хуваалцахдаа «Байрлал хадгалах» товчоор хадгаллаад браузерийг хаагаад дахин нээхэд ажлаа үргэлжлүүлнэ!</p>
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── TAB 8: Kitchen Island ── */}
+                {helpTab === 8 && (
+                  <div className="p-4 flex flex-col gap-3">
+                    <p className="text-[11px] text-neutral-400 leading-relaxed">Гал тогооны арал (Kitchen Island) загвар нь орон зайн шинэлэг шийдэл бүхий дараах өвөрмөц онцлогуудтай:</p>
+                    <div className="bg-[#12141c] rounded-xl border border-white/5 p-3">
+                      <svg viewBox="0 0 480 160" className="w-full" style={{ maxHeight: 160 }}>
+                        <defs>
+                          <marker id="red-arrow" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+                            <path d="M0,0 L5,2.5 L0,5 Z" fill="#ef4444"/>
+                          </marker>
+                          <marker id="purple-arrow" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+                            <path d="M0,0 L5,2.5 L0,5 Z" fill="#a78bfa"/>
+                          </marker>
+                        </defs>
+                        
+                        {/* FRONT VIEW (Left Side) */}
+                        <g transform="translate(10, 5)">
+                          <text x="105" y="15" textAnchor="middle" fill="#9ca3af" fontSize="8" fontWeight="bold">УРД ХАРАГДАЦ (НҮҮР)</text>
+                          {/* Countertop */}
+                          <rect x="15" y="25" width="180" height="12" rx="2" fill="#c29b69" stroke="#b45309" strokeWidth="0.5"/>
+                          {/* Left Waterfall side */}
+                          <rect x="15" y="37" width="12" height="93" fill="#c29b69" stroke="#b45309" strokeWidth="0.5"/>
+                          {/* Right Waterfall side */}
+                          <rect x="183" y="37" width="12" height="93" fill="#c29b69" stroke="#b45309" strokeWidth="0.5"/>
+                          {/* Cabinet body */}
+                          <rect x="27" y="37" width="156" height="93" fill="#1e2030" stroke="#374151" strokeWidth="1"/>
+                          {/* 2 recessed doors */}
+                          <rect x="31" y="41" width="72" height="82" rx="2" fill="#faf9f6" opacity="0.9" stroke="#d1d5db" strokeWidth="0.5"/>
+                          <circle cx="93" cy="82" r="2.5" fill="#171717"/>
+                          <rect x="107" y="41" width="72" height="82" rx="2" fill="#faf9f6" opacity="0.9" stroke="#d1d5db" strokeWidth="0.5"/>
+                          <circle cx="117" cy="82" r="2.5" fill="#171717"/>
+                          {/* Labels */}
+                          <text x="105" y="145" textAnchor="middle" fill="#6b7280" fontSize="7">Waterfall хажуу хананы дотор орсон хаалганууд</text>
+                        </g>
+
+                        {/* SIDE CROSS-SECTION VIEW (Right Side) */}
+                        <g transform="translate(240, 5)">
+                          <text x="110" y="15" textAnchor="middle" fill="#9ca3af" fontSize="8" fontWeight="bold">ХАЖУУГИЙН ОГТЛОЛ (ЗҮСЭЛТ)</text>
+                          {/* Countertop */}
+                          <rect x="30" y="25" width="160" height="12" rx="2" fill="#c29b69" stroke="#b45309" strokeWidth="0.5"/>
+                          {/* Back Panel (Right, 18mm body material) */}
+                          <rect x="172" y="37" width="8" height="93" fill="#4b5563" stroke="#374151" strokeWidth="1"/>
+                          {/* Front Door (Left, Recessed inside limits) */}
+                          <rect x="38" y="37" width="8" height="83" fill="#faf9f6" stroke="#d1d5db" strokeWidth="1"/>
+                          {/* Bottom panel */}
+                          <rect x="46" y="120" width="126" height="10" fill="#1e2030" stroke="#374151" strokeWidth="1"/>
+                          {/* Middle shelf */}
+                          <rect x="46" y="78" width="126" height="6" fill="#1e2030" opacity="0.5" stroke="#374151" strokeWidth="0.5"/>
+                          
+                          {/* Alignments */}
+                          <line x1="30" y1="37" x2="30" y2="135" stroke="#ef4444" strokeWidth="0.75" strokeDasharray="3,2"/>
+                          <line x1="190" y1="37" x2="190" y2="135" stroke="#a78bfa" strokeWidth="0.75" strokeDasharray="3,2"/>
+                          
+                          {/* Recess indicators */}
+                          <path d="M30 50 L38 50" stroke="#ef4444" strokeWidth="1" markerEnd="url(#red-arrow)"/>
+                          <text x="26" y="53" textAnchor="end" fill="#ef4444" fontSize="6" fontWeight="bold">18mm суулгац</text>
+                          
+                          <path d="M190 50 L182 50" stroke="#a78bfa" strokeWidth="1" markerEnd="url(#purple-arrow)"/>
+                          <text x="194" y="53" textAnchor="start" fill="#a78bfa" fontSize="6" fontWeight="bold">18mm хаалт</text>
+                          
+                          <text x="32" y="90" textAnchor="end" fill="#faf9f6" fontSize="6.5">Хаалга (Дотроо)</text>
+                          <text x="166" y="105" textAnchor="start" fill="#a78bfa" fontSize="6.5">Арын хаалт (Битүү)</text>
+                          <text x="110" y="145" textAnchor="middle" fill="#6b7280" fontSize="7">Дотор талын хавтангуудын гүнийг багасгасан</text>
+                        </g>
+                      </svg>
+                    </div>
+                    <div className="grid grid-cols-1 gap-1.5">
+                      {[
+                        ['🏝️', 'Waterfall Хажуу хананууд', 'Арлын хоёр хажуу хана нь оройн тавцангийн материалаар шал хүртэл үргэлжилнэ. Хөлийн өндөр орохгүй.'],
+                        ['🚪', 'Дотогш суулгасан хаалга (Recessed)', 'Хаалганууд нь арлын хажуу хавтан болон оройн тавцангийн дотор талд байрлах тул мөргөлдөх эсвэл илүү гарах асуудалгүй.'],
+                        ['🪵', 'Их биеийн хаалт хавтан (Closed Back)', 'Шүүгээний арын ил задгай хэсгийг 18мм зузаантай их биеийн үндсэн материалаар бүрэн битүүлж, бэлдэцэд автоматаар тооцно.'],
+                        ['🪓', 'Судасны чиглэл (Grain Direction)', 'Оройн тавцангийн модны хээний судас хэвтээ, харин хажуугийн Waterfall хавтангуудын судас босоо чиглэлтэй байна.'],
+                        ['⚙️', 'Динамик хэсгүүдийн бодолт', 'Хаалга болон арын хаалт орсон тул доторх тавиур, шургуулганы гүн автоматаар 36мм-ээр багасч тооцогдоно.'],
+                      ].map(([ic, t, d]) => (
+                        <div key={t} className="flex gap-2 items-start bg-[#12141c] rounded-lg px-3 py-2 border border-white/5">
+                          <span className="text-sm shrink-0">{ic}</span>
+                          <div><span className="text-[10px] font-bold text-white">{t}: </span><span className="text-[10px] text-neutral-400">{d}</span></div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── TAB 9: Cloud sync ── */}
+                {helpTab === 9 && (
+                  <div className="p-4 flex flex-col gap-3">
+                    <p className="text-[11px] text-neutral-400 leading-relaxed">Систем дээрх таны хийсэн бүх ажил үүлэн серверт автоматаар хадгалагдаж сэргээгдэнэ:</p>
+                    <div className="bg-[#12141c] rounded-xl border border-white/5 p-3">
+                      <svg viewBox="0 0 460 140" className="w-full" style={{ maxHeight: 140 }}>
+                        {/* Client Device */}
+                        <rect x="30" y="25" width="100" height="70" rx="6" fill="#1e2030" stroke="#3b82f6" strokeWidth="1.5"/>
+                        <rect x="40" y="32" width="80" height="42" rx="2" fill="#12141c"/>
+                        <circle cx="80" cy="86" r="4" fill="#3b82f6"/>
+                        <text x="80" y="108" textAnchor="middle" fill="#3b82f6" fontSize="7" fontWeight="bold">Төхөөрөмж / Утас</text>
+                        
+                        {/* Arrows */}
+                        <text x="175" y="55" fill="#10b981" fontSize="16">⇄</text>
+                        <text x="175" y="70" textAnchor="middle" fill="#10b981" fontSize="7">Синк хийх</text>
+
+                        {/* Cloud DB */}
+                        <path d="M230 65 C220 65, 215 55, 225 45 C220 30, 240 25, 250 35 C260 25, 280 30, 275 45 C285 55, 280 65, 270 65 Z" fill="#10b981" opacity="0.85"/>
+                        <text x="250" y="80" textAnchor="middle" fill="#10b981" fontSize="7" fontWeight="bold">Үүлэн сервер (Supabase)</text>
+                        
+                        {/* Data Lists */}
+                        <rect x="330" y="20" width="100" height="80" rx="6" fill="#1a1d28" stroke="#a855f7" strokeWidth="1.5"/>
+                        <text x="380" y="32" textAnchor="middle" fill="#a855f7" fontSize="7" fontWeight="bold">Төсөл & Материалууд</text>
+                        {/* Rows */}
+                        <rect x="338" y="42" width="84" height="10" rx="2" fill="#12141c"/>
+                        <circle cx="344" cy="47" r="2" fill="#10b981"/>
+                        <rect x="338" y="58" width="84" height="10" rx="2" fill="#12141c"/>
+                        <circle cx="344" cy="63" r="2" fill="#3b82f6"/>
+                        <rect x="338" y="74" width="84" height="10" rx="2" fill="#12141c"/>
+                        <circle cx="344" cy="79" r="2" fill="#a855f7"/>
+
+                        <text x="380" y="112" textAnchor="middle" fill="#a855f7" fontSize="7">Утасны дугаараар нэвтрэх</text>
+                      </svg>
+                    </div>
+                    <div className="grid grid-cols-1 gap-1.5">
+                      {[
+                        ['☁️', 'Үүлэн хадгалалт (Cloud Sync)', 'Зурсан төслүүд таны утасны дугаар дээр автоматаар үүлэн серверт хадгалагдана. Хэзээ ч хаанаас ч хандах боломжтой.'],
+                        ['🟢', 'Холболтын төлөв (Status Badge)', 'Дээд цэсэнд CLOUD (Ногоон) байна уу эсвэл LOCAL (Шар) байна уу гэдгээр үүлэн холболтын төлөвийг шууд хянаж болно.'],
+                        ['🎨', 'Хувийн материалын сан', '«Материалын сан» цэсээс ашиглах хавтангийн шинэ өнгө, зузаан, үнэ зэргийг өөрөө үүсгэж төсөлдөө хэрэглэнэ.'],
+                        ['🔄', 'Хуудас шинэчлэх (Reload/Refresh)', 'Хуудсыг дахин ачаалахад (reload) таны ажил хэзээ ч устахгүй, идэвхтэй төсөл болон материалууд автоматаар сэргэнэ.'],
+                      ].map(([ic, t, d]) => (
+                        <div key={t} className="flex gap-2 items-start bg-[#12141c] rounded-lg px-3 py-2 border border-white/5">
+                          <span className="text-sm shrink-0">{ic}</span>
+                          <div><span className="text-[10px] font-bold text-white">{t}: </span><span className="text-[10px] text-neutral-400">{d}</span></div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
