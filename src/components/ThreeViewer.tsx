@@ -2616,7 +2616,8 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
           const localBodyHeight = isIsland ? height : bodyHeight;
           const ctT = config.countertopThickness ?? 40;
           const effectiveBodyHeight = isIsland ? (height - ctT) : bodyHeight;
-          const localDoorZ = isIsland ? -halfD - 9 : halfD + 9;
+          const localDoorZ = isIsland ? -halfD + 9 : halfD + 9;
+          const innerW = isIsland ? (width - 2 * ctT) : (width - 36);
 
           if (!isIsland) {
             buildLegs();
@@ -2630,10 +2631,10 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
             // Right waterfall side panel
             addBoard(ctT, height - ctT, depth, halfW - ctT/2, (height - ctT)/2, 0, ctMat, 'Модон хажуу хана (Баруун)', 'Хажуу хана');
             // Bottom panel inside (thickness 18)
-            addBoard(width - 2*ctT, 18, depth, 0, 9, 0, bodyMat, 'Доод суурь хавтан', 'Доод тавиур');
+            addBoard(width - 2*ctT, 18, depth - 18, 0, 9, 9, bodyMat, 'Доод суурь хавтан', 'Доод тавиур');
             // Top connector rails inside
             addBoard(width - 2*ctT, 18, 100, 0, height - ctT - 9, halfD - 50, bodyMat, 'Дээд холбоос хавтан (Урд)', 'Дээд тавиур');
-            addBoard(width - 2*ctT, 18, 100, 0, height - ctT - 9, -halfD + 50, bodyMat, 'Дээд холбоос хавтан (Ар)', 'Дээд тавиур');
+            addBoard(width - 2*ctT, 18, 100, 0, height - ctT - 9, -halfD + 18 + 50, bodyMat, 'Дээд холбоос хавтан (Ар)', 'Дээд тавиур');
           } else {
             addBoard(18, localBodyHeight, depth, -halfW + 9, localLegHeight + localBodyHeight / 2, 0, bodyMat, 'Гал тогооны хажуу хана (Зүүн)', 'Хажуу хана');
             addBoard(18, localBodyHeight, depth, halfW - 9, localLegHeight + localBodyHeight / 2, 0, bodyMat, 'Гал тогооны хажуу хана (Баруун)', 'Хажуу хана');
@@ -2664,26 +2665,91 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
           }
 
           // Sections Layout using getCabinetSections
-          const sections = getCabinetSections(width, config, 'kitchen_lower');
-          const partitionsCount = sections.length - 1;
+          let sections: { width: number; centerX: number }[] = [];
+          let partitionsCount = 0;
+          let dPositions: number[] = [];
 
-          // Retrieve divider positions
-          let dPositions = config.dividerPositions || [];
-          if (dPositions.length !== partitionsCount) {
-            dPositions = [];
-            for (let i = 0; i < partitionsCount; i++) {
-              dPositions.push(Math.round((i + 1) * width / (partitionsCount + 1)));
+          if (isIsland) {
+            const doorsVal = Number(config.doors) || 0;
+            const drawersVal = Number(config.drawers) || 0;
+            partitionsCount = config.partitions !== undefined 
+              ? Number(config.partitions) 
+              : (doorsVal > 0 ? (drawersVal > 0 ? doorsVal : doorsVal - 1) : 0);
+
+            if (partitionsCount > 0) {
+              for (let i = 0; i < partitionsCount; i++) {
+                dPositions.push(Math.round((i + 1) * innerW / (partitionsCount + 1)));
+              }
+            }
+
+            if (partitionsCount === 0) {
+              sections.push({
+                width: innerW,
+                centerX: 0
+              });
+            } else {
+              const halfInnerW = innerW / 2;
+              const w0 = dPositions[0] - 9;
+              sections.push({
+                width: w0,
+                centerX: -halfInnerW + w0 / 2
+              });
+              for (let i = 1; i < partitionsCount; i++) {
+                const w = dPositions[i] - dPositions[i-1] - 18;
+                sections.push({
+                  width: w,
+                  centerX: -halfInnerW + (dPositions[i-1] + dPositions[i]) / 2
+                });
+              }
+              const lastW = innerW - dPositions[partitionsCount - 1] - 9;
+              sections.push({
+                width: lastW,
+                centerX: -halfInnerW + dPositions[partitionsCount - 1] + 9 + lastW / 2
+              });
+            }
+          } else {
+            const rawSections = getCabinetSections(width, config, 'kitchen_lower');
+            sections = rawSections.map(s => ({ width: s.width, centerX: s.centerX }));
+            partitionsCount = sections.length - 1;
+            dPositions = config.dividerPositions || [];
+            if (dPositions.length !== partitionsCount) {
+              dPositions = [];
+              for (let i = 0; i < partitionsCount; i++) {
+                dPositions.push(Math.round((i + 1) * width / (partitionsCount + 1)));
+              }
             }
           }
 
           // Dividers
           for (let i = 0; i < partitionsCount; i++) {
-            const dx = -halfW + dPositions[i];
-            addBoard(18, effectiveBodyHeight - 36, depth - 20, dx, localLegHeight + effectiveBodyHeight / 2, 0, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт', { partitionIndex: i });
+            const dx = isIsland ? (-halfW + ctT + dPositions[i]) : (-halfW + dPositions[i]);
+            addBoard(18, effectiveBodyHeight - 36, isIsland ? depth - 38 : depth - 20, dx, localLegHeight + effectiveBodyHeight / 2, isIsland ? 9 : 0, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт', { partitionIndex: i });
           }
 
           // Shelves, Drawers & Doors
-          const panels = getCabinetFrontPanels(width, config);
+          let panels: { width: number; centerX: number }[] = [];
+          if (isIsland) {
+            const boundaries: number[] = [];
+            boundaries.push(-innerW / 2);
+            for (let i = 0; i < partitionsCount; i++) {
+              boundaries.push(-innerW / 2 + dPositions[i]);
+            }
+            boundaries.push(innerW / 2);
+
+            for (let j = 0; j <= partitionsCount; j++) {
+              const leftBound = boundaries[j];
+              const rightBound = boundaries[j+1];
+              const xLeft = leftBound + 2;
+              const xRight = rightBound - 2;
+              panels.push({
+                width: xRight - xLeft,
+                centerX: (xLeft + xRight) / 2
+              });
+            }
+          } else {
+            panels = getCabinetFrontPanels(width, config);
+          }
+
           const storedSecCounts: number[] | undefined = (config as any).sectionShelfCounts;
           const hasValidSecCounts = storedSecCounts && storedSecCounts.length === sections.length && storedSecCounts.reduce((a: number, b: number) => a + b, 0) === shelves;
 
@@ -2815,7 +2881,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                     const step = insideH / (shelvesInSec + 1);
                     sy = baseOffset + 18 + (i + 1) * step;
                   }
-                  addBoard(sec.width - 2, 18, depth - 30, sec.centerX, sy, 0, bodyMat, `Дотор тавиур (Секц ${j+1}) ${i + 1}`, 'Дээд тавиур');
+                  addBoard(sec.width - 2, 18, isIsland ? depth - 48 : depth - 30, sec.centerX, sy, isIsland ? 9 : 0, bodyMat, `Дотор тавиур (Секц ${j+1}) ${i + 1}`, 'Дээд тавиур');
                   shelfIdx++;
                 }
               } else {
@@ -2826,18 +2892,18 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
             if (shelves > 0 && drawers === 0) {
               for (let i = 0; i < shelves; i++) {
                 const sy = getShelfY(i, shelves, effectiveBodyHeight - 36, localLegHeight, config);
-                addBoard(width - 36, 18, depth - 30, 0, sy, 0, bodyMat, `Дотор тавиур ${i + 1}`, 'Дээд тавиур', { shelfIndex: i });
+                addBoard(isIsland ? innerW - 2 : width - 36, 18, isIsland ? depth - 48 : depth - 30, 0, sy, isIsland ? 9 : 0, bodyMat, `Дотор тавиур ${i + 1}`, 'Дээд тавиур', { shelfIndex: i });
               }
             }
             if (drawers > 0 && doors === 0) {
               const drH = (effectiveBodyHeight - 10) / drawers;
               for (let i = 0; i < drawers; i++) {
                 const dy = localLegHeight + drH / 2 + 5 + i * drH;
-                const drawerMesh = addBoard(width - 10, drH - 6, 18, 0, dy, localDoorZ, doorMat, `Шургуулганы нүүр ${i + 1}`, 'Шургуулга');
+                const drawerMesh = addBoard(isIsland ? innerW - 4 : width - 10, drH - 6, 18, 0, dy, localDoorZ, doorMat, `Шургуулганы нүүр ${i + 1}`, 'Шургуулга');
 
                 // Handle
                 if (handleType !== 'none') {
-                  const handleGeom = new THREE.CylinderGeometry(4, 4, Math.min(120, width * 0.4), 16);
+                  const handleGeom = new THREE.CylinderGeometry(4, 4, Math.min(120, (isIsland ? innerW : width) * 0.4), 16);
                   const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                   const handle = new THREE.Mesh(handleGeom, handleMat);
                   handle.rotation.z = Math.PI / 2;
@@ -2846,16 +2912,18 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                 }
               }
             } else if (doors > 0 && drawers === 0) {
+              const baseW = isIsland ? innerW : width;
+              const startX = isIsland ? -innerW / 2 : -halfW;
               if (config.customDoors) {
                 const hasLeftDoor = config.leftDoor !== undefined ? !!config.leftDoor : (doors === 1 || doors >= 2);
                 const hasRightDoor = config.rightDoor !== undefined ? !!config.rightDoor : (doors >= 2);
-                const defaultDoorWidth = width >= 800 ? (width - 10) / 2 : (width - 10);
+                const defaultDoorWidth = baseW >= 800 ? (baseW - 10) / 2 : (baseW - 10);
                 const customDoorWidth = config.doorWidth ? Number(config.doorWidth) : defaultDoorWidth;
                 const doorH = config.doorHeight ? Number(config.doorHeight) : (effectiveBodyHeight - 10);
                 const doorY = localLegHeight + 5 + doorH / 2;
 
                 if (hasLeftDoor) {
-                  const doorX = width >= 800 ? -halfW + 5 + customDoorWidth / 2 : 0;
+                  const doorX = baseW >= 800 ? startX + 5 + customDoorWidth / 2 : 0;
                   const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, localDoorZ, doorMat, `Шүүгээний хаалга (Зүүн)`, 'Хаалга', {
                     id: `${mod.id}-door-left`,
                     isLeftHinged: true,
@@ -2872,7 +2940,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                   }
                 }
                 if (hasRightDoor) {
-                  const doorX = width >= 800 ? halfW - 5 - customDoorWidth / 2 : 0;
+                  const doorX = baseW >= 800 ? -startX - 5 - customDoorWidth / 2 : 0;
                   const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, localDoorZ, doorMat, `Шүүгээний хаалга (Баруун)`, 'Хаалга', {
                     id: `${mod.id}-door-right`,
                     isLeftHinged: false,
@@ -2889,9 +2957,9 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                   }
                 }
               } else {
-                const doorW = (width - 10) / doors;
+                const doorW = (baseW - 10) / doors;
                 for (let i = 0; i < doors; i++) {
-                  const doorX = -halfW + 5 + doorW / 2 + i * doorW;
+                  const doorX = startX + 5 + doorW / 2 + i * doorW;
                   const doorH = effectiveBodyHeight - 10;
                   const doorY = localLegHeight + effectiveBodyHeight / 2;
                   const isLeftHinged = doors > 1 ? (i < Math.ceil(doors / 2)) : (doorX <= 0);
@@ -2916,15 +2984,17 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
               }
             } else if (drawers > 0 && doors > 0) {
               const singleDrawerH = 150;
+              const baseW = isIsland ? innerW : width;
+              const startX = isIsland ? -innerW / 2 : -halfW;
 
               // Render drawers stacked vertically at the top
               for (let j = 0; j < drawers; j++) {
                 const py = (localLegHeight + effectiveBodyHeight) - (drawers - j - 0.5) * singleDrawerH;
-                const drawerMesh = addBoard(width - 10, singleDrawerH - 10, 18, 0, py, localDoorZ, doorMat, `Шургуулганы нүүр ${j + 1}`, 'Шургуулга');
+                const drawerMesh = addBoard(isIsland ? innerW - 4 : width - 10, singleDrawerH - 10, 18, 0, py, localDoorZ, doorMat, `Шургуулганы нүүр ${j + 1}`, 'Шургуулга');
 
                 // Handle
                 if (handleType !== 'none') {
-                  const handleGeom = new THREE.CylinderGeometry(4, 4, Math.min(120, width * 0.4), 16);
+                  const handleGeom = new THREE.CylinderGeometry(4, 4, Math.min(120, baseW * 0.4), 16);
                   const handleMat = new THREE.MeshStandardMaterial({ color: '#c0c0c0', metalness: 0.9, roughness: 0.1 });
                   const handle = new THREE.Mesh(handleGeom, handleMat);
                   handle.rotation.z = Math.PI / 2;
@@ -2939,11 +3009,11 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                 const doorY = localLegHeight + doorH / 2 + 5;
                 const hasLeftDoor = config.leftDoor !== undefined ? !!config.leftDoor : (doors === 1 || doors >= 2);
                 const hasRightDoor = config.rightDoor !== undefined ? !!config.rightDoor : (doors >= 2);
-                const defaultDoorWidth = width >= 800 ? (width - 10) / 2 : (width - 10);
+                const defaultDoorWidth = baseW >= 800 ? (baseW - 10) / 2 : (baseW - 10);
                 const customDoorWidth = config.doorWidth ? Number(config.doorWidth) : defaultDoorWidth;
 
                 if (hasLeftDoor) {
-                  const doorX = width >= 800 ? -halfW + 5 + customDoorWidth / 2 : 0;
+                  const doorX = baseW >= 800 ? startX + 5 + customDoorWidth / 2 : 0;
                   const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, localDoorZ, doorMat, `Шүүгээний хаалга (Зүүн)`, 'Хаалга', {
                     id: `${mod.id}-door-left`,
                     isLeftHinged: true,
@@ -2960,7 +3030,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                   }
                 }
                 if (hasRightDoor) {
-                  const doorX = width >= 800 ? halfW - 5 - customDoorWidth / 2 : 0;
+                  const doorX = baseW >= 800 ? -startX - 5 - customDoorWidth / 2 : 0;
                   const doorMesh = addBoard(customDoorWidth - 4, doorH, 18, doorX, doorY, localDoorZ, doorMat, `Шүүгээний хаалга (Баруун)`, 'Хаалга', {
                     id: `${mod.id}-door-right`,
                     isLeftHinged: false,
@@ -2979,10 +3049,10 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
               } else {
                 const doorH = effectiveBodyHeight - drawers * singleDrawerH - 10;
                 const doorY = localLegHeight + doorH / 2 + 5;
-                const doorW = (width - 10) / doors;
+                const doorW = (baseW - 10) / doors;
 
                 for (let i = 0; i < doors; i++) {
-                  const doorX = -halfW + 5 + doorW / 2 + i * doorW;
+                  const doorX = startX + 5 + doorW / 2 + i * doorW;
                   const isLeftHinged = doors > 1 ? (i < Math.ceil(doors / 2)) : (doorX <= 0);
                   const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, localDoorZ, doorMat, `Шүүгээний хаалга`, 'Хаалга', {
                     id: `${mod.id}-door-${i}`,
@@ -4792,7 +4862,8 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
               const isLeftHinged = mesh.userData.isLeftHinged !== undefined
                 ? mesh.userData.isLeftHinged
                 : (mesh.userData.id.includes('left') || baseX < 0);
-              mesh.rotation.y = isLeftHinged ? -openAngle : openAngle;
+              const openAngleSign = baseZ < 0 ? -1 : 1;
+              mesh.rotation.y = isLeftHinged ? -openAngle * openAngleSign : openAngle * openAngleSign;
 
               const doorCenterX = mesh.userData.doorCenterX !== undefined ? mesh.userData.doorCenterX : baseX;
               const doorWidth = mesh.userData.doorWidth !== undefined ? mesh.userData.doorWidth : (mesh.geometry as THREE.BoxGeometry).parameters.width;
