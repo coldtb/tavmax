@@ -82,9 +82,12 @@ export const useAuthStore = create<AuthState>()(
                 subscription: metadata.subscription || 'free',
               }
             });
+          } else {
+            set({ isLoggedIn: false, user: null });
           }
         } catch (e) {
           console.error('Failed to get Supabase session on init:', e);
+          set({ isLoggedIn: false, user: null });
         }
 
         // Setup subscription listener for live session updates
@@ -100,7 +103,7 @@ export const useAuthStore = create<AuthState>()(
                 subscription: metadata.subscription || 'free',
               }
             });
-          } else {
+          } else if (event === 'SIGNED_OUT') {
             set({ isLoggedIn: false, user: null });
           }
         });

@@ -163,9 +163,7 @@ export const Auth: React.FC = () => {
     setLoading(true);
     const success = await login(phone, password);
     setLoading(false);
-    if (success) {
-      window.location.reload();
-    } else {
+    if (!success) {
       setErrorMsg('Утасны дугаар эсвэл нууц үг буруу байна!');
     }
   };
@@ -400,7 +398,7 @@ export const Auth: React.FC = () => {
               </p>
             </div>
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => window.location.href = '/'}
               className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl active:scale-[0.98] transition-all text-xs cursor-pointer"
             >
               Удирдлагын хэсэг рүү орох
