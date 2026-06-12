@@ -502,7 +502,7 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
       parts.push({
         id: 'p-ki-bot',
         name: 'Доод суурь хавтан',
-        width: depth,
+        width: depth - 36,
         height: bodyInsideWidth,
         quantity: 1,
         materialId,
@@ -522,35 +522,202 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
         category: 'Дээд тавиур'
       });
 
-      // 5. Dividers (3 sections, so 2 dividers)
+      // 5. Back panel made of body material (18mm)
+      parts.push({
+        id: 'p-ki-back',
+        name: 'Ар хаалт хавтан (Бие)',
+        width: bodyInsideWidth,
+        height: baseHeight - ctT,
+        quantity: 1,
+        materialId,
+        edgeBanding: '1mm',
+        category: 'Ар тал'
+      });
+
+      // 6. Dynamic internal shelves, dividers, drawers, and doors
+      const partitions = config.partitions !== undefined 
+        ? Number(config.partitions) 
+        : (doors > 0 ? (drawers > 0 ? doors : doors - 1) : 0);
+
       const insideHeight = baseHeight - ctT - 18;
-      for (let i = 0; i < 2; i++) {
+
+      // Dividers
+      if (partitions > 0) {
         parts.push({
-          id: `p-ki-div-${i}`,
-          name: `Дотор босоо хуваалт ${i + 1}`,
-          width: depth - 20,
+          id: 'p-ki-div',
+          name: 'Дотор босоо хуваалт',
+          width: depth - 56,
           height: insideHeight,
-          quantity: 1,
+          quantity: partitions,
           materialId,
           edgeBanding: '1mm',
           category: 'Хуваалт'
         });
       }
 
-      // 6. Doors (3 doors, opposite facing, same material as body!)
-      const sectionW = Math.round((bodyInsideWidth - 10) / 3);
-      for (let j = 0; j < 3; j++) {
-        parts.push({
-          id: `p-ki-door-${j}`,
-          name: `Аралны хаалга (Эсрэг тал)`,
-          width: sectionW - 4,
-          height: insideHeight - 6,
-          quantity: 1,
-          materialId, // Body material!
-          edgeBanding: edge,
-          category: 'Хаалга',
-          notes: 'Эсрэг тал руу онгойно'
-        });
+      const w_param = bodyInsideWidth + 36;
+      const sections = getCabinetSections(w_param, config, 'kitchen_lower');
+      const panels = getCabinetFrontPanels(w_param, config);
+
+      if (sections.length > 1) {
+        const numSections = sections.length;
+        for (let j = 0; j < numSections; j++) {
+          const sec = sections[j];
+          const panel = panels[j];
+
+          let secDrawers = 0;
+          let secDoors = 0;
+
+          if (drawers > 0) {
+            const hasCustomDrawers = config.leftDrawers !== undefined || config.rightDrawers !== undefined || config.middleDrawers !== undefined;
+            if (config.customDoors && hasCustomDrawers) {
+              if (j === 0) secDrawers = config.leftDrawers !== undefined ? Number(config.leftDrawers) : 0;
+              else if (j === numSections - 1) secDrawers = config.rightDrawers !== undefined ? Number(config.rightDrawers) : 0;
+              else secDrawers = config.middleDrawers !== undefined ? Number(config.middleDrawers) : 0;
+            } else {
+              secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
+            }
+          }
+          if (doors > 0) {
+            const hasCustomDoors = config.leftDoor !== undefined || config.rightDoor !== undefined;
+            if (config.customDoors && hasCustomDoors) {
+              const leftDoorVal = config.leftDoor !== undefined ? config.leftDoor : (doors === 1 || doors >= 2 ? 1 : 0);
+              const rightDoorVal = config.rightDoor !== undefined ? config.rightDoor : (doors >= 2 ? 1 : 0);
+              const leftDoorCount = typeof leftDoorVal === 'number' ? leftDoorVal : (leftDoorVal ? 1 : 0);
+              const rightDoorCount = typeof rightDoorVal === 'number' ? rightDoorVal : (rightDoorVal ? 1 : 0);
+
+              if (j === 0) secDoors = leftDoorCount;
+              else if (j === numSections - 1) secDoors = rightDoorCount;
+              else secDoors = 0;
+            } else {
+              secDoors = Math.floor(doors / numSections) + (j < doors % numSections ? 1 : 0);
+            }
+          }
+
+          const sectionH = insideHeight - 10;
+          const hasDrawersAndDoors = secDrawers > 0 && secDoors > 0;
+          const drawerAreaH = hasDrawersAndDoors ? sectionH / 2 : sectionH;
+          const doorAreaH = hasDrawersAndDoors ? sectionH / 2 : sectionH;
+
+          if (secDrawers > 0) {
+            parts.push({
+              id: `p-ki-dr-f-${j}`,
+              name: `Шургуулганы нүүр`,
+              width: Math.round(drawerAreaH / secDrawers - 5),
+              height: panel.width - 4,
+              quantity: secDrawers,
+              materialId: doorMaterialId || materialId,
+              edgeBanding: edge,
+              category: 'Шургуулга'
+            });
+            parts.push({
+              id: `p-ki-dr-s-${j}`,
+              name: `Шургуулганы хажуу бэлдэц`,
+              width: 120,
+              height: depth - 100,
+              quantity: secDrawers * 2,
+              materialId: 'mat-6',
+              edgeBanding: '1mm',
+              category: 'Шургуулга'
+            });
+          }
+          
+          if (secDoors > 0) {
+            const doorWidth = (panel.width - 4 * (secDoors - 1)) / secDoors;
+            parts.push({
+              id: `p-ki-door-${j}`,
+              name: `Шүүгээний хаалга`,
+              width: doorWidth - 4,
+              height: Math.round(doorAreaH),
+              quantity: secDoors,
+              materialId: doorMaterialId || materialId,
+              edgeBanding: edge,
+              category: 'Хаалга'
+            });
+          }
+
+          // Shelves
+          const storedSecCounts: number[] | undefined = (config as any).sectionShelfCounts;
+          const hasValidSecCounts = storedSecCounts && storedSecCounts.length === sections.length && storedSecCounts.reduce((a: number, b: number) => a + b, 0) === shelves;
+          const shelvesInSec = hasValidSecCounts 
+            ? storedSecCounts![j] 
+            : (Math.floor(shelves / sections.length) + (j < shelves % sections.length ? 1 : 0));
+          const hasDrawersOnly = secDrawers > 0 && secDoors === 0;
+
+          if (shelves > 0 && !hasDrawersOnly && shelvesInSec > 0) {
+            parts.push({
+              id: `p-ki-shelf-${j}`,
+              name: `Дотор тавиур`,
+              width: depth - 66,
+              height: sec.width - 2,
+              quantity: shelvesInSec,
+              materialId,
+              edgeBanding: '1mm',
+              category: 'Дээд тавиур'
+            });
+          }
+        }
+      } else {
+        if (config.customDoors) {
+          const hasLeftDoor = config.leftDoor !== undefined ? !!config.leftDoor : (doors === 1 || doors >= 2);
+          const hasRightDoor = config.rightDoor !== undefined ? !!config.rightDoor : (doors >= 2);
+          const defaultDoorWidth = bodyInsideWidth >= 800 ? (bodyInsideWidth - 10) / 2 : (bodyInsideWidth - 10);
+          const customDoorWidth = config.doorWidth ? Number(config.doorWidth) : defaultDoorWidth;
+
+          if (doors > 0 && drawers === 0) {
+            const doorH = config.doorHeight ? Number(config.doorHeight) : (insideHeight - 10);
+            if (hasLeftDoor) {
+              parts.push({ id: 'p-ki-door-left', name: 'Шүүгээний хаалга (Зүүн)', width: customDoorWidth - 4, height: doorH, quantity: 1, materialId: doorMaterialId || materialId, edgeBanding: edge, category: 'Хаалга' });
+            }
+            if (hasRightDoor) {
+              parts.push({ id: 'p-ki-door-right', name: 'Шүүгээний хаалга (Баруун)', width: customDoorWidth - 4, height: doorH, quantity: 1, materialId: doorMaterialId || materialId, edgeBanding: edge, category: 'Хаалга' });
+            }
+          } else if (drawers > 0 && doors === 0) {
+            const drWidth = (bodyInsideWidth - 4);
+            parts.push({ id: 'p-ki-dr-f', name: 'Шургуулганы нүүр', width: insideHeight / drawers - 10, height: drWidth, quantity: drawers, materialId: doorMaterialId || materialId, edgeBanding: edge, category: 'Шургуулга' });
+          } else if (drawers > 0 && doors > 0) {
+            const singleDrawerH = 150;
+            const doorH = config.doorHeight ? Number(config.doorHeight) : (insideHeight - drawers * singleDrawerH - 10);
+            if (hasLeftDoor) {
+              parts.push({ id: 'p-ki-door-left', name: 'Шүүгээний хаалга (Зүүн)', width: customDoorWidth - 4, height: doorH, quantity: 1, materialId: doorMaterialId || materialId, edgeBanding: edge, category: 'Хаалга' });
+            }
+            if (hasRightDoor) {
+              parts.push({ id: 'p-ki-door-right', name: 'Шүүгээний хаалга (Баруун)', width: customDoorWidth - 4, height: doorH, quantity: 1, materialId: doorMaterialId || materialId, edgeBanding: edge, category: 'Хаалга' });
+            }
+            const drWidth = (bodyInsideWidth - 4);
+            parts.push({ id: 'p-ki-dr-f', name: 'Шургуулганы нүүр', width: singleDrawerH - 10, height: drWidth, quantity: drawers, materialId: doorMaterialId || materialId, edgeBanding: edge, category: 'Шургуулга' });
+          }
+        } else {
+          if (doors > 0 && drawers === 0) {
+            const doorWidth = (bodyInsideWidth - 10) / doors;
+            parts.push({ id: 'p-ki-door', name: 'Шүүгээний хаалга', width: doorWidth - 4, height: insideHeight - 10, quantity: doors, materialId: doorMaterialId || materialId, edgeBanding: edge, category: 'Хаалга' });
+          } else if (drawers > 0 && doors === 0) {
+            const drWidth = (bodyInsideWidth - 4);
+            parts.push({ id: 'p-ki-dr-f', name: 'Шургуулганы нүүр', width: insideHeight / drawers - 10, height: drWidth, quantity: drawers, materialId: doorMaterialId || materialId, edgeBanding: edge, category: 'Шургуулга' });
+          } else if (drawers > 0 && doors > 0) {
+            const singleDrawerH = 150;
+            const doorH = insideHeight - drawers * singleDrawerH - 10;
+            const doorWidth = (bodyInsideWidth - 10) / doors;
+            parts.push({ id: 'p-ki-door', name: 'Шүүгээний хаалга', width: doorWidth - 4, height: doorH, quantity: doors, materialId: doorMaterialId || materialId, edgeBanding: edge, category: 'Хаалга' });
+
+            const drWidth = (bodyInsideWidth - 4);
+            parts.push({ id: 'p-ki-dr-f', name: 'Шургуулганы нүүр', width: singleDrawerH - 10, height: drWidth, quantity: drawers, materialId: doorMaterialId || materialId, edgeBanding: edge, category: 'Шургуулга' });
+          }
+        }
+
+        // Shelves
+        if (shelves > 0 && drawers === 0) {
+          parts.push({
+            id: 'p-ki-shelf',
+            name: 'Дотор тавиур',
+            width: depth - 66,
+            height: bodyInsideWidth - 2,
+            quantity: shelves,
+            materialId,
+            edgeBanding: '1mm',
+            category: 'Дээд тавиур'
+          });
+        }
       }
 
       return parts.map(p => ({

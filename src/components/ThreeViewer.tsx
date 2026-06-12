@@ -2631,10 +2631,12 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
             // Right waterfall side panel
             addBoard(ctT, height - ctT, depth, halfW - ctT/2, (height - ctT)/2, 0, ctMat, 'Модон хажуу хана (Баруун)', 'Хажуу хана');
             // Bottom panel inside (thickness 18)
-            addBoard(width - 2*ctT, 18, depth - 18, 0, 9, 9, bodyMat, 'Доод суурь хавтан', 'Доод тавиур');
+            addBoard(width - 2*ctT, 18, depth - 36, 0, 9, 0, bodyMat, 'Доод суурь хавтан', 'Доод тавиур');
             // Top connector rails inside
-            addBoard(width - 2*ctT, 18, 100, 0, height - ctT - 9, halfD - 50, bodyMat, 'Дээд холбоос хавтан (Урд)', 'Дээд тавиур');
+            addBoard(width - 2*ctT, 18, 100, 0, height - ctT - 9, halfD - 18 - 50, bodyMat, 'Дээд холбоос хавтан (Урд)', 'Дээд тавиур');
             addBoard(width - 2*ctT, 18, 100, 0, height - ctT - 9, -halfD + 18 + 50, bodyMat, 'Дээд холбоос хавтан (Ар)', 'Дээд тавиур');
+            // Back panel made of body material (thickness 18)
+            addBoard(width - 2*ctT, effectiveBodyHeight, 18, 0, effectiveBodyHeight / 2, halfD - 9, bodyMat, 'Ар хаалт хавтан (Бие)', 'Ар тал');
           } else {
             addBoard(18, localBodyHeight, depth, -halfW + 9, localLegHeight + localBodyHeight / 2, 0, bodyMat, 'Гал тогооны хажуу хана (Зүүн)', 'Хажуу хана');
             addBoard(18, localBodyHeight, depth, halfW - 9, localLegHeight + localBodyHeight / 2, 0, bodyMat, 'Гал тогооны хажуу хана (Баруун)', 'Хажуу хана');
@@ -2723,7 +2725,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
           // Dividers
           for (let i = 0; i < partitionsCount; i++) {
             const dx = isIsland ? (-halfW + ctT + dPositions[i]) : (-halfW + dPositions[i]);
-            addBoard(18, effectiveBodyHeight - 36, isIsland ? depth - 38 : depth - 20, dx, localLegHeight + effectiveBodyHeight / 2, isIsland ? 9 : 0, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт', { partitionIndex: i });
+            addBoard(18, effectiveBodyHeight - 36, isIsland ? depth - 56 : depth - 20, dx, localLegHeight + effectiveBodyHeight / 2, 0, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт', { partitionIndex: i });
           }
 
           // Shelves, Drawers & Doors
@@ -2881,7 +2883,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                     const step = insideH / (shelvesInSec + 1);
                     sy = baseOffset + 18 + (i + 1) * step;
                   }
-                  addBoard(sec.width - 2, 18, isIsland ? depth - 48 : depth - 30, sec.centerX, sy, isIsland ? 9 : 0, bodyMat, `Дотор тавиур (Секц ${j+1}) ${i + 1}`, 'Дээд тавиур');
+                  addBoard(sec.width - 2, 18, isIsland ? depth - 66 : depth - 30, sec.centerX, sy, 0, bodyMat, `Дотор тавиур (Секц ${j+1}) ${i + 1}`, 'Дээд тавиур');
                   shelfIdx++;
                 }
               } else {
@@ -2892,7 +2894,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
             if (shelves > 0 && drawers === 0) {
               for (let i = 0; i < shelves; i++) {
                 const sy = getShelfY(i, shelves, effectiveBodyHeight - 36, localLegHeight, config);
-                addBoard(isIsland ? innerW - 2 : width - 36, 18, isIsland ? depth - 48 : depth - 30, 0, sy, isIsland ? 9 : 0, bodyMat, `Дотор тавиур ${i + 1}`, 'Дээд тавиур', { shelfIndex: i });
+                addBoard(isIsland ? innerW - 2 : width - 36, 18, isIsland ? depth - 66 : depth - 30, 0, sy, 0, bodyMat, `Дотор тавиур ${i + 1}`, 'Дээд тавиур', { shelfIndex: i });
               }
             }
             if (drawers > 0 && doors === 0) {
