@@ -47,6 +47,7 @@ const getShelfY = (
 }
 
 let cachedWoodTex: THREE.CanvasTexture | null = null;
+let cachedWoodTexRotated: THREE.CanvasTexture | null = null;
 let cachedMarbleTex: THREE.CanvasTexture | null = null;
 
 const createWoodTexture = (): THREE.CanvasTexture => {
@@ -160,6 +161,15 @@ const getWoodTexture = () => {
     cachedWoodTex = createWoodTexture();
   }
   return cachedWoodTex;
+};
+
+const getWoodTextureRotated = () => {
+  if (!cachedWoodTexRotated) {
+    cachedWoodTexRotated = createWoodTexture().clone();
+    cachedWoodTexRotated.rotation = Math.PI / 2;
+    cachedWoodTexRotated.center.set(0.5, 0.5);
+  }
+  return cachedWoodTexRotated;
 };
 
 const getMarbleTexture = () => {
@@ -1758,7 +1768,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
           });
         };
 
-        const getCountertopMaterial = (ctType: string) => {
+        const getCountertopMaterial = (ctType: string, rotate: boolean = false) => {
           if (ctType === 'stone') {
             const stoneTex = getMarbleTexture();
             return new THREE.MeshStandardMaterial({
@@ -1770,7 +1780,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
               polygonOffsetUnits: 1
             });
           } else {
-            const woodTex = getWoodTexture();
+            const woodTex = rotate ? getWoodTextureRotated() : getWoodTexture();
             return new THREE.MeshStandardMaterial({
               map: woodTex,
               color: new THREE.Color('#d97706'), // Warm wood brown tint
@@ -2117,10 +2127,10 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
 
           // Render Custom / Manual parts list sequentially
           modParts.forEach((part) => {
-            const isCountertop = part.id.includes('countertop');
-            const mat = isCountertop 
-              ? getCountertopMaterial(config.countertopType || 'none')
-              : getMaterialMesh(part.materialId);
+             const isCountertop = part.id.includes('countertop');
+             const mat = isCountertop 
+               ? getCountertopMaterial(config.countertopType || 'none', true)
+               : getMaterialMesh(part.materialId);
             const quantity = Number(part.quantity) || 0;
 
             for (let qIdx = 0; qIdx < quantity; qIdx++) {
@@ -2605,6 +2615,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
           const localLegHeight = isIsland ? 0 : legHeight;
           const localBodyHeight = isIsland ? height : bodyHeight;
           const ctT = config.countertopThickness ?? 40;
+          const effectiveBodyHeight = isIsland ? (height - ctT) : bodyHeight;
           const localDoorZ = isIsland ? -halfD - 9 : halfD + 9;
 
           if (!isIsland) {
@@ -2613,7 +2624,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
 
           if (isIsland) {
             // Waterfall side panels made of countertop material (thickness ctT)
-            const ctMat = getCountertopMaterial(config.countertopType || 'wood');
+            const ctMat = getCountertopMaterial(config.countertopType || 'wood', false);
             // Left waterfall side panel
             addBoard(ctT, height - ctT, depth, -halfW + ctT/2, (height - ctT)/2, 0, ctMat, 'Модон хажуу хана (Зүүн)', 'Хажуу хана');
             // Right waterfall side panel
@@ -2634,7 +2645,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
 
           // Render Countertop if active
           if (config.countertopType && config.countertopType !== 'none') {
-            const ctMat = getCountertopMaterial(config.countertopType);
+            const ctMat = getCountertopMaterial(config.countertopType, true);
             const isStone_kl = config.countertopType === 'stone';
             const ctHalf = ctT / 2;
             
@@ -2668,7 +2679,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
           // Dividers
           for (let i = 0; i < partitionsCount; i++) {
             const dx = -halfW + dPositions[i];
-            addBoard(18, bodyHeight - 36, depth - 20, dx, legHeight + bodyHeight / 2, 0, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт', { partitionIndex: i });
+            addBoard(18, effectiveBodyHeight - 36, depth - 20, dx, localLegHeight + effectiveBodyHeight / 2, 0, bodyMat, `Дотор босоо хуваалт ${i + 1}`, 'Хуваалт', { partitionIndex: i });
           }
 
           // Shelves, Drawers & Doors
@@ -2723,14 +2734,14 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                 }
               }
 
-              const sectionH = bodyHeight - 10;
+              const sectionH = effectiveBodyHeight - 10;
               const hasDrawersAndDoors = secDrawers > 0 && secDoors > 0;
               const drawerAreaH = hasDrawersAndDoors ? sectionH / 2 : sectionH;
               const doorAreaH = hasDrawersAndDoors ? sectionH / 2 : sectionH;
 
               if (secDrawers > 0) {
                 // Top area for drawers if both exist, else full height
-                const startY = hasDrawersAndDoors ? (legHeight + 5 + doorAreaH) : (legHeight + 5);
+                const startY = hasDrawersAndDoors ? (localLegHeight + 5 + doorAreaH) : (localLegHeight + 5);
                 const drH = drawerAreaH / secDrawers;
                 for (let i = 0; i < secDrawers; i++) {
                   const dy = startY + drH / 2 + i * drH;
@@ -2749,7 +2760,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
 
               if (secDoors > 0) {
                 // Bottom area for doors if both exist, else full height
-                const startY = legHeight + 5;
+                const startY = localLegHeight + 5;
                 const defaultDoorW = (panel.width - 4 * (secDoors - 1)) / secDoors;
                 const doorW = config.doorWidth && config.customDoors ? Math.min(defaultDoorW, Number(config.doorWidth)) : defaultDoorW;
                 const doorH = config.doorHeight && config.customDoors ? Math.min(doorAreaH, Number(config.doorHeight)) : doorAreaH;
@@ -2794,8 +2805,8 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                 ? storedSecCounts![j] 
                 : (Math.floor(shelves / sections.length) + (j < shelves % sections.length ? 1 : 0));
               if (shelves > 0 && !hasDrawersOnly) {
-                const insideH = hasDrawersAndDoors ? (doorAreaH - 36) : (bodyHeight - 36);
-                const baseOffset = hasDrawersAndDoors ? legHeight : legHeight;
+                const insideH = hasDrawersAndDoors ? (doorAreaH - 36) : (effectiveBodyHeight - 36);
+                const baseOffset = hasDrawersAndDoors ? localLegHeight : localLegHeight;
                 for (let i = 0; i < shelvesInSec; i++) {
                   let sy: number;
                   if (config.shelfPositions && config.shelfPositions.length === shelves) {
@@ -2814,14 +2825,14 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
           } else {
             if (shelves > 0 && drawers === 0) {
               for (let i = 0; i < shelves; i++) {
-                const sy = getShelfY(i, shelves, bodyHeight - 36, legHeight, config);
+                const sy = getShelfY(i, shelves, effectiveBodyHeight - 36, localLegHeight, config);
                 addBoard(width - 36, 18, depth - 30, 0, sy, 0, bodyMat, `Дотор тавиур ${i + 1}`, 'Дээд тавиур', { shelfIndex: i });
               }
             }
             if (drawers > 0 && doors === 0) {
-              const drH = (bodyHeight - 10) / drawers;
+              const drH = (effectiveBodyHeight - 10) / drawers;
               for (let i = 0; i < drawers; i++) {
-                const dy = legHeight + drH / 2 + 5 + i * drH;
+                const dy = localLegHeight + drH / 2 + 5 + i * drH;
                 const drawerMesh = addBoard(width - 10, drH - 6, 18, 0, dy, localDoorZ, doorMat, `Шургуулганы нүүр ${i + 1}`, 'Шургуулга');
 
                 // Handle
@@ -2840,8 +2851,8 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                 const hasRightDoor = config.rightDoor !== undefined ? !!config.rightDoor : (doors >= 2);
                 const defaultDoorWidth = width >= 800 ? (width - 10) / 2 : (width - 10);
                 const customDoorWidth = config.doorWidth ? Number(config.doorWidth) : defaultDoorWidth;
-                const doorH = config.doorHeight ? Number(config.doorHeight) : (bodyHeight - 10);
-                const doorY = legHeight + 5 + doorH / 2;
+                const doorH = config.doorHeight ? Number(config.doorHeight) : (effectiveBodyHeight - 10);
+                const doorY = localLegHeight + 5 + doorH / 2;
 
                 if (hasLeftDoor) {
                   const doorX = width >= 800 ? -halfW + 5 + customDoorWidth / 2 : 0;
@@ -2881,8 +2892,8 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                 const doorW = (width - 10) / doors;
                 for (let i = 0; i < doors; i++) {
                   const doorX = -halfW + 5 + doorW / 2 + i * doorW;
-                  const doorH = bodyHeight - 10;
-                  const doorY = legHeight + bodyHeight / 2;
+                  const doorH = effectiveBodyHeight - 10;
+                  const doorY = localLegHeight + effectiveBodyHeight / 2;
                   const isLeftHinged = doors > 1 ? (i < Math.ceil(doors / 2)) : (doorX <= 0);
                   const doorMesh = addBoard(doorW - 4, doorH, 18, doorX, doorY, localDoorZ, doorMat, `Шүүгээний хаалга`, 'Хаалга', {
                     id: `${mod.id}-door-${i}`,
@@ -2908,7 +2919,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
 
               // Render drawers stacked vertically at the top
               for (let j = 0; j < drawers; j++) {
-                const py = height - (drawers - j - 0.5) * singleDrawerH;
+                const py = (localLegHeight + effectiveBodyHeight) - (drawers - j - 0.5) * singleDrawerH;
                 const drawerMesh = addBoard(width - 10, singleDrawerH - 10, 18, 0, py, localDoorZ, doorMat, `Шургуулганы нүүр ${j + 1}`, 'Шургуулга');
 
                 // Handle
@@ -2924,8 +2935,8 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
 
               // Render doors below the drawers stack
               if (config.customDoors) {
-                const doorH = config.doorHeight ? Number(config.doorHeight) : (bodyHeight - drawers * singleDrawerH - 10);
-                const doorY = legHeight + doorH / 2 + 5;
+                const doorH = config.doorHeight ? Number(config.doorHeight) : (effectiveBodyHeight - drawers * singleDrawerH - 10);
+                const doorY = localLegHeight + doorH / 2 + 5;
                 const hasLeftDoor = config.leftDoor !== undefined ? !!config.leftDoor : (doors === 1 || doors >= 2);
                 const hasRightDoor = config.rightDoor !== undefined ? !!config.rightDoor : (doors >= 2);
                 const defaultDoorWidth = width >= 800 ? (width - 10) / 2 : (width - 10);
@@ -2966,8 +2977,8 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                   }
                 }
               } else {
-                const doorH = bodyHeight - drawers * singleDrawerH - 10;
-                const doorY = legHeight + doorH / 2 + 5;
+                const doorH = effectiveBodyHeight - drawers * singleDrawerH - 10;
+                const doorY = localLegHeight + doorH / 2 + 5;
                 const doorW = (width - 10) / doors;
 
                 for (let i = 0; i < doors; i++) {
@@ -3189,13 +3200,14 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
 
           // ── COUNTERTOP (L-shaped, two pieces) ────────────────────────────────
           if (isLower && config.countertopType && config.countertopType !== 'none') {
-            const ctMat = getCountertopMaterial(config.countertopType);
+            const ctMatBack = getCountertopMaterial(config.countertopType, true);
+            const ctMatFront = getCountertopMaterial(config.countertopType, false);
             const ctT = config.countertopThickness ?? 40;
             const ctHalf = ctT / 2;
             // Back arm countertop (full width, z from -hs to 0)
-            addBoard(S, ctT, hs+25, 0, height+ctHalf, -hs/2+12.5, ctMat, 'Буланд тавцан – Ар', 'Дээд тавиур');
+            addBoard(S, ctT, hs+25, 0, height+ctHalf, -hs/2+12.5, ctMatBack, 'Буланд тавцан – Ар', 'Дээд тавиур');
             // Front arm countertop (x from -hs to 0, z from 0 to +hs)
-            addBoard(hs, ctT, hs+25, -hs/2, height+ctHalf, hs/2+12.5, ctMat, 'Буланд тавцан – Урд', 'Дээд тавиур');
+            addBoard(hs, ctT, hs+25, -hs/2, height+ctHalf, hs/2+12.5, ctMatFront, 'Буланд тавцан – Урд', 'Дээд тавиур');
           }
 
         } else if (mod.type === 'kitchen_upper') {
@@ -3496,7 +3508,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
           const hasCountertop = config.countertopType && config.countertopType !== 'none';
           const ctT_cooktop = config.countertopThickness ?? 40;
           if (hasCountertop) {
-            const ctMat = getCountertopMaterial(config.countertopType);
+            const ctMat = getCountertopMaterial(config.countertopType, true);
             const isStone_ck = config.countertopType === 'stone';
             addBoard(
               width,
@@ -3591,7 +3603,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
           const hasCountertop = config.countertopType && config.countertopType !== 'none';
           const ctT_sink = config.countertopThickness ?? 40;
           if (hasCountertop) {
-            const ctMat = getCountertopMaterial(config.countertopType);
+            const ctMat = getCountertopMaterial(config.countertopType, true);
             const isStone_sk = config.countertopType === 'stone';
             addBoard(
               width,
