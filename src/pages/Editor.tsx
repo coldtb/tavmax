@@ -139,6 +139,7 @@ export const Editor: React.FC = () => {
     step1_basic: true,
     step1_legs: false,
     step2_drawers: true,
+    step2_drawers_sections: false,
     step2_shelves: false,
     step3_doors: true,
     step3_materials: false,
@@ -1855,6 +1856,98 @@ export const Editor: React.FC = () => {
                           </div>
                         );
                       })()}
+                    </div>
+                  )}
+
+                  {renderAccordionHeader('step2_drawers_sections', 'Шургуулга байршуулах тохиргоо')}
+                  {openSections.step2_drawers_sections && (
+                    <div className="flex flex-col gap-4 bg-[#0c0d12]/30 p-3 rounded-xl border border-white/5 mb-3">
+                      {['kitchen_lower', 'kitchen_island', 'cabinet', 'wardrobe', 'custom'].includes(selectedMod.type) ? (() => {
+                        const drawersCount = Number(config.drawers) || 0;
+                        const sections = getCabinetSections(Number(config.width), config, selectedMod.type);
+                        const isMultiSection = sections.length > 1;
+
+                        const storedCountsRaw: number[] | undefined = (config as any).sectionDrawerCounts;
+                        const hasValidStoredCounts = isMultiSection && storedCountsRaw &&
+                          storedCountsRaw.length === sections.length &&
+                          storedCountsRaw.reduce((a, b) => a + b, 0) === drawersCount;
+
+                        const finalSecCounts = hasValidStoredCounts
+                          ? storedCountsRaw!
+                          : sections.map((_, sIdx) =>
+                              drawersCount === 0 ? 0 : (Math.floor(drawersCount / sections.length) + (sIdx < drawersCount % sections.length ? 1 : 0))
+                            );
+
+                        if (isMultiSection) {
+                          return (
+                            <div className="flex flex-col gap-3 mt-1 bg-[#0c0d12]/30 border border-white/5 p-3 rounded-xl col-span-2">
+                              <span className="text-[9px] text-amber-500 font-bold uppercase tracking-wider">Шургуулганы тоо (секцээр)</span>
+                              {sections.map((sec, sIdx) => {
+                                const drawersInSec = finalSecCounts[sIdx] ?? 0;
+
+                                const addDrawerToSection = () => {
+                                  const newCounts = [...finalSecCounts];
+                                  newCounts[sIdx] = drawersInSec + 1;
+                                  updateActiveConfig({ drawers: drawersCount + 1, sectionDrawerCounts: newCounts } as any);
+                                };
+
+                                const removeDrawerToSection = () => {
+                                  if (drawersInSec === 0) return;
+                                  const newCounts = [...finalSecCounts];
+                                  newCounts[sIdx] = drawersInSec - 1;
+                                  updateActiveConfig({ drawers: drawersCount - 1, sectionDrawerCounts: newCounts } as any);
+                                };
+
+                                return (
+                                  <div key={sIdx} className="flex flex-col gap-2 border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-[9px] text-neutral-400 font-bold uppercase">Секц {sIdx + 1}</span>
+                                        <span className="text-[9px] text-amber-500 font-bold bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded-full">
+                                          {drawersInSec} шургуулга
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <button
+                                          onClick={removeDrawerToSection}
+                                          disabled={drawersInSec === 0}
+                                          className="w-6 h-6 flex items-center justify-center rounded-md bg-neutral-800 hover:bg-red-500/20 hover:text-red-400 disabled:opacity-30 disabled:cursor-not-allowed text-neutral-400 font-bold text-sm transition-all cursor-pointer border border-white/5 hover:border-red-500/30"
+                                          title="Шургуулга хасах"
+                                          type="button"
+                                        >
+                                          −
+                                        </button>
+                                        <button
+                                          onClick={addDrawerToSection}
+                                          disabled={drawersInSec >= 10}
+                                          className="w-6 h-6 flex items-center justify-center rounded-md bg-neutral-800 hover:bg-emerald-500/20 hover:text-emerald-400 disabled:opacity-30 disabled:cursor-not-allowed text-neutral-400 font-bold text-sm transition-all cursor-pointer border border-white/5 hover:border-emerald-500/30"
+                                          title="Шургуулга нэмэх"
+                                          type="button"
+                                        >
+                                          +
+                                        </button>
+                                      </div>
+                                    </div>
+                                    {drawersInSec === 0 && (
+                                      <div className="text-[9px] text-neutral-600 text-center py-1 italic">Шургуулга байхгүй — + дарж нэмэх</div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div className="text-[10px] text-neutral-500 text-center py-2 italic">
+                            Энэ шүүгээ 1 секцтэй тул дээд талын "Шургуулганы тоо" хэсгээс шууд тохируулна уу.
+                          </div>
+                        );
+                      })() : (
+                        <div className="text-[10px] text-neutral-500 text-center py-2 italic">
+                          Энэ загварт шургуулга нэмэх боломжгүй.
+                        </div>
+                      )}
                     </div>
                   )}
                 </>

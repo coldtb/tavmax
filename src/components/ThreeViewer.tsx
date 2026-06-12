@@ -2771,17 +2771,23 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
 
               // Distribute drawers and doors across all sections
               if (drawers > 0) {
-                const hasCustomDrawers = config.leftDrawers !== undefined || config.rightDrawers !== undefined || config.middleDrawers !== undefined;
-                if (config.customDoors && hasCustomDrawers) {
-                  if (j === 0) {
-                    secDrawers = config.leftDrawers !== undefined ? Number(config.leftDrawers) : 0;
-                  } else if (j === numSections - 1) {
-                    secDrawers = config.rightDrawers !== undefined ? Number(config.rightDrawers) : 0;
-                  } else {
-                    secDrawers = config.middleDrawers !== undefined ? Number(config.middleDrawers) : 0;
-                  }
+                const storedSecDrawers: number[] | undefined = (config as any).sectionDrawerCounts;
+                const hasValidSecDrawers = storedSecDrawers && storedSecDrawers.length === numSections && storedSecDrawers.reduce((a: number, b: number) => a + b, 0) === drawers;
+                if (hasValidSecDrawers) {
+                  secDrawers = storedSecDrawers![j];
                 } else {
-                  secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
+                  const hasCustomDrawers = config.leftDrawers !== undefined || config.rightDrawers !== undefined || config.middleDrawers !== undefined;
+                  if (config.customDoors && hasCustomDrawers) {
+                    if (j === 0) {
+                      secDrawers = config.leftDrawers !== undefined ? Number(config.leftDrawers) : 0;
+                    } else if (j === numSections - 1) {
+                      secDrawers = config.rightDrawers !== undefined ? Number(config.rightDrawers) : 0;
+                    } else {
+                      secDrawers = config.middleDrawers !== undefined ? Number(config.middleDrawers) : 0;
+                    }
+                  } else {
+                    secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
+                  }
                 }
               }
               if (doors > 0) {

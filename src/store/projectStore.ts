@@ -569,13 +569,19 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
           let secDoors = 0;
 
           if (drawers > 0) {
-            const hasCustomDrawers = config.leftDrawers !== undefined || config.rightDrawers !== undefined || config.middleDrawers !== undefined;
-            if (config.customDoors && hasCustomDrawers) {
-              if (j === 0) secDrawers = config.leftDrawers !== undefined ? Number(config.leftDrawers) : 0;
-              else if (j === numSections - 1) secDrawers = config.rightDrawers !== undefined ? Number(config.rightDrawers) : 0;
-              else secDrawers = config.middleDrawers !== undefined ? Number(config.middleDrawers) : 0;
+            const storedSecDrawers: number[] | undefined = (config as any).sectionDrawerCounts;
+            const hasValidSecDrawers = storedSecDrawers && storedSecDrawers.length === numSections && storedSecDrawers.reduce((a: number, b: number) => a + b, 0) === drawers;
+            if (hasValidSecDrawers) {
+              secDrawers = storedSecDrawers![j];
             } else {
-              secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
+              const hasCustomDrawers = config.leftDrawers !== undefined || config.rightDrawers !== undefined || config.middleDrawers !== undefined;
+              if (config.customDoors && hasCustomDrawers) {
+                if (j === 0) secDrawers = config.leftDrawers !== undefined ? Number(config.leftDrawers) : 0;
+                else if (j === numSections - 1) secDrawers = config.rightDrawers !== undefined ? Number(config.rightDrawers) : 0;
+                else secDrawers = config.middleDrawers !== undefined ? Number(config.middleDrawers) : 0;
+              } else {
+                secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
+              }
             }
           }
           if (doors > 0) {
@@ -749,17 +755,23 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
 
           // Distribute drawers and doors across all sections
           if (drawers > 0) {
-            const hasCustomDrawers = config.leftDrawers !== undefined || config.rightDrawers !== undefined || config.middleDrawers !== undefined;
-            if (config.customDoors && hasCustomDrawers) {
-              if (j === 0) {
-                secDrawers = config.leftDrawers !== undefined ? Number(config.leftDrawers) : 0;
-              } else if (j === numSections - 1) {
-                secDrawers = config.rightDrawers !== undefined ? Number(config.rightDrawers) : 0;
-              } else {
-                secDrawers = config.middleDrawers !== undefined ? Number(config.middleDrawers) : 0;
-              }
+            const storedSecDrawers: number[] | undefined = (config as any).sectionDrawerCounts;
+            const hasValidSecDrawers = storedSecDrawers && storedSecDrawers.length === numSections && storedSecDrawers.reduce((a: number, b: number) => a + b, 0) === drawers;
+            if (hasValidSecDrawers) {
+              secDrawers = storedSecDrawers![j];
             } else {
-              secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
+              const hasCustomDrawers = config.leftDrawers !== undefined || config.rightDrawers !== undefined || config.middleDrawers !== undefined;
+              if (config.customDoors && hasCustomDrawers) {
+                if (j === 0) {
+                  secDrawers = config.leftDrawers !== undefined ? Number(config.leftDrawers) : 0;
+                } else if (j === numSections - 1) {
+                  secDrawers = config.rightDrawers !== undefined ? Number(config.rightDrawers) : 0;
+                } else {
+                  secDrawers = config.middleDrawers !== undefined ? Number(config.middleDrawers) : 0;
+                }
+              } else {
+                secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
+              }
             }
           }
           if (doors > 0) {
@@ -1262,17 +1274,23 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
 
         // Distribute drawers and doors across all sections
         if (drawers > 0) {
-          const hasCustomDrawers = config.leftDrawers !== undefined || config.rightDrawers !== undefined || config.middleDrawers !== undefined;
-          if (config.customDoors && hasCustomDrawers) {
-            if (j === 0) {
-              secDrawers = config.leftDrawers !== undefined ? Number(config.leftDrawers) : 0;
-            } else if (j === numSections - 1) {
-              secDrawers = config.rightDrawers !== undefined ? Number(config.rightDrawers) : 0;
-            } else {
-              secDrawers = config.middleDrawers !== undefined ? Number(config.middleDrawers) : 0;
-            }
+          const storedSecDrawers: number[] | undefined = (config as any).sectionDrawerCounts;
+          const hasValidSecDrawers = storedSecDrawers && storedSecDrawers.length === numSections && storedSecDrawers.reduce((a: number, b: number) => a + b, 0) === drawers;
+          if (hasValidSecDrawers) {
+            secDrawers = storedSecDrawers![j];
           } else {
-            secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
+            const hasCustomDrawers = config.leftDrawers !== undefined || config.rightDrawers !== undefined || config.middleDrawers !== undefined;
+            if (config.customDoors && hasCustomDrawers) {
+              if (j === 0) {
+                secDrawers = config.leftDrawers !== undefined ? Number(config.leftDrawers) : 0;
+              } else if (j === numSections - 1) {
+                secDrawers = config.rightDrawers !== undefined ? Number(config.rightDrawers) : 0;
+              } else {
+                secDrawers = config.middleDrawers !== undefined ? Number(config.middleDrawers) : 0;
+              }
+            } else {
+              secDrawers = Math.floor(drawers / numSections) + (j < drawers % numSections ? 1 : 0);
+            }
           }
         }
         if (doors > 0) {
@@ -1661,6 +1679,8 @@ export const useProjectStore = create<ProjectState>()(
         
         const oldShelves = mod.config.shelves !== undefined ? Number(mod.config.shelves) : 0;
         const newShelves = config.shelves !== undefined ? Number(config.shelves) : oldShelves;
+        const oldDrawers = mod.config.drawers !== undefined ? Number(mod.config.drawers) : 0;
+        const newDrawers = config.drawers !== undefined ? Number(config.drawers) : oldDrawers;
 
         updatedConfig = { ...mod.config, ...config };
 
@@ -1736,6 +1756,16 @@ export const useProjectStore = create<ProjectState>()(
           
           updatedConfig.shelfPositions = newPositions;
           updatedConfig.shelves = newShelves;
+        }
+
+        // Handle drawers count changes or partition count changes for drawer distribution
+        if (newDrawers !== oldDrawers || newPartitions !== oldPartitions || (newDrawers > 0 && !updatedConfig.sectionDrawerCounts)) {
+          const sections = getCabinetSections(newWidth, updatedConfig, mod.type);
+          const newDrawerCounts = sections.map((_, sIdx) =>
+            Math.floor(newDrawers / sections.length) + (sIdx < newDrawers % sections.length ? 1 : 0)
+          );
+          updatedConfig.sectionDrawerCounts = newDrawerCounts;
+          updatedConfig.drawers = newDrawers;
         }
         // Handle height or hasLegs changes (scale shelf positions proportionally)
         else if ((newHeight !== oldHeight || newHasLegs !== oldHasLegs) && mod.config.shelfPositions && mod.config.shelfPositions.length > 0) {
