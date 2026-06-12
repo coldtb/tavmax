@@ -967,13 +967,15 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
               const legHeight = config.hasLegs ? 100 : 0;
               const insideHeight = config.height - legHeight - 36;
               const localShelfIdx = draggedShelfMesh.userData.shelfIndex;
+              const localIndex = draggedShelfMesh.userData.localIndex !== undefined ? draggedShelfMesh.userData.localIndex : localShelfIdx;
+              const shelvesInSection = draggedShelfMesh.userData.shelvesInSection !== undefined ? draggedShelfMesh.userData.shelvesInSection : sPositions.length;
 
               // Calculate Y position relative to cabinet floor (legHeight + 18)
               let relativeY = dragIntersection.y - parentModuleGroup.position.y - legHeight - 18;
 
-              // Neighbor limits to prevent overlapping
-              const minVal = localShelfIdx === 0 ? 50 : (sPositions[localShelfIdx - 1] || 0) + 50;
-              const maxVal = localShelfIdx === sPositions.length - 1 ? insideHeight - 50 : (sPositions[localShelfIdx + 1] || insideHeight) - 50;
+              // Neighbor limits to prevent overlapping (handling section-based boundaries correctly)
+              const minVal = localIndex === 0 ? 50 : (sPositions[localShelfIdx - 1] || 0) + 50;
+              const maxVal = localIndex === shelvesInSection - 1 ? insideHeight - 50 : (sPositions[localShelfIdx + 1] || insideHeight) - 50;
 
               const clampedY = Math.max(minVal, Math.min(maxVal, relativeY));
 
@@ -2883,7 +2885,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                     const step = insideH / (shelvesInSec + 1);
                     sy = baseOffset + 18 + (i + 1) * step;
                   }
-                  addBoard(sec.width - 2, 18, isIsland ? depth - 66 : depth - 30, sec.centerX, sy, 0, bodyMat, `Дотор тавиур (Секц ${j+1}) ${i + 1}`, 'Дээд тавиур');
+                  addBoard(sec.width - 2, 18, isIsland ? depth - 66 : depth - 30, sec.centerX, sy, 0, bodyMat, `Дотор тавиур (Секц ${j+1}) ${i + 1}`, 'Дээд тавиур', { shelfIndex: shelfIdx, sectionIndex: j, localIndex: i, shelvesInSection: shelvesInSec });
                   shelfIdx++;
                 }
               } else {
@@ -3325,7 +3327,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
                     const step = (height - 36) / (shelvesInSec + 1);
                     sy = 18 + (i + 1) * step;
                   }
-                  addBoard(sec.width - 2, 18, depth - 20, sec.centerX, sy, 5, bodyMat, `Дотор тавиур (Секц ${sIdx+1}) ${i + 1}`, 'Дээд тавиур');
+                  addBoard(sec.width - 2, 18, depth - 20, sec.centerX, sy, 5, bodyMat, `Дотор тавиур (Секц ${sIdx+1}) ${i + 1}`, 'Дээд тавиур', { shelfIndex: shelfIdx, sectionIndex: sIdx, localIndex: i, shelvesInSection: shelvesInSec });
                   shelfIdx++;
                 }
               });
@@ -3914,7 +3916,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
             const upperH = height - 150 - 18;
             for (let i = 0; i < shelves; i++) {
               const sy = getShelfY(i, shelves, upperH, 150, config, 18);
-              addBoard(width - 38, 18, depth - 20, 0, sy, 10, bodyMat, `Дотор тавиур ${i + 1}`, 'Дээд тавиур');
+              addBoard(width - 38, 18, depth - 20, 0, sy, 10, bodyMat, `Дотор тавиур ${i + 1}`, 'Дээд тавиур', { shelfIndex: i });
             }
           }
 
@@ -4301,7 +4303,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
           if (shelves > 0) {
             for (let i = 0; i < shelves; i++) {
               const sy = getShelfY(i, shelves, height - 36, 0, config);
-              addBoard(width - 36, 8, depth - 20, 0, sy, 10, vitrineGlassMat, `Шилэн тавиур ${i + 1}`, 'Дээд тавиур');
+              addBoard(width - 36, 8, depth - 20, 0, sy, 10, vitrineGlassMat, `Шилэн тавиур ${i + 1}`, 'Дээд тавиур', { shelfIndex: i });
             }
           }
 
