@@ -2438,10 +2438,21 @@ export const useProjectStore = create<ProjectState>()(
           }
           try {
             if (state.projects) {
-              state.projects = state.projects.map((p) => p ? ensureProjectModules(p) : p);
+              state.projects = state.projects.map((p) => {
+                const freshTemplate = INITIALIZED_PROJECTS.find(fit => fit.id === p.id);
+                if (freshTemplate) {
+                  return freshTemplate;
+                }
+                return p ? ensureProjectModules(p) : p;
+              });
             }
             if (state.activeProject) {
-              state.activeProject = ensureProjectModules(state.activeProject);
+              const freshTemplate = INITIALIZED_PROJECTS.find(fit => fit.id === state.activeProject?.id);
+              if (freshTemplate) {
+                state.activeProject = freshTemplate;
+              } else {
+                state.activeProject = ensureProjectModules(state.activeProject);
+              }
             }
           } catch (e) {
             console.warn("Failed in onRehydrateStorage migration:", e);
