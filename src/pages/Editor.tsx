@@ -211,7 +211,7 @@ export const Editor: React.FC = () => {
     if (id === 'tall_kitchen' || id === 'tall_kitchen_open') return 'kitchen';
     if (['nightstand', 'nightstand_r', 'dresser', 'tall_wardrobe_drawer', 'dressing_table', 'shoe_cabinet'].includes(id || '')) return 'bedroom';
     if (['wardrobe', 'bed'].includes(type)) return 'bedroom';
-    if (['kitchen_lower', 'kitchen_upper', 'sink', 'built_in_hood', 'fridge', 'cooktop', 'hood', 'microwave', 'oven', 'dishwasher'].includes(type)) return 'kitchen';
+    if (['kitchen_lower', 'kitchen_island', 'kitchen_upper', 'sink', 'built_in_hood', 'fridge', 'cooktop', 'hood', 'microwave', 'oven', 'dishwasher'].includes(type)) return 'kitchen';
     if (['bookshelf', 'cabinet', 'tv_unit', 'vitrine'].includes(type)) return 'living';
     return 'other';
   };
@@ -338,39 +338,41 @@ export const Editor: React.FC = () => {
     {
       id: 'island_stone',
       name: '🏝️ Арал – Чулуун тавцантай',
-      type: 'kitchen_lower' as const,
+      type: 'kitchen_island' as const,
       config: {
-        width: 1500,
-        height: 850,
+        width: 1800,
+        height: 900,
         depth: 900,
-        shelves: 2,
-        drawers: 3,
-        doors: 4,
+        shelves: 0,
+        drawers: 0,
+        doors: 3,
         hasLegs: false,
-        handleType: 'modern' as const,
+        handleType: 'minimal' as const,
         materialId: 'mat-3',
         doorMaterialId: 'mat-3',
         color: '#faf9f6',
-        countertopType: 'stone'
+        countertopType: 'stone',
+        countertopThickness: 40
       }
     },
     {
       id: 'island_wood',
       name: '🏝️ Арал – Модон тавцантай',
-      type: 'kitchen_lower' as const,
+      type: 'kitchen_island' as const,
       config: {
-        width: 1500,
-        height: 850,
+        width: 1800,
+        height: 900,
         depth: 900,
-        shelves: 2,
-        drawers: 3,
-        doors: 4,
+        shelves: 0,
+        drawers: 0,
+        doors: 3,
         hasLegs: false,
-        handleType: 'modern' as const,
+        handleType: 'minimal' as const,
         materialId: 'mat-3',
         doorMaterialId: 'mat-3',
         color: '#faf9f6',
-        countertopType: 'wood'
+        countertopType: 'wood',
+        countertopThickness: 40
       }
     },
     {
@@ -560,17 +562,19 @@ export const Editor: React.FC = () => {
       name: 'ТВ тавиур',
       type: 'cabinet' as const,
       config: {
-        width: 1600,
-        height: 500,
+        width: 1800,
+        height: 450,
         depth: 450,
-        shelves: 2,
-        drawers: 2,
-        doors: 2,
+        shelves: 0,
+        drawers: 0,
+        doors: 3,
         hasLegs: true,
         handleType: 'minimal' as const,
         materialId: 'mat-3',
         doorMaterialId: 'mat-3',
-        color: '#faf9f6'
+        color: '#faf9f6',
+        partitions: 2,
+        dividerPositions: [600, 1200]
       }
     },
     {
@@ -1457,7 +1461,7 @@ export const Editor: React.FC = () => {
                         {/* Drawers count */}
                         <div className="flex flex-col gap-1.5">
                           <label className="text-xs text-neutral-400 font-semibold">Шургуулганы тоо</label>
-                          {['kitchen_lower', 'cabinet', 'wardrobe', 'custom'].includes(selectedMod.type) ? (
+                          {['kitchen_lower', 'kitchen_island', 'cabinet', 'wardrobe', 'custom'].includes(selectedMod.type) ? (
                             <input
                               type="number"
                               min={0}
@@ -1580,7 +1584,7 @@ export const Editor: React.FC = () => {
                         const insideHeight = Number(config.height) - legHeight - 36;
                         let sPositions = config.shelfPositions || [];
                         const sections = getCabinetSections(Number(config.width), config, selectedMod.type);
-                        const isMultiSection = selectedMod.type === 'wardrobe' || selectedMod.type === 'bookshelf' || ((selectedMod.type === 'kitchen_lower' || selectedMod.type === 'kitchen_upper') && sections.length > 1);
+                        const isMultiSection = selectedMod.type === 'wardrobe' || selectedMod.type === 'bookshelf' || ((selectedMod.type === 'kitchen_lower' || selectedMod.type === 'kitchen_island' || selectedMod.type === 'kitchen_upper') && sections.length > 1);
 
                         const storedCountsRaw: number[] | undefined = (config as any).sectionShelfCounts;
                         const hasValidStoredCounts = isMultiSection && storedCountsRaw &&
@@ -1880,7 +1884,7 @@ export const Editor: React.FC = () => {
                       </div>
 
                       {/* Countertop selector — wood / stone / none */}
-                      {(selectedMod.type === 'custom' || selectedMod.type === 'kitchen_lower' || selectedMod.type === 'cooktop' || selectedMod.type === 'sink' || selectedMod.type === 'corner_lower') && (
+                      {(selectedMod.type === 'custom' || selectedMod.type === 'kitchen_lower' || selectedMod.type === 'kitchen_island' || selectedMod.type === 'cooktop' || selectedMod.type === 'sink' || selectedMod.type === 'corner_lower') && (
                         <div className="flex flex-col gap-1.5 border border-white/5 bg-[#0c0d12]/30 p-3 rounded-xl">
                           <label className="text-[11px] text-neutral-400 font-semibold uppercase tracking-wider">🪨 Тавцан (Countertop)</label>
                           <div className="grid grid-cols-3 gap-1.5">
@@ -1921,7 +1925,7 @@ export const Editor: React.FC = () => {
                       )}
 
                       {/* Doors config or count */}
-                      {(selectedMod.type === 'custom' || selectedMod.type === 'kitchen_lower' || selectedMod.type === 'kitchen_upper' || selectedMod.type === 'built_in_hood' || selectedMod.type === 'sink' || selectedMod.type === 'cabinet' || selectedMod.type === 'vitrine' || selectedMod.type === 'cooktop' || selectedMod.type === 'wardrobe' || selectedMod.type === 'corner_lower' || selectedMod.type === 'corner_upper') && (
+                      {(selectedMod.type === 'custom' || selectedMod.type === 'kitchen_lower' || selectedMod.type === 'kitchen_island' || selectedMod.type === 'kitchen_upper' || selectedMod.type === 'built_in_hood' || selectedMod.type === 'sink' || selectedMod.type === 'cabinet' || selectedMod.type === 'vitrine' || selectedMod.type === 'cooktop' || selectedMod.type === 'wardrobe' || selectedMod.type === 'corner_lower' || selectedMod.type === 'corner_upper') && (
                         <div className="flex flex-col gap-2">
                           <div className="flex justify-between items-center">
                             <label className="text-xs text-neutral-400 font-semibold">Хаалганы тохиргоо</label>
@@ -2035,7 +2039,7 @@ export const Editor: React.FC = () => {
                                 </div>
 
                                 {/* Drawers config (if cabinet/custom/kitchen_lower) */}
-                                {(selectedMod.type === 'kitchen_lower' || selectedMod.type === 'custom' || selectedMod.type === 'cabinet') && (
+                                {(selectedMod.type === 'kitchen_lower' || selectedMod.type === 'kitchen_island' || selectedMod.type === 'custom' || selectedMod.type === 'cabinet') && (
                                   <>
                                     <div className="h-px bg-white/5 my-1" />
                                     
@@ -2144,7 +2148,7 @@ export const Editor: React.FC = () => {
                           )}
 
                           {/* Door width/height sliders — show for supported types if doors > 0 */}
-                          {(['custom', 'kitchen_lower', 'kitchen_upper', 'cabinet', 'vitrine', 'wardrobe', 'sink', 'built_in_hood', 'cooktop', 'bookshelf'].includes(selectedMod.type) && Number(config.doors) > 0) && (() => {
+                          {(['custom', 'kitchen_lower', 'kitchen_island', 'kitchen_upper', 'cabinet', 'vitrine', 'wardrobe', 'sink', 'built_in_hood', 'cooktop', 'bookshelf'].includes(selectedMod.type) && Number(config.doors) > 0) && (() => {
                             const baseH = config.hasLegs ? Number(config.height) - 100 : Number(config.height);
                             const defaultDWidth = Number(config.width) >= 800 ? (Number(config.width) - 10) / 2 : (Number(config.width) - 10);
 

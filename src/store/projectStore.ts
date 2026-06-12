@@ -1510,7 +1510,7 @@ export const useProjectStore = create<ProjectState>()(
           const legHeight = newHasLegs ? 100 : 0;
           const insideHeight = newHeight - legHeight - 36;
           const newPositionsShelves = [];
-          if (mod.type === 'wardrobe' || mod.type === 'bookshelf' || (newPartitions > 0 && (mod.type === 'custom' || mod.type === 'kitchen_lower' || mod.type === 'kitchen_upper'))) {
+          if (mod.type === 'wardrobe' || mod.type === 'bookshelf' || (newPartitions > 0 && (mod.type === 'custom' || mod.type === 'kitchen_lower' || mod.type === 'kitchen_island' || mod.type === 'kitchen_upper'))) {
             const sections = getCabinetSections(newWidth, updatedConfig, mod.type);
             const newCounts = sections.map((_, sIdx) =>
               Math.floor(newShelves / sections.length) + (sIdx < newShelves % sections.length ? 1 : 0)
@@ -1544,7 +1544,7 @@ export const useProjectStore = create<ProjectState>()(
           const insideHeight = newHeight - legHeight - 36;
           const newPositions = [];
           
-          if (mod.type === 'wardrobe' || mod.type === 'bookshelf' || (newPartitions > 0 && (mod.type === 'custom' || mod.type === 'kitchen_lower' || mod.type === 'kitchen_upper'))) {
+          if (mod.type === 'wardrobe' || mod.type === 'bookshelf' || (newPartitions > 0 && (mod.type === 'custom' || mod.type === 'kitchen_lower' || mod.type === 'kitchen_island' || mod.type === 'kitchen_upper'))) {
             const sections = getCabinetSections(newWidth, updatedConfig, mod.type);
             const storedCounts: number[] | undefined = updatedConfig.sectionShelfCounts;
             const hasValidStored = storedCounts && storedCounts.length === sections.length && storedCounts.reduce((a, b) => a + b, 0) === newShelves;
@@ -2544,14 +2544,25 @@ export const useProjectStore = create<ProjectState>()(
           }
           try {
             if (state.projects) {
-              state.projects = state.projects.map((p) => {
+              // Map existing ones to fresh templates if they match
+              const existingMapped = state.projects.map((p) => {
                 const freshTemplate = INITIALIZED_PROJECTS.find(fit => fit.id === p.id);
                 if (freshTemplate) {
                   return freshTemplate;
                 }
                 return p ? ensureProjectModules(p) : p;
               });
+
+              // Find templates in INITIALIZED_PROJECTS that are missing from state.projects
+              const missingTemplates = INITIALIZED_PROJECTS.filter(
+                (template) => !existingMapped.some((p) => p.id === template.id)
+              );
+
+              state.projects = [...existingMapped, ...missingTemplates];
+            } else {
+              state.projects = INITIALIZED_PROJECTS;
             }
+
             if (state.activeProject) {
               const freshTemplate = INITIALIZED_PROJECTS.find(fit => fit.id === state.activeProject?.id);
               if (freshTemplate) {
