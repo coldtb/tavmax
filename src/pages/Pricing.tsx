@@ -5,6 +5,7 @@ import { generatePartsDXF } from '../utils/dxfExport';
 import { Calculator, Percent, Coins, Printer, Download, Plus, Trash2, ArrowUpRight } from 'lucide-react';
 import { runNestingOptimizer } from '../utils/nesting';
 import type { NestingPartInput } from '../utils/nesting';
+import { DEFAULT_MATERIALS } from '../data/mockData';
 
 export const Pricing: React.FC = () => {
   const { activeProject, materials, addPartToActive, removePartFromActive, updatePartInActive, updateMaterialPrice } = useProjectStore();

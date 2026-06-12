@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import type { Project, Material } from '../data/mockData';
+import { DEFAULT_MATERIALS } from '../data/mockData';
 import type { NestedSheet } from './nesting';
 
 const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {

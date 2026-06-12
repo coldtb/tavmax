@@ -6,6 +6,7 @@ import { CuttingCanvas } from '../components/CuttingCanvas';
 import { Play, Settings, Ruler, Info, Layers, Plus, Trash2, Download, Printer, RefreshCw } from 'lucide-react';
 import { exportProjectToPDF } from '../utils/pdfExport';
 import { generatePartsDXF } from '../utils/dxfExport';
+import { DEFAULT_MATERIALS } from '../data/mockData';
 
 export const Cutting: React.FC = () => {
   const { activeProject, materials, addPartToActive, removePartFromActive } = useProjectStore();
