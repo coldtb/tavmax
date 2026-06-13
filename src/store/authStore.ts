@@ -27,6 +27,7 @@ interface AuthState {
   register: (name: string, phone: string, code: string, password?: string) => Promise<boolean>;
   logout: () => void;
   validateCode: (code: string) => boolean;
+  updateSubscription: (subscription: 'free' | 'pro' | 'factory') => Promise<boolean>;
 }
 
 // Obfuscated license code hashes (DJB2 hashes of 'TAVMAX-PRO-2026', 'TAVMAX-FCT-9999', 'TAVMAX-DEMO-CODE')
@@ -239,6 +240,62 @@ export const useAuthStore = create<AuthState>()(
           supabase.auth.signOut().catch(console.error);
         }
         set({ isLoggedIn: false, user: null, activationCodeUsed: null });
+      },
+
+      updateSubscription: async (subscription: 'free' | 'pro' | 'factory') => {
+        const currentUser = get().user;
+        if (!currentUser) return false;
+
+        const subType = subscription;
+        const role = subType === 'factory' ? 'factory' : 'designer';
+
+        if (isSupabaseConfigured && supabase) {
+          try {
+            const { data, error } = await supabase.auth.updateUser({
+              data: {
+                role,
+                subscription: subType,
+              }
+            });
+            if (error) {
+              console.error('Supabase update subscription failed:', error.message);
+              return false;
+            }
+            if (data.user) {
+              set({
+                user: {
+                  ...currentUser,
+                  role,
+                  subscription: subType,
+                }
+              });
+              return true;
+            }
+          } catch (e) {
+            console.error('Supabase update subscription exception:', e);
+            return false;
+          }
+          return false;
+        } else {
+          // Local storage fallback
+          set((state) => {
+            const updatedUsers = state.registeredUsers.map((u) => {
+              if (u.phone === currentUser.phone) {
+                return { ...u, subscription: subType, role };
+              }
+              return u;
+            });
+            return {
+              registeredUsers: updatedUsers,
+              user: {
+                ...currentUser,
+                role,
+                subscription: subType,
+              }
+            };
+          });
+          return true;
+        }
       }
     }),
     {

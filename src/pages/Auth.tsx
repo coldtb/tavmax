@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
-import { Key, Phone, User, Lock, ShieldCheck, CheckCircle2, AlertCircle, Coins, CreditCard, Sparkles, Check, RefreshCw } from 'lucide-react';
+import { Key, Phone, User, Lock, ShieldCheck, CheckCircle2, AlertCircle, Coins, CreditCard, Sparkles, Check, RefreshCw, Copy, AlertTriangle } from 'lucide-react';
 import { isSupabaseConfigured } from '../utils/supabaseClient';
 
 export const Auth: React.FC = () => {
@@ -22,6 +22,13 @@ export const Auth: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<{ name: string; price: number; code: string } | null>(null);
   const [paying, setPaying] = useState(false);
   const [paidCode, setPaidCode] = useState<string | null>(null);
+  const [copiedField, setCopiedField] = useState<'account' | 'name' | 'amount' | 'desc' | null>(null);
+
+  const handleCopy = (text: string, field: 'account' | 'name' | 'amount' | 'desc') => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
 
   // Status values
   const [errorMsg, setErrorMsg] = useState('');
@@ -104,7 +111,7 @@ export const Auth: React.FC = () => {
       setPaying(false);
       setPaidCode(selectedPlan.code);
       setActivationCode(selectedPlan.code);
-      setSuccessMsg(`Төлбөр амжилттай! Таны лицензийн код: ${selectedPlan.code}`);
+      setSuccessMsg(`Шилжүүлэг шалгагдлаа! Идэвхжүүлэх код үүссэн: ${selectedPlan.code}`);
       
       // Auto close and fill code
       setTimeout(() => {
@@ -471,36 +478,120 @@ export const Auth: React.FC = () => {
         )}
       </div>
 
-      {/* MONGOLIAN PAYMENT MOCK MODAL FOR PLANS */}
+      {/* MONGOLIAN PAYMENT BANK TRANSFER MODAL FOR PLANS */}
       {showPaymentModal && selectedPlan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm bg-[#12141c] border border-white/10 rounded-3xl p-6 flex flex-col gap-6 shadow-2xl glass-dark">
+          <div className="w-full max-w-md bg-[#12141c] border border-white/10 rounded-3xl p-6 flex flex-col gap-5 shadow-2xl glass-dark">
             <div className="text-center border-b border-white/5 pb-3">
-              <h3 className="font-display font-bold text-white text-base">{selectedPlan.name} худалдан авах</h3>
-              <p className="text-[10px] text-neutral-400 mt-1">Төлбөр төлөгдсөний дараа лиценз код идэвхжинэ.</p>
+              <h3 className="font-display font-bold text-white text-base">{selectedPlan.name} Идэвхжүүлэх</h3>
+              <p className="text-[11px] text-amber-500 mt-1">Төлбөр шилжүүлсний дараа лиценз код үүснэ.</p>
             </div>
 
-            <div className="flex flex-col items-center gap-4 bg-white p-6 rounded-2xl select-none">
-              <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">QPay QR код уншуулах</span>
-              <div className="w-40 h-40 bg-contain bg-center bg-[url('https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=TavMaxQPayPlanPurchase')] bg-no-repeat border border-neutral-100 p-1.5" />
-              <div className="text-center text-xs font-bold text-neutral-800">
-                Дүн: {selectedPlan.price.toLocaleString('mn-MN')} ₮
+            {/* Bank Transfer Instructions Card */}
+            <div className="flex flex-col gap-3 bg-neutral-900/60 border border-white/5 p-4 rounded-2xl">
+              <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Шилжүүлгийн Мэдээлэл</span>
+              
+              {/* Bank Row */}
+              <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                <span className="text-xs text-neutral-400">Хүлээн авах Банк:</span>
+                <span className="text-xs font-bold text-white">Хаан Банк (Khan Bank)</span>
+              </div>
+
+              {/* Account Number Row */}
+              <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                <span className="text-xs text-neutral-400">Дансны дугаар:</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold text-amber-500">5076295536</span>
+                  <button 
+                    onClick={() => handleCopy('5076295536', 'account')}
+                    className="p-1 hover:bg-white/5 rounded transition-colors text-neutral-400 hover:text-white cursor-pointer"
+                    title="Данс хуулах"
+                  >
+                    {copiedField === 'account' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Account Holder Row */}
+              <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                <span className="text-xs text-neutral-400">Хүлээн авагч:</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-white">Бат-Эрдэнэ Г. (TavMax)</span>
+                  <button 
+                    onClick={() => handleCopy('Бат-Эрдэнэ Г.', 'name')}
+                    className="p-1 hover:bg-white/5 rounded transition-colors text-neutral-400 hover:text-white cursor-pointer"
+                    title="Нэр хуулах"
+                  >
+                    {copiedField === 'name' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Amount Row */}
+              <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                <span className="text-xs text-neutral-400">Шилжүүлэх дүн:</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-white">{selectedPlan.price.toLocaleString('mn-MN')} ₮</span>
+                  <button 
+                    onClick={() => handleCopy(selectedPlan.price.toString(), 'amount')}
+                    className="p-1 hover:bg-white/5 rounded transition-colors text-neutral-400 hover:text-white cursor-pointer"
+                    title="Дүн хуулах"
+                  >
+                    {copiedField === 'amount' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Transaction Description Row */}
+              <div className="flex justify-between items-center py-1.5">
+                <span className="text-xs text-neutral-400">Гүйлгээний утга (Утас):</span>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="tel"
+                    placeholder="Бүртгүүлэх утас"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="w-32 text-xs font-mono font-extrabold text-amber-500 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20 text-right outline-none focus:border-amber-500 placeholder-amber-500/50"
+                  />
+                  <button 
+                    onClick={() => handleCopy(phone, 'desc')}
+                    disabled={!phone}
+                    className="p-1 hover:bg-white/5 rounded transition-colors text-neutral-400 hover:text-white cursor-pointer disabled:opacity-50"
+                    title="Утасны дугаар хуулах"
+                  >
+                    {copiedField === 'desc' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="flex flex-col gap-2">
+            {/* Warning Alert Box */}
+            <div className="bg-amber-500/5 border border-amber-500/15 p-3 rounded-2xl flex items-start gap-2.5">
+              <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={16} />
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">Маш чухал санамж!</span>
+                <p className="text-[10px] text-neutral-300 leading-relaxed">
+                  Гүйлгээний утга дээр өөрийн бүртгүүлэх утасны дугаарыг заавал зөв бичнэ үү. Буруу бичвэл эрх автоматаар сунгагдах боломжгүйг анхаарна уу.
+                </p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col gap-2 mt-1">
               <button
                 onClick={handleSimulatePayment}
-                disabled={paying}
-                className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-xs cursor-pointer"
+                disabled={paying || !phone}
+                className="w-full py-3 bg-amber-500 hover:bg-amber-600 disabled:bg-neutral-800 disabled:text-neutral-500 disabled:cursor-not-allowed text-neutral-950 font-bold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-xs cursor-pointer"
               >
                 {paying ? (
                   <>
                     <RefreshCw className="animate-spin" size={14} />
-                    Төлбөр шалгаж байна...
+                    Шилжүүлгийг шалгаж байна...
                   </>
+                ) : paidCode ? (
+                  'Лиценз Үүслээ!'
                 ) : (
-                  'Төлбөрийг Системээр Баталгаажуулах'
+                  'Шилжүүлсэн гүйлгээг шалгах'
                 )}
               </button>
               <button
