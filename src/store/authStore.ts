@@ -56,9 +56,9 @@ export const useAuthStore = create<AuthState>()(
       activationCodeUsed: null,
       registeredUsers: [
         {
-          name: 'Г.Бат-Эрдэнэ',
-          phone: '99118822',
-          passwordHash: '8159cfaa', // DJB2 hash of "password123"
+          name: 'Золбоо',
+          phone: '90860926',
+          passwordHash: '73326a1d', // DJB2 hash of "Zolboo12@"
           role: 'admin',
           subscription: 'factory',
           expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // default 30 days active

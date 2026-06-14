@@ -414,10 +414,10 @@ export const Auth: React.FC = () => {
             </div>
 
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-[11px] text-amber-400 flex flex-col gap-1">
-              <span className="font-bold flex items-center gap-1">💡 Демо Бүртгэл:</span>
+              <span className="font-bold flex items-center gap-1">💡 Админ Бүртгэл:</span>
               <div className="flex justify-between font-mono">
-                <span>Утас: 99118822</span>
-                <span>Нууц үг: password123</span>
+                <span>Утас: 90860926</span>
+                <span>Нууц үг: Zolboo12@</span>
               </div>
             </div>
 
@@ -427,7 +427,7 @@ export const Auth: React.FC = () => {
                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={16} />
                 <input
                   type="tel"
-                  placeholder="Бүртгэлтэй утас (99118822)"
+                  placeholder="Бүртгэлтэй утас (90860926)"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-neutral-900/60 border border-white/10 rounded-xl focus:border-amber-500 outline-none text-white text-xs"
