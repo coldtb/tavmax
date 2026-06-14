@@ -120,7 +120,7 @@ export const useAuthStore = create<AuthState>()(
         const pass = password || '';
         
         if (isSupabaseConfigured && supabase) {
-          const email = `${phone.trim()}@tavmax.mn`;
+          const email = `${phone.trim()}@tavmax.com`;
           try {
             const { data, error } = await supabase.auth.signInWithPassword({
               email,
@@ -189,7 +189,7 @@ export const useAuthStore = create<AuthState>()(
         }
 
         if (isSupabaseConfigured && supabase) {
-          const email = `${phone.trim()}@tavmax.mn`;
+          const email = `${phone.trim()}@tavmax.com`;
           try {
             const { data, error } = await supabase.auth.signUp({
               email,
