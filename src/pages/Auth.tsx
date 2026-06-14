@@ -381,6 +381,19 @@ export const Auth: React.FC = () => {
             >
               {loading ? 'Уншиж байна...' : otpSent ? 'Бүртгэл дуусгах' : 'Баталгаажуулах код авах'}
             </button>
+
+            <div className="text-center mt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLoginMode(true);
+                  setStep(1);
+                }}
+                className="text-amber-500 hover:underline text-xs"
+              >
+                Танд аль хэдийн бүртгэл байгаа бол? Нэвтрэх
+              </button>
+            </div>
           </form>
         )}
 
@@ -457,13 +470,27 @@ export const Auth: React.FC = () => {
               {loading ? 'Нэвтэрч байна...' : 'Нэвтрэх'}
             </button>
 
-            <div className="text-center">
+            <div className="text-center flex flex-col gap-2.5">
               <button
                 type="button"
-                onClick={() => setIsLoginMode(false)}
-                className="text-amber-500 hover:underline text-xs"
+                onClick={() => {
+                  setIsLoginMode(false);
+                  setStep(2);
+                  setActivationCode('TAVMAX-DEMO-CODE');
+                }}
+                className="text-amber-500 hover:underline text-xs font-bold"
               >
-                Бүртгэлгүй хэрэглэгч үү? Үнийн тариф харах
+                Бүртгүүлэх (Шинэ бүртгэл үүсгэх)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLoginMode(false);
+                  setStep(1);
+                }}
+                className="text-neutral-400 hover:underline text-[11px]"
+              >
+                Үнийн тариф харах
               </button>
             </div>
           </form>
