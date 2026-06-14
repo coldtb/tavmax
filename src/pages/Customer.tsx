@@ -59,14 +59,13 @@ export const Customer: React.FC = () => {
 
   const handleConfirmPay = () => {
     setPaying(true);
-    const duration = renewPlanName.includes('24 цаг') ? '24h' : '30d';
-    setTimeout(async () => {
-      const success = await updateSubscription(duration);
+    setTimeout(() => {
       setPaying(false);
-      if (success) {
-        setPaid(true);
-        setTimeout(() => setInvoiceOpen(false), 2000);
-      }
+      setPaid(true);
+      setTimeout(() => {
+        setInvoiceOpen(false);
+        setPaid(false);
+      }, 4000);
     }, 2000);
   };
 
@@ -337,24 +336,31 @@ export const Customer: React.FC = () => {
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex flex-col gap-2 mt-1">
-              <button
-                onClick={handleConfirmPay}
-                disabled={paying}
-                className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-xs cursor-pointer"
-              >
-                {paying ? (
-                  <>
-                    <RefreshCw className="animate-spin" size={14} />
-                    Шилжүүлгийг шалгаж байна...
-                  </>
-                ) : paid ? (
-                  'Сунгалт Амжилттай!'
-                ) : (
-                  'Шилжүүлсэн гүйлгээг шалгах'
-                )}
-              </button>
+             {/* Success Alert Box */}
+             {paid && (
+               <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs px-3.5 py-3 rounded-2xl text-center leading-relaxed">
+                 Таны хүсэлтийг бүртгэж авлаа. Админ таны шилжүүлгийг шалгаж, эрхийг 5-10 минутад идэвхжүүлэх болно.
+               </div>
+             )}
+
+             {/* Actions */}
+             <div className="flex flex-col gap-2 mt-1">
+               <button
+                 onClick={handleConfirmPay}
+                 disabled={paying || paid}
+                 className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-xs cursor-pointer disabled:opacity-50"
+               >
+                 {paying ? (
+                   <>
+                     <RefreshCw className="animate-spin" size={14} />
+                     Хүсэлтийг илгээж байна...
+                   </>
+                 ) : paid ? (
+                   'Хүсэлт илгээгдлээ!'
+                 ) : (
+                   'Төлбөр шилжүүлснээ мэдэгдэх'
+                 )}
+               </button>
               <button
                 onClick={() => setInvoiceOpen(false)}
                 className="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-semibold rounded-xl transition-colors cursor-pointer"

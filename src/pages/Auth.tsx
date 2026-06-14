@@ -94,23 +94,9 @@ export const Auth: React.FC = () => {
   };
 
   const handleSimulatePayment = () => {
-    if (!selectedPlan) return;
-    setPaying(true);
-    setErrorMsg('');
-
-    // Simulate instant bank payment notification
-    setTimeout(() => {
-      setPaying(false);
-      setPaidCode(selectedPlan.code);
-      setActivationCode(selectedPlan.code);
-      setSuccessMsg(`Шилжүүлэг шалгагдлаа! Идэвхжүүлэх код үүссэн: ${selectedPlan.code}`);
-      
-      // Auto close and fill code
-      setTimeout(() => {
-        setShowPaymentModal(false);
-        setStep(2); // Go to signup details
-      }, 2000);
-    }, 2000);
+    setShowPaymentModal(false);
+    setActivationCode(''); // Register as free user first, admin will activate after verification
+    setStep(2); // Go to signup details
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -310,9 +296,15 @@ export const Auth: React.FC = () => {
           <form onSubmit={handleRegister} className="flex flex-col gap-5 max-w-md mx-auto w-full">
             <div className="text-center">
               <h2 className="font-display font-bold text-lg text-white">Хэрэглэгчийн бүртгэл үүсгэх</h2>
-              <p className="text-neutral-400 text-xs mt-1">
-                Лиценз: <span className="text-amber-500 font-semibold">{activationCode}</span> амжилттай баталгаажлаа.
-              </p>
+              {activationCode ? (
+                <p className="text-neutral-400 text-xs mt-1">
+                  Лиценз: <span className="text-amber-500 font-semibold">{activationCode}</span> амжилттай баталгаажлаа.
+                </p>
+              ) : (
+                <p className="text-neutral-400 text-xs mt-1">
+                  Шинэ хэрэглэгчийн бүртгэл үүсгэх (Админ шалгаж идэвхжүүлнэ)
+                </p>
+              )}
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -615,24 +607,15 @@ export const Auth: React.FC = () => {
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex flex-col gap-2 mt-1">
-              <button
-                onClick={handleSimulatePayment}
-                disabled={paying || !phone}
-                className="w-full py-3 bg-amber-500 hover:bg-amber-600 disabled:bg-neutral-800 disabled:text-neutral-500 disabled:cursor-not-allowed text-neutral-950 font-bold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-xs cursor-pointer"
-              >
-                {paying ? (
-                  <>
-                    <RefreshCw className="animate-spin" size={14} />
-                    Шилжүүлгийг шалгаж байна...
-                  </>
-                ) : paidCode ? (
-                  'Лиценз Үүслээ!'
-                ) : (
-                  'Шилжүүлсэн гүйлгээг шалгах'
-                )}
-              </button>
+             {/* Actions */}
+             <div className="flex flex-col gap-2 mt-1">
+               <button
+                 onClick={handleSimulatePayment}
+                 disabled={!phone}
+                 className="w-full py-3 bg-amber-500 hover:bg-amber-600 disabled:bg-neutral-800 disabled:text-neutral-500 disabled:cursor-not-allowed text-neutral-950 font-bold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-xs cursor-pointer"
+               >
+                 Төлбөр шилжүүлсэн, Бүртгүүлэх
+               </button>
               <button
                 onClick={() => setShowPaymentModal(false)}
                 className="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
