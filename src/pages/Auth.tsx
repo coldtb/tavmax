@@ -424,6 +424,11 @@ export const Auth: React.FC = () => {
             <div className="text-center">
               <h2 className="font-display font-bold text-lg text-white">Системд нэвтрэх</h2>
               <p className="text-neutral-400 text-xs mt-1">Төслийн сандаа нэвтэрч орох</p>
+              {isSupabaseConfigured && (
+                <p className="text-[9px] text-neutral-600 mt-1 font-mono">
+                  DB: {(import.meta.env.VITE_SUPABASE_URL || '').replace('https://', '')}
+                </p>
+              )}
             </div>
 
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-[11px] text-amber-400 flex flex-col gap-1">
