@@ -10,9 +10,9 @@ export const Customer: React.FC = () => {
   const [paid, setPaid] = useState(false);
   const [renewPlanName, setRenewPlanName] = useState('');
   const [renewPrice, setRenewPrice] = useState(0);
-  const [copiedField, setCopiedField] = useState<'account' | 'name' | 'amount' | 'desc' | null>(null);
+  const [copiedField, setCopiedField] = useState<'account' | 'name' | 'amount' | 'desc' | 'iban' | null>(null);
 
-  const handleCopy = (text: string, field: 'account' | 'name' | 'amount' | 'desc') => {
+  const handleCopy = (text: string, field: 'account' | 'name' | 'amount' | 'desc' | 'iban') => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
     setTimeout(() => setCopiedField(null), 2000);
@@ -245,16 +245,16 @@ export const Customer: React.FC = () => {
               {/* Bank Row */}
               <div className="flex justify-between items-center py-1.5 border-b border-white/5">
                 <span className="text-xs text-neutral-400">Хүлээн авах Банк:</span>
-                <span className="text-xs font-bold text-white">Хаан Банк (Khan Bank)</span>
+                <span className="text-xs font-bold text-white">Голомт Банк (Golomt Bank)</span>
               </div>
 
               {/* Account Number Row */}
               <div className="flex justify-between items-center py-1.5 border-b border-white/5">
                 <span className="text-xs text-neutral-400">Дансны дугаар:</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-bold text-amber-500">5076295536</span>
+                  <span className="text-xs font-mono font-bold text-amber-500">5114296800</span>
                   <button 
-                    onClick={() => handleCopy('5076295536', 'account')}
+                    onClick={() => handleCopy('5114296800', 'account')}
                     className="p-1 hover:bg-white/5 rounded transition-colors text-neutral-400 hover:text-white cursor-pointer"
                     title="Данс хуулах"
                   >
@@ -263,13 +263,28 @@ export const Customer: React.FC = () => {
                 </div>
               </div>
 
+              {/* IBAN Row */}
+              <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                <span className="text-xs text-neutral-400">IBAN:</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold text-white">15000500</span>
+                  <button 
+                    onClick={() => handleCopy('15000500', 'iban')}
+                    className="p-1 hover:bg-white/5 rounded transition-colors text-neutral-400 hover:text-white cursor-pointer"
+                    title="IBAN хуулах"
+                  >
+                    {copiedField === 'iban' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                  </button>
+                </div>
+              </div>
+
               {/* Account Holder Row */}
               <div className="flex justify-between items-center py-1.5 border-b border-white/5">
                 <span className="text-xs text-neutral-400">Хүлээн авагч:</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-white">Бат-Эрдэнэ Г. (TavMax)</span>
+                  <span className="text-xs font-bold text-white">Золбоо Заяахүү</span>
                   <button 
-                    onClick={() => handleCopy('Бат-Эрдэнэ Г.', 'name')}
+                    onClick={() => handleCopy('Золбоо Заяахүү', 'name')}
                     className="p-1 hover:bg-white/5 rounded transition-colors text-neutral-400 hover:text-white cursor-pointer"
                     title="Нэр хуулах"
                   >
