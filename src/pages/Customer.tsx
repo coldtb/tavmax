@@ -245,7 +245,7 @@ export const Customer: React.FC = () => {
               {/* Bank Row */}
               <div className="flex justify-between items-center py-1.5 border-b border-white/5">
                 <span className="text-xs text-neutral-400">Хүлээн авах Банк:</span>
-                <span className="text-xs font-bold text-white">Голомт Банк (Golomt Bank)</span>
+                <span className="text-xs font-bold text-white">Хаан Банк (Khan Bank)</span>
               </div>
 
               {/* Account Number Row */}
