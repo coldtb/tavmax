@@ -7,6 +7,7 @@ export interface UserSession {
   phone: string;
   role: 'factory' | 'customer' | 'admin' | 'designer';
   subscription: 'free' | 'pro' | 'factory';
+  expiresAt?: string;
 }
 
 export interface RegisteredUser {
@@ -15,6 +16,7 @@ export interface RegisteredUser {
   passwordHash: string;
   role: 'factory' | 'customer' | 'admin' | 'designer';
   subscription: 'free' | 'pro' | 'factory';
+  expiresAt?: string;
 }
 
 interface AuthState {
@@ -27,14 +29,14 @@ interface AuthState {
   register: (name: string, phone: string, code: string, password?: string) => Promise<boolean>;
   logout: () => void;
   validateCode: (code: string) => boolean;
-  updateSubscription: (subscription: 'free' | 'pro' | 'factory') => Promise<boolean>;
+  updateSubscription: (duration: '24h' | '30d') => Promise<boolean>;
 }
 
-// Obfuscated license code hashes (DJB2 hashes of 'TAVMAX-PRO-2026', 'TAVMAX-FCT-9999', 'TAVMAX-DEMO-CODE')
+// Obfuscated license code hashes (DJB2 hashes of 'TAVMAX-24H-9900', 'TAVMAX-30D-29900', 'TAVMAX-DEMO-CODE')
 const MOCK_CODE_HASHES: Record<string, 'pro' | 'factory'> = {
-  'c7287919': 'pro',
-  '96dbb2e3': 'factory',
-  '2acdcebc': 'pro'
+  '66a6ea9c': 'factory', // TAVMAX-24H-9900
+  '71db1e7': 'factory',  // TAVMAX-30D-29900
+  '2acdcebc': 'factory'  // TAVMAX-DEMO-CODE
 };
 
 const hashString = (str: string): string => {
@@ -57,7 +59,8 @@ export const useAuthStore = create<AuthState>()(
           phone: '99118822',
           passwordHash: '8159cfaa', // DJB2 hash of "password123"
           role: 'factory',
-          subscription: 'factory'
+          subscription: 'factory',
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // default 30 days active
         }
       ],
 
@@ -81,6 +84,7 @@ export const useAuthStore = create<AuthState>()(
                 phone: metadata.phone || '',
                 role: metadata.role || 'designer',
                 subscription: metadata.subscription || 'free',
+                expiresAt: metadata.expiresAt,
               }
             });
           } else {
@@ -102,6 +106,7 @@ export const useAuthStore = create<AuthState>()(
                 phone: metadata.phone || '',
                 role: metadata.role || 'designer',
                 subscription: metadata.subscription || 'free',
+                expiresAt: metadata.expiresAt,
               }
             });
           } else if (event === 'SIGNED_OUT') {
@@ -133,6 +138,7 @@ export const useAuthStore = create<AuthState>()(
                   phone: metadata.phone || phone,
                   role: metadata.role || 'designer',
                   subscription: metadata.subscription || 'free',
+                  expiresAt: metadata.expiresAt,
                 }
               });
               return true;
@@ -153,7 +159,8 @@ export const useAuthStore = create<AuthState>()(
                 name: user.name,
                 phone: user.phone,
                 role: user.role,
-                subscription: user.subscription
+                subscription: user.subscription,
+                expiresAt: user.expiresAt
               }
             });
             return true;
@@ -168,6 +175,18 @@ export const useAuthStore = create<AuthState>()(
         const subType = MOCK_CODE_HASHES[hashedCode] || 'free';
         const pass = password || '';
 
+        // Calculate expiresAt
+        let expiresAt: string | undefined = undefined;
+        if (subType === 'factory') {
+          const now = new Date();
+          if (codeTrimmed.includes('24H')) {
+            now.setHours(now.getHours() + 24);
+          } else {
+            now.setDate(now.getDate() + 30);
+          }
+          expiresAt = now.toISOString();
+        }
+
         if (isSupabaseConfigured && supabase) {
           const email = `${phone.trim()}@tavmax.mn`;
           try {
@@ -180,6 +199,7 @@ export const useAuthStore = create<AuthState>()(
                   phone,
                   role: subType === 'factory' ? 'factory' : 'designer',
                   subscription: subType,
+                  expiresAt,
                 }
               }
             });
@@ -196,6 +216,7 @@ export const useAuthStore = create<AuthState>()(
                   phone,
                   role: subType === 'factory' ? 'factory' : 'designer',
                   subscription: subType,
+                  expiresAt,
                 }
               });
               return true;
@@ -213,7 +234,8 @@ export const useAuthStore = create<AuthState>()(
             phone,
             passwordHash: hashedPass,
             role: subType === 'factory' ? 'factory' : 'designer',
-            subscription: subType
+            subscription: subType,
+            expiresAt
           };
 
           set((state) => {
@@ -227,7 +249,8 @@ export const useAuthStore = create<AuthState>()(
                 name,
                 phone,
                 role: newUser.role,
-                subscription: newUser.subscription
+                subscription: newUser.subscription,
+                expiresAt
               }
             };
           });
@@ -242,12 +265,21 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoggedIn: false, user: null, activationCodeUsed: null });
       },
 
-      updateSubscription: async (subscription: 'free' | 'pro' | 'factory') => {
+      updateSubscription: async (duration: '24h' | '30d') => {
         const currentUser = get().user;
         if (!currentUser) return false;
 
-        const subType = subscription;
-        const role = subType === 'factory' ? 'factory' : 'designer';
+        const subType = 'factory';
+        const role = 'factory';
+
+        // Calculate expiresAt
+        const now = new Date();
+        if (duration === '24h') {
+          now.setHours(now.getHours() + 24);
+        } else {
+          now.setDate(now.getDate() + 30);
+        }
+        const expiresAt = now.toISOString();
 
         if (isSupabaseConfigured && supabase) {
           try {
@@ -255,6 +287,7 @@ export const useAuthStore = create<AuthState>()(
               data: {
                 role,
                 subscription: subType,
+                expiresAt,
               }
             });
             if (error) {
@@ -267,6 +300,7 @@ export const useAuthStore = create<AuthState>()(
                   ...currentUser,
                   role,
                   subscription: subType,
+                  expiresAt,
                 }
               });
               return true;
@@ -281,7 +315,7 @@ export const useAuthStore = create<AuthState>()(
           set((state) => {
             const updatedUsers = state.registeredUsers.map((u) => {
               if (u.phone === currentUser.phone) {
-                return { ...u, subscription: subType, role };
+                return { ...u, subscription: subType, role, expiresAt };
               }
               return u;
             });
@@ -291,6 +325,7 @@ export const useAuthStore = create<AuthState>()(
                 ...currentUser,
                 role,
                 subscription: subType,
+                expiresAt,
               }
             };
           });

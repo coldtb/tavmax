@@ -67,7 +67,7 @@ export const Settings: React.FC = () => {
               <span className="text-neutral-500 uppercase text-[9px]">Лицензийн түвшин</span>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold uppercase rounded-lg">
-                  {user?.subscription === 'factory' ? 'ҮЙЛДВЭРИЙН ЭРХ' : 'ПРО ЭРХ'}
+                  {user?.subscription === 'factory' || user?.subscription === 'pro' ? 'ИДЭВХТЭЙ ЭРХ' : 'ҮНЭГҮЙ ЭРХ'}
                 </span>
               </div>
             </div>

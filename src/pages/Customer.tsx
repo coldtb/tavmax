@@ -19,13 +19,35 @@ export const Customer: React.FC = () => {
   };
 
   // Quotas based on subscription
-  const isFactory = user?.subscription === 'factory';
-  const isPro = user?.subscription === 'pro';
+  const isPaid = user?.subscription === 'factory' || user?.subscription === 'pro';
 
   const quotaModel = {
-    designs: isFactory ? '24 / Хязгааргүй' : isPro ? '8 / 100' : '3 / 5',
-    nesting: isFactory ? 'Хязгааргүй' : isPro ? '45 / 500' : '2 / 5',
-    exports: isFactory ? 'Хязгааргүй' : isPro ? '12 / 100' : '0 / 1',
+    designs: isPaid ? '24 / Хязгааргүй' : '3 / 5',
+    nesting: isPaid ? 'Хязгааргүй' : '2 / 5',
+    exports: isPaid ? 'Хязгааргүй' : '0 / 1',
+  };
+
+  const getRemainingTimeText = () => {
+    if (!isPaid) return 'Туршилтын горим';
+    if (!user?.expiresAt) return 'Хязгааргүй';
+    const expireTime = new Date(user.expiresAt).getTime();
+    const now = new Date().getTime();
+    const diffMs = expireTime - now;
+    if (diffMs <= 0) return 'Хугацаа дууссан';
+
+    const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+    if (diffHours <= 24) {
+      return `${diffHours} цаг үлдсэн`;
+    }
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    return `${diffDays} хоног үлдсэн`;
+  };
+
+  const getExpiresAtFormatted = () => {
+    if (!isPaid) return 'Туршилтын горим';
+    if (!user?.expiresAt) return 'Хязгааргүй';
+    const date = new Date(user.expiresAt);
+    return date.toLocaleString('mn-MN', { timeZone: 'Asia/Ulaanbaatar', hour12: false }).slice(0, 16);
   };
 
   const handleOpenRenew = (planName: string, price: number) => {
@@ -37,9 +59,9 @@ export const Customer: React.FC = () => {
 
   const handleConfirmPay = () => {
     setPaying(true);
-    const newSubscription = renewPlanName.includes('Factory') ? 'factory' : 'pro';
+    const duration = renewPlanName.includes('24 цаг') ? '24h' : '30d';
     setTimeout(async () => {
-      const success = await updateSubscription(newSubscription);
+      const success = await updateSubscription(duration);
       setPaying(false);
       if (success) {
         setPaid(true);
@@ -80,7 +102,7 @@ export const Customer: React.FC = () => {
               <div>
                 <span className="text-[10px] text-neutral-500 uppercase tracking-widest">Идэвхтэй Лиценз</span>
                 <h3 className="text-xl font-display font-extrabold text-white mt-0.5">
-                  {isFactory ? 'Factory (Үйлдвэрийн Багц)' : isPro ? 'Мэргэжлийн (Pro Багц)' : 'Үнэгүй Туршилтын Эрх'}
+                  {isPaid ? 'Идэвхтэй Лиценз (Бүх боломж нээлттэй)' : 'Үнэгүй Туршилтын Эрх'}
                 </h3>
                 <p className="text-[11px] text-neutral-400 mt-1">Код: <span className="font-mono text-amber-400">{activationCodeUsed || 'Бүртгэлгүй'}</span></p>
               </div>
@@ -91,7 +113,9 @@ export const Customer: React.FC = () => {
                 <CheckCircle2 size={14} />
                 Идэвхтэй байна
               </div>
-              <div className="text-[10px] text-neutral-500">Хугацаа: 2026-06-23 хүртэл (30 хоног үлдсэн)</div>
+              <div className="text-[10px] text-neutral-500">
+                Хугацаа: {isPaid ? `${getExpiresAtFormatted()} (${getRemainingTimeText()})` : 'Туршилт'}
+              </div>
             </div>
           </div>
 
@@ -180,25 +204,25 @@ export const Customer: React.FC = () => {
 
             <div className="flex flex-col gap-3 mt-2">
               <button
-                onClick={() => handleOpenRenew('Мэргэжлийн (Pro Багц)', 29000)}
+                onClick={() => handleOpenRenew('24 цагийн эрх (Сунгалт)', 9900)}
                 className="w-full flex justify-between items-center p-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-white/5 text-left transition-colors cursor-pointer"
               >
                 <div>
-                  <span className="block text-xs font-bold text-white">Pro сунгалт (30 хоног)</span>
-                  <span className="text-[10px] text-neutral-500">Дизайнер, Карпентер</span>
+                  <span className="block text-xs font-bold text-white">24 цагийн эрх</span>
+                  <span className="text-[10px] text-neutral-500">Бүх боломжууд нээлттэй</span>
                 </div>
-                <span className="text-xs font-bold text-amber-500">29,000 ₮</span>
+                <span className="text-xs font-bold text-amber-500">9,900 ₮</span>
               </button>
 
               <button
-                onClick={() => handleOpenRenew('Үйлдвэрийн (Factory Багц)', 149000)}
+                onClick={() => handleOpenRenew('1 сарын эрх (Сунгалт)', 29900)}
                 className="w-full flex justify-between items-center p-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-amber-500/20 text-left transition-colors cursor-pointer"
               >
                 <div>
-                  <span className="block text-xs font-bold text-white">Factory сунгалт (30 хоног)</span>
-                  <span className="text-[10px] text-neutral-500">CNC/DXF хэвлэх, QR код</span>
+                  <span className="block text-xs font-bold text-white">1 сарын эрх</span>
+                  <span className="text-[10px] text-neutral-500">Бүх боломжууд нээлттэй</span>
                 </div>
-                <span className="text-xs font-bold text-amber-500">149,000 ₮</span>
+                <span className="text-xs font-bold text-amber-500">29,900 ₮</span>
               </button>
             </div>
           </div>
