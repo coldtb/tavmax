@@ -9,6 +9,7 @@ import { Editor } from './pages/Editor';
 import { Cutting } from './pages/Cutting';
 import { Materials } from './pages/Materials';
 import { Customer } from './pages/Customer';
+import { Admin } from './pages/Admin';
 import { Settings } from './pages/Settings';
 import {
   LayoutDashboard,
@@ -21,7 +22,8 @@ import {
   Menu,
   X,
   Sun,
-  Moon
+  Moon,
+  Users
 } from 'lucide-react';
 
 // Attach global log helper
@@ -103,6 +105,7 @@ export const App: React.FC = () => {
     { id: 'cutting', label: 'Зүсэлт оновчлол', icon: <Scissors size={18} /> },
     { id: 'materials', label: 'Материал', icon: <Warehouse size={18} /> },
     { id: 'customer', label: 'Миний Эрх & Төлбөр', icon: <CreditCard size={18} /> },
+    ...(user?.role === 'admin' ? [{ id: 'admin', label: 'Админ Удирдлага', icon: <Users size={18} /> }] : []),
     { id: 'settings', label: 'Тохиргоо', icon: <SettingsIcon size={18} /> },
   ];
 
@@ -149,7 +152,9 @@ export const App: React.FC = () => {
 
           <div className="hidden md:flex flex-col text-right">
             <span className="text-white font-bold">{user?.name}</span>
-            <span className="text-[9px] text-neutral-500 uppercase">{user?.role === 'factory' ? 'Техникч' : 'Карпентер'}</span>
+            <span className="text-[9px] text-neutral-500 uppercase">
+              {user?.role === 'admin' ? 'Админ' : user?.role === 'factory' ? 'Техникч' : 'Карпентер'}
+            </span>
           </div>
           
           {/* Light/Dark Mode Switcher */}
@@ -244,6 +249,7 @@ export const App: React.FC = () => {
             {activeTab === 'cutting' && <Cutting />}
             {activeTab === 'materials' && <Materials />}
             {activeTab === 'customer' && <Customer />}
+            {activeTab === 'admin' && user?.role === 'admin' && <Admin />}
             {activeTab === 'settings' && <Settings />}
           </ErrorBoundary>
         </main>

@@ -30,6 +30,7 @@ interface AuthState {
   logout: () => void;
   validateCode: (code: string) => boolean;
   updateSubscription: (duration: '24h' | '30d') => Promise<boolean>;
+  adminUpdateUserSubscription: (phone: string, duration: '24h' | '30d' | 'cancel') => Promise<boolean>;
 }
 
 // Obfuscated license code hashes (DJB2 hashes of 'TAVMAX-24H-9900', 'TAVMAX-30D-29900', 'TAVMAX-DEMO-CODE')
@@ -58,7 +59,7 @@ export const useAuthStore = create<AuthState>()(
           name: 'Г.Бат-Эрдэнэ',
           phone: '99118822',
           passwordHash: '8159cfaa', // DJB2 hash of "password123"
-          role: 'factory',
+          role: 'admin',
           subscription: 'factory',
           expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // default 30 days active
         }
@@ -331,6 +332,40 @@ export const useAuthStore = create<AuthState>()(
           });
           return true;
         }
+      },
+
+      adminUpdateUserSubscription: async (phone: string, duration: '24h' | '30d' | 'cancel') => {
+        const subType = duration === 'cancel' ? 'free' : 'factory';
+        const role = subType === 'factory' ? 'factory' : 'designer';
+        const now = new Date();
+        let expiresAt: string | null = null;
+        if (duration === '24h') {
+          now.setHours(now.getHours() + 24);
+          expiresAt = now.toISOString();
+        } else if (duration === '30d') {
+          now.setDate(now.getDate() + 30);
+          expiresAt = now.toISOString();
+        }
+
+        set((state) => {
+          const updatedUsers = state.registeredUsers.map((u) => {
+            if (u.phone === phone) {
+              return { ...u, subscription: subType, role, expiresAt: expiresAt || undefined };
+            }
+            return u;
+          });
+          
+          const currentUser = state.user;
+          const updatedUser = currentUser && currentUser.phone === phone 
+            ? { ...currentUser, subscription: subType, role, expiresAt: expiresAt || undefined }
+            : currentUser;
+
+          return {
+            registeredUsers: updatedUsers,
+            user: updatedUser
+          };
+        });
+        return true;
       }
     }),
     {
