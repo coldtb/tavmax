@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Redeploy trigger
 import { useAuthStore } from '../store/authStore';
 import { Key, Phone, User, Lock, ShieldCheck, CheckCircle2, AlertCircle, Coins, CreditCard, Sparkles, Check, RefreshCw, Copy, AlertTriangle } from 'lucide-react';
 import { isSupabaseConfigured } from '../utils/supabaseClient';
