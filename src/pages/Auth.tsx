@@ -37,14 +37,6 @@ export const Auth: React.FC = () => {
 
   const plans = [
     {
-      name: 'Үнэгүй Багц',
-      price: 0,
-      desc: '3D загварчлал турших',
-      features: ['3D засварлагч ашиглах', '5 хүртэлх бэлдэц үүсгэх', 'Хэмжээ харах'],
-      color: 'border-white/5 bg-neutral-900/40',
-      actionText: 'Үнэгүй эхлэх',
-    },
-    {
       name: '24 цагийн эрх',
       price: 9900,
       desc: 'Богино хугацаанд хурдан зүсэлт гаргах',
@@ -228,7 +220,7 @@ export const Auth: React.FC = () => {
         {step === 1 && !isLoginMode && (
           <div className="flex flex-col gap-10">
             {/* SaaS Pricing Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="max-w-3xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-6">
               {plans.map((plan, idx) => (
                 <div
                   key={idx}
@@ -248,7 +240,7 @@ export const Auth: React.FC = () => {
                       <span className="text-3xl font-display font-extrabold text-white">
                         {plan.price === 0 ? 'Үнэгүй' : `${plan.price.toLocaleString('mn-MN')} ₮`}
                       </span>
-                      {plan.price > 0 && <span className="text-neutral-500 text-xs">/сар</span>}
+                      {plan.price > 0 && <span className="text-neutral-500 text-xs">{plan.code.includes('24H') ? '/24 цаг' : '/сар'}</span>}
                     </div>
                     <p className="text-neutral-400 text-xs leading-relaxed">{plan.desc}</p>
                     
