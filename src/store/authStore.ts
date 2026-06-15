@@ -78,16 +78,37 @@ export const useAuthStore = create<AuthState>()(
           const { data: { session } } = await supabase.auth.getSession();
           if (session && session.user) {
             const metadata = session.user.user_metadata;
-            set({
-              isLoggedIn: true,
-              user: {
-                name: metadata.name || session.user.email?.split('@')[0] || 'Хэрэглэгч',
-                phone: metadata.phone || '',
-                role: metadata.role || 'designer',
-                subscription: metadata.subscription || 'free',
-                expiresAt: metadata.expiresAt,
-              }
-            });
+            
+            // Fetch profile to get the up-to-date subscription state
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .maybeSingle();
+
+            const role = profile?.role || metadata.role || 'designer';
+            const subscription = profile?.subscription || metadata.subscription || 'free';
+            const expiresAt = profile?.expires_at || metadata.expiresAt;
+
+            const isAdmin = role === 'admin';
+            const isPaid = subscription === 'factory' || subscription === 'pro';
+            const isExpired = expiresAt && new Date(expiresAt).getTime() <= Date.now();
+
+            if (!isAdmin && (!isPaid || isExpired)) {
+              await supabase.auth.signOut();
+              set({ isLoggedIn: false, user: null });
+            } else {
+              set({
+                isLoggedIn: true,
+                user: {
+                  name: profile?.name || metadata.name || session.user.email?.split('@')[0] || 'Хэрэглэгч',
+                  phone: profile?.phone || metadata.phone || '',
+                  role,
+                  subscription,
+                  expiresAt,
+                }
+              });
+            }
           } else {
             set({ isLoggedIn: false, user: null });
           }
@@ -100,16 +121,39 @@ export const useAuthStore = create<AuthState>()(
         supabase.auth.onAuthStateChange(async (event, session) => {
           if (session && session.user) {
             const metadata = session.user.user_metadata;
-            set({
-              isLoggedIn: true,
-              user: {
-                name: metadata.name || session.user.email?.split('@')[0] || 'Хэрэглэгч',
-                phone: metadata.phone || '',
-                role: metadata.role || 'designer',
-                subscription: metadata.subscription || 'free',
-                expiresAt: metadata.expiresAt,
+            
+            // Fetch profile
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .maybeSingle();
+
+            const role = profile?.role || metadata.role || 'designer';
+            const subscription = profile?.subscription || metadata.subscription || 'free';
+            const expiresAt = profile?.expires_at || metadata.expiresAt;
+
+            const isAdmin = role === 'admin';
+            const isPaid = subscription === 'factory' || subscription === 'pro';
+            const isExpired = expiresAt && new Date(expiresAt).getTime() <= Date.now();
+
+            if (!isAdmin && (!isPaid || isExpired)) {
+              if (get().isLoggedIn) {
+                await supabase.auth.signOut();
+                set({ isLoggedIn: false, user: null });
               }
-            });
+            } else {
+              set({
+                isLoggedIn: true,
+                user: {
+                  name: profile?.name || metadata.name || session.user.email?.split('@')[0] || 'Хэрэглэгч',
+                  phone: profile?.phone || metadata.phone || '',
+                  role,
+                  subscription,
+                  expiresAt,
+                }
+              });
+            }
           } else if (event === 'SIGNED_OUT') {
             set({ isLoggedIn: false, user: null });
           }
@@ -132,21 +176,42 @@ export const useAuthStore = create<AuthState>()(
             }
             if (data.user) {
               const metadata = data.user.user_metadata;
+              
+              // Query profiles table
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', data.user.id)
+                .maybeSingle();
+
+              const role = profile?.role || metadata.role || 'designer';
+              const subscription = profile?.subscription || metadata.subscription || 'free';
+              const expiresAt = profile?.expires_at || metadata.expiresAt;
+
+              const isAdmin = role === 'admin';
+              const isPaid = subscription === 'factory' || subscription === 'pro';
+              const isExpired = expiresAt && new Date(expiresAt).getTime() <= Date.now();
+
+              if (!isAdmin && (!isPaid || isExpired)) {
+                await supabase.auth.signOut();
+                throw new Error('NOT_ACTIVATED');
+              }
+
               set({
                 isLoggedIn: true,
                 user: {
-                  name: metadata.name || phone,
-                  phone: metadata.phone || phone,
-                  role: metadata.role || 'designer',
-                  subscription: metadata.subscription || 'free',
-                  expiresAt: metadata.expiresAt,
+                  name: profile?.name || metadata.name || phone,
+                  phone: profile?.phone || metadata.phone || phone,
+                  role,
+                  subscription,
+                  expiresAt,
                 }
               });
               return true;
             }
-          } catch (e) {
+          } catch (e: any) {
             console.error('Supabase auth exception:', e);
-            return false;
+            throw e;
           }
           return false;
         } else {
@@ -154,6 +219,14 @@ export const useAuthStore = create<AuthState>()(
           const hashedPass = hashString(pass);
           const user = get().registeredUsers.find((u) => u.phone === phone);
           if (user && user.passwordHash === hashedPass) {
+            const isAdmin = user.role === 'admin';
+            const isPaid = user.subscription === 'factory' || user.subscription === 'pro';
+            const isExpired = user.expiresAt && new Date(user.expiresAt).getTime() <= Date.now();
+
+            if (!isAdmin && (!isPaid || isExpired)) {
+              throw new Error('NOT_ACTIVATED');
+            }
+
             set({
               isLoggedIn: true,
               user: {
@@ -209,16 +282,12 @@ export const useAuthStore = create<AuthState>()(
               throw new Error(error.message);
             }
             if (data.user) {
+              // In the new flow, we do NOT log them in automatically
+              await supabase.auth.signOut();
               set({
-                isLoggedIn: true,
-                activationCodeUsed: codeTrimmed,
-                user: {
-                  name,
-                  phone,
-                  role: subType === 'factory' ? 'factory' : 'designer',
-                  subscription: subType,
-                  expiresAt,
-                }
+                isLoggedIn: false,
+                activationCodeUsed: null,
+                user: null
               });
               return true;
             }
@@ -240,19 +309,12 @@ export const useAuthStore = create<AuthState>()(
           };
 
           set((state) => {
-            // Prevent duplicates
             const filtered = state.registeredUsers.filter((u) => u.phone !== phone);
             return {
-              isLoggedIn: true,
-              activationCodeUsed: codeTrimmed,
+              isLoggedIn: false, // DO NOT log in
+              activationCodeUsed: null,
               registeredUsers: [...filtered, newUser],
-              user: {
-                name,
-                phone,
-                role: newUser.role,
-                subscription: newUser.subscription,
-                expiresAt
-              }
+              user: null // DO NOT log in
             };
           });
           return true;

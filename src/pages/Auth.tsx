@@ -7,7 +7,7 @@ export const Auth: React.FC = () => {
   const { validateCode, register, login } = useAuthStore();
 
   const [step, setStep] = useState<1 | 2 | 3>(1); // 1: Plans / Access Code input, 2: Registration details, 3: Success
-  const [isLoginMode, setIsLoginMode] = useState(false);
+  const [isLoginMode, setIsLoginMode] = useState(true);
 
   // Form values
   const [activationCode, setActivationCode] = useState('');
@@ -140,16 +140,26 @@ export const Auth: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
+    setSuccessMsg('');
     if (!phone || !password) {
       setErrorMsg('Утас болон нууц үгээ оруулна уу!');
       return;
     }
 
-    setLoading(true);
-    const success = await login(phone, password);
-    setLoading(false);
-    if (!success) {
-      setErrorMsg('Утасны дугаар эсвэл нууц үг буруу байна!');
+    try {
+      setLoading(true);
+      const success = await login(phone, password);
+      setLoading(false);
+      if (!success) {
+        setErrorMsg('Утасны дугаар эсвэл нууц үг буруу байна!');
+      }
+    } catch (err: any) {
+      setLoading(false);
+      if (err.message === 'NOT_ACTIVATED') {
+        setErrorMsg('NOT_ACTIVATED');
+      } else {
+        setErrorMsg(err.message || 'Утасны дугаар эсвэл нууц үг буруу байна!');
+      }
     }
   };
 
@@ -188,10 +198,89 @@ export const Auth: React.FC = () => {
           </p>
         </div>
 
-        {errorMsg && (
+        {errorMsg && errorMsg !== 'NOT_ACTIVATED' && (
           <div className="bg-red-950/30 border border-red-500/30 text-red-300 text-xs px-4 py-3 rounded-xl flex items-center gap-2 max-w-md mx-auto w-full">
             <AlertCircle size={16} className="shrink-0" />
             <span>{errorMsg}</span>
+          </div>
+        )}
+
+        {errorMsg === 'NOT_ACTIVATED' && (
+          <div className="bg-amber-950/30 border border-amber-500/30 text-amber-300 text-xs p-5 rounded-2xl flex flex-col gap-4 max-w-md mx-auto w-full animate-fade-in">
+            <div className="flex items-start gap-2.5">
+              <AlertCircle size={18} className="text-amber-400 shrink-0 mt-0.5" />
+              <div className="flex flex-col gap-1">
+                <span className="font-bold text-white text-sm">Таны эрх идэвхжээгүй байна!</span>
+                <p className="text-neutral-300 text-[11px] leading-relaxed">
+                  Таны бүртгэл үүссэн боловч систем ашиглах эрх хараахан идэвхжээгүй байна. Доорх дансаар төлбөрөө шилжүүлсний дараа админ таны эрхийг 5-10 минутанд идэвхжүүлэх болно.
+                </p>
+              </div>
+            </div>
+
+            {/* Bank Transfer Instructions Card inside alert */}
+            <div className="flex flex-col gap-2.5 bg-neutral-950/50 border border-white/5 p-3.5 rounded-xl text-[11px]">
+              <div className="flex justify-between items-center">
+                <span className="text-neutral-400">Хүлээн авах Банк:</span>
+                <span className="font-bold text-white">Хаан Банк (Khan Bank)</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-neutral-400">Дансны дугаар:</span>
+                <div className="flex items-center gap-1.5 font-mono font-bold text-amber-500">
+                  <span>5114296800</span>
+                  <button 
+                    type="button"
+                    onClick={() => handleCopy('5114296800', 'account')}
+                    className="p-1 hover:bg-white/5 rounded text-neutral-400 hover:text-white cursor-pointer hover:bg-neutral-800"
+                  >
+                    {copiedField === 'account' ? <Check size={10} className="text-emerald-500" /> : <Copy size={10} />}
+                  </button>
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-neutral-400">Хүлээн авагч:</span>
+                <div className="flex items-center gap-1.5 font-bold text-white">
+                  <span>Золбоо Заяахүү</span>
+                  <button 
+                    type="button"
+                    onClick={() => handleCopy('Золбоо Заяахүү', 'name')}
+                    className="p-1 hover:bg-white/5 rounded text-neutral-400 hover:text-white cursor-pointer hover:bg-neutral-800"
+                  >
+                    {copiedField === 'name' ? <Check size={10} className="text-emerald-500" /> : <Copy size={10} />}
+                  </button>
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-neutral-400">Төлөх дүн (1 Сар):</span>
+                <div className="flex items-center gap-1.5 font-bold text-white">
+                  <span>29,900 ₮</span>
+                  <button 
+                    type="button"
+                    onClick={() => handleCopy('29900', 'amount')}
+                    className="p-1 hover:bg-white/5 rounded text-neutral-400 hover:text-white cursor-pointer hover:bg-neutral-800"
+                  >
+                    {copiedField === 'amount' ? <Check size={10} className="text-emerald-500" /> : <Copy size={10} />}
+                  </button>
+                </div>
+              </div>
+              <div className="flex justify-between items-center border-t border-white/5 pt-2 mt-1">
+                <span className="text-neutral-400">Гүйлгээний утга (Утас):</span>
+                <div className="flex items-center gap-1.5 font-mono font-extrabold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                  <span>{phone}</span>
+                  <button 
+                    type="button"
+                    onClick={() => handleCopy(phone, 'desc')}
+                    className="p-1 hover:bg-white/5 rounded text-neutral-400 hover:text-white cursor-pointer hover:bg-neutral-800"
+                  >
+                    {copiedField === 'desc' ? <Check size={10} className="text-emerald-500" /> : <Copy size={10} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-400 p-2.5 rounded-xl leading-relaxed flex gap-1.5">
+              <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+              <span>Шилжүүлгийн утга дээр өөрийн утасны дугаарыг (<b>{phone}</b>) зөв бичсэн эсэхээ дахин нягтална уу.</span>
+            </div>
           </div>
         )}
 
@@ -296,15 +385,9 @@ export const Auth: React.FC = () => {
           <form onSubmit={handleRegister} className="flex flex-col gap-5 max-w-md mx-auto w-full">
             <div className="text-center">
               <h2 className="font-display font-bold text-lg text-white">Хэрэглэгчийн бүртгэл үүсгэх</h2>
-              {activationCode ? (
-                <p className="text-neutral-400 text-xs mt-1">
-                  Лиценз: <span className="text-amber-500 font-semibold">{activationCode}</span> амжилттай баталгаажлаа.
-                </p>
-              ) : (
-                <p className="text-neutral-400 text-xs mt-1">
-                  Шинэ хэрэглэгчийн бүртгэл үүсгэх (Админ шалгаж идэвхжүүлнэ)
-                </p>
-              )}
+              <p className="text-neutral-400 text-xs mt-1">
+                Системд шинээр бүртгүүлэн үнэгүй аккаунт үүсгэх
+              </p>
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -389,23 +472,124 @@ export const Auth: React.FC = () => {
           </form>
         )}
 
-        {/* STEP 3: REGISTRATION SUCCESS */}
+        {/* STEP 3: REGISTRATION SUCCESS & PAYMENT DETAILS */}
         {step === 3 && (
-          <div className="flex flex-col items-center text-center gap-6 py-4 max-w-md mx-auto w-full">
-            <div className="w-16 h-16 rounded-full bg-amber-500/20 border border-amber-500 flex items-center justify-center text-amber-500 animate-bounce">
-              <ShieldCheck size={36} />
+          <div className="flex flex-col gap-6 py-4 max-w-md mx-auto w-full animate-fade-in">
+            <div className="flex flex-col items-center text-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500 flex items-center justify-center text-emerald-500 animate-bounce">
+                <CheckCircle2 size={36} />
+              </div>
+              <div>
+                <h2 className="font-display font-bold text-xl text-white">Бүртгэл амжилттай үүслээ!</h2>
+                <p className="text-neutral-400 text-xs mt-2 leading-relaxed">
+                  Таны хэрэглэгчийн бүртгэл амжилттай бүртгэгдлээ. Програмын эрхээ идэвхжүүлэхийн тулд доорх зааврын дагуу төлбөрөө шилжүүлнэ үү.
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="font-display font-bold text-xl text-white">Амжилттай бүртгэгдлээ!</h2>
-              <p className="text-neutral-400 text-xs mt-2 leading-relaxed">
-                Таны бүртгэл баталгаажиж, систем ашиглах эрх идэвхжлээ. Та одоо өөрийн загварыг бүтээж, зүсэлт болон зардлаа тооцоолно уу.
-              </p>
+
+            {/* Bank Transfer Instructions Card */}
+            <div className="flex flex-col gap-3 bg-neutral-900/60 border border-white/5 p-4 rounded-2xl">
+              <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider font-display">Шилжүүлгийн Мэдээлэл</span>
+              
+              <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                <span className="text-xs text-neutral-400">Хүлээн авах Банк:</span>
+                <span className="text-xs font-bold text-white">Хаан Банк (Khan Bank)</span>
+              </div>
+
+              <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                <span className="text-xs text-neutral-400">Дансны дугаар:</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold text-amber-500">5114296800</span>
+                  <button 
+                    type="button"
+                    onClick={() => handleCopy('5114296800', 'account')}
+                    className="p-1 hover:bg-white/5 rounded transition-colors text-neutral-400 hover:text-white cursor-pointer hover:bg-neutral-800"
+                  >
+                    {copiedField === 'account' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                <span className="text-xs text-neutral-400">IBAN:</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold text-white">15000500</span>
+                  <button 
+                    type="button"
+                    onClick={() => handleCopy('15000500', 'iban')}
+                    className="p-1 hover:bg-white/5 rounded transition-colors text-neutral-400 hover:text-white cursor-pointer hover:bg-neutral-800"
+                  >
+                    {copiedField === 'iban' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                <span className="text-xs text-neutral-400">Хүлээн авагч:</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-white">Золбоо Заяахүү</span>
+                  <button 
+                    type="button"
+                    onClick={() => handleCopy('Золбоо Заяахүү', 'name')}
+                    className="p-1 hover:bg-white/5 rounded transition-colors text-neutral-400 hover:text-white cursor-pointer hover:bg-neutral-800"
+                  >
+                    {copiedField === 'name' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                <span className="text-xs text-neutral-400">Сар бэлтгэх төлбөр:</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-white">29,900 ₮</span>
+                  <button 
+                    type="button"
+                    onClick={() => handleCopy('29900', 'amount')}
+                    className="p-1 hover:bg-white/5 rounded transition-colors text-neutral-400 hover:text-white cursor-pointer hover:bg-neutral-800"
+                  >
+                    {copiedField === 'amount' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center py-1.5">
+                <span className="text-xs text-neutral-400">Гүйлгээний утга (Таны утас):</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-extrabold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                    {phone}
+                  </span>
+                  <button 
+                    type="button"
+                    onClick={() => handleCopy(phone, 'desc')}
+                    className="p-1 hover:bg-white/5 rounded transition-colors text-neutral-400 hover:text-white cursor-pointer hover:bg-neutral-800"
+                  >
+                    {copiedField === 'desc' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                  </button>
+                </div>
+              </div>
             </div>
+
+            {/* Warning Alert Box */}
+            <div className="bg-amber-500/5 border border-amber-500/15 p-3 rounded-2xl flex items-start gap-2.5">
+              <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={16} />
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">Маш чухал санамж!</span>
+                <p className="text-[10px] text-neutral-300 leading-relaxed">
+                  Гүйлгээний утга дээр өөрийн бүртгүүлсэн утасны дугаараа (<b>{phone}</b>) заавал зөв бичнэ үү. Буруу бичвэл таны эрхийг идэвхжүүлэх боломжгүй болно.
+                </p>
+              </div>
+            </div>
+
             <button
-              onClick={() => window.location.href = '/'}
-              className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl active:scale-[0.98] transition-all text-xs cursor-pointer"
+              type="button"
+              onClick={() => {
+                setIsLoginMode(true);
+                setStep(1);
+                setSuccessMsg('Төлбөрөө шилжүүлсний дараа нэвтэрнэ үү. Админ 5-10 минутад баталгаажуулна.');
+              }}
+              className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl active:scale-[0.98] transition-all text-xs cursor-pointer text-center"
             >
-              Удирдлагын хэсэг рүү орох
+              Төлбөрөө шилжүүлсэн, нэвтрэх хэсэг рүү очих
             </button>
           </div>
         )}
@@ -473,21 +657,11 @@ export const Auth: React.FC = () => {
                 onClick={() => {
                   setIsLoginMode(false);
                   setStep(2);
-                  setActivationCode('TAVMAX-DEMO-CODE');
+                  setActivationCode('');
                 }}
                 className="text-amber-500 hover:underline text-xs font-bold"
               >
                 Бүртгүүлэх (Шинэ бүртгэл үүсгэх)
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsLoginMode(false);
-                  setStep(1);
-                }}
-                className="text-neutral-400 hover:underline text-[11px]"
-              >
-                Үнийн тариф харах
               </button>
             </div>
           </form>
