@@ -262,27 +262,24 @@ export const useAuthStore = create<AuthState>()(
         }
 
         if (isSupabaseConfigured && supabase) {
-          const email = `${phone.trim()}@tavmax.com`;
           try {
-            const { data, error } = await supabase.auth.signUp({
-              email,
-              password: pass,
-              options: {
-                data: {
-                  name,
-                  phone,
-                  role: subType === 'factory' ? 'factory' : 'designer',
-                  subscription: subType,
-                  expiresAt,
-                }
-              }
+            const role = subType === 'factory' ? 'factory' : 'designer';
+            const { data, error } = await supabase.rpc('register_user', {
+              p_phone: phone.trim(),
+              p_name: name.trim(),
+              p_password: pass,
+              p_role: role,
+              p_subscription: subType
             });
             if (error) {
-              console.error('Supabase signup failed:', error.message);
+              console.error('Supabase signup RPC failed:', error.message);
+              if (error.message.includes('USER_EXISTS')) {
+                throw new Error('Энэ утасны дугаар аль хэдийн бүртгэгдсэн байна.');
+              }
               throw new Error(error.message);
             }
-            if (data.user) {
-              // In the new flow, we do NOT log them in automatically
+            if (data) {
+              // Sign out just in case
               await supabase.auth.signOut();
               set({
                 isLoggedIn: false,
