@@ -198,7 +198,7 @@ export const App: React.FC = () => {
           </nav>
           
           <div className="text-[10px] text-neutral-600 text-center border-t border-white/5 pt-4 mt-6">
-            © 2026 TavMax AI Platform
+            © 2026 TavMax Platform
           </div>
         </aside>
 

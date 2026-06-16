@@ -5,7 +5,7 @@ import { exportProjectToPDF } from '../utils/pdfExport';
 import { runNestingOptimizer } from '../utils/nesting';
 import type { NestingPartInput } from '../utils/nesting';
 import { TemplateThumbnail } from '../components/TemplateThumbnail';
-import { Sparkles, Eye, Ruler, Grid, Layers, Move, RefreshCw, Send, Check, Plus, Trash2, Box, Copy, Magnet, Printer, X, FileText, HelpCircle, Info, ChevronLeft, ChevronRight, Columns, AlignLeft, Loader2, Home, ChevronDown } from 'lucide-react';
+import { Sparkles, Eye, Ruler, Grid, Layers, Move, Send, Plus, Trash2, Box, Copy, Magnet, Printer, X, FileText, HelpCircle, Info, ChevronLeft, ChevronRight, Columns, AlignLeft, Loader2, Home, ChevronDown } from 'lucide-react';
 
 const COLOR_PALETTE = [
   // Pastel / Warm
@@ -217,10 +217,6 @@ export const Editor: React.FC = () => {
     return 'other';
   };
 
-  // AI Prompt State
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiSuccess, setAiSuccess] = useState(false);
 
   // Predefined templates
   const templates = [
@@ -1004,75 +1000,6 @@ export const Editor: React.FC = () => {
   const selectedMod = (activeProject.modules || []).find((m) => m.id === selectedModuleId) || (activeProject.modules || [])[0];
   const config = selectedMod ? selectedMod.config : activeProject.config;
 
-  // Handle AI Prompt simulation
-  const handleAiPromptSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!aiPrompt.trim()) return;
-
-    setAiLoading(true);
-    setAiSuccess(false);
-
-    // Simulate AI inference delays and mapping parameters
-    setTimeout(() => {
-      setAiLoading(false);
-      setAiSuccess(true);
-      const text = aiPrompt.toLowerCase();
-
-      if (text.includes('гал тогоо') || text.includes('гал тогооны')) {
-        updateActiveConfig({
-          width: 2400,
-          height: 850,
-          depth: 600,
-          shelves: 3,
-          drawers: 4,
-          doors: 2,
-          hasLegs: true,
-          materialId: 'mat-2', // Egger walnut
-          doorMaterialId: 'mat-4', // Matte Black Acrylic
-        });
-      } else if (text.includes('шкаф') || text.includes('хувцасны')) {
-        updateActiveConfig({
-          width: 1800,
-          height: 2200,
-          depth: 600,
-          shelves: 8,
-          drawers: 4,
-          doors: 3,
-          hasLegs: false,
-          materialId: 'mat-1', // Egger Oak
-          doorMaterialId: 'mat-3', // White Gloss
-        });
-      } else if (text.includes('номын') || text.includes('тавиур')) {
-        updateActiveConfig({
-          width: 1200,
-          height: 1800,
-          depth: 300,
-          shelves: 6,
-          drawers: 0,
-          doors: 0,
-          hasLegs: true,
-          materialId: 'mat-5', // Plywood
-          doorMaterialId: 'mat-5',
-        });
-      } else {
-        // Generic fallback values
-        updateActiveConfig({
-          width: 1600,
-          height: 1200,
-          depth: 500,
-          shelves: 5,
-          drawers: 2,
-          doors: 2,
-          hasLegs: false,
-          materialId: 'mat-3',
-          doorMaterialId: 'mat-4'
-        });
-      }
-
-      setAiPrompt('');
-      setTimeout(() => setAiSuccess(false), 3000);
-    }, 1500);
-  };
 
   // Filter built-in and custom templates based on room categories
   const filteredBuiltInTemplates = templates.filter((tpl) => {
@@ -4009,34 +3936,6 @@ return (
           </p>
         </div>
 
-        {/* AI Furniture Prompt Generator Form */}
-        <div className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/10 rounded-2xl p-5 flex flex-col gap-3">
-          <div className="flex items-center gap-1.5 text-amber-400 text-sm font-semibold">
-            <Sparkles size={16} />
-            <h4>AI Тавилга Зурагч</h4>
-          </div>
-          <form onSubmit={handleAiPromptSubmit} className="relative">
-            <input
-              type="text"
-              placeholder="Бичнэ үү: 'цагаан модерн гал тогоо'..."
-              value={aiPrompt}
-              onChange={(e) => setAiPrompt(e.target.value)}
-              className="w-full bg-[#0c0d12] border border-white/10 rounded-xl pl-4 pr-12 py-3.5 outline-none text-white text-xs placeholder:text-neutral-500 focus:border-amber-500"
-            />
-            <button
-              type="submit"
-              disabled={aiLoading}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-amber-500 hover:bg-amber-600 disabled:bg-neutral-800 text-neutral-950 disabled:text-neutral-600 rounded-lg transition-all cursor-pointer"
-            >
-              {aiLoading ? <RefreshCw className="animate-spin" size={14} /> : <Send size={14} />}
-            </button>
-          </form>
-          {aiSuccess && (
-            <div className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
-              <Check size={12} /> AI тавилгыг амжилттай үүсгэлээ!
-            </div>
-          )}
-        </div>
 
         {/* Dimension parameters sliders panel - RESTRUCTURED AS WIZARD */}
         {showFloatingConfig ? (

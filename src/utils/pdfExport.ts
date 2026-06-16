@@ -88,7 +88,7 @@ export const exportProjectToPDF = async (
     doc.setFont(fontName, 'bold');
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
-    doc.text('TAVMAX — AI FURNITURE DESIGN & MANUFACTURING', 10, 12);
+    doc.text('TAVMAX — FURNITURE DESIGN & MANUFACTURING', 10, 12);
     doc.setLineWidth(0.1);
     doc.line(10, 14, 200, 14);
 
