@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'; // Redeploy trigger
 import { useAuthStore } from '../store/authStore';
 import { Key, Phone, User, Lock, ShieldCheck, CheckCircle2, AlertCircle, Coins, CreditCard, Sparkles, Check, RefreshCw, Copy, AlertTriangle } from 'lucide-react';
 import { isSupabaseConfigured } from '../utils/supabaseClient';
+import { sendSMS } from '../utils/sms';
 
 export const Auth: React.FC = () => {
   const { validateCode, register, login } = useAuthStore();
@@ -16,6 +17,7 @@ export const Auth: React.FC = () => {
   const [password, setPassword] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [otpSent, setOtpSent] = useState(false);
+  const [generatedOtp, setGeneratedOtp] = useState('');
 
   // SaaS Payment Dialog states
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -109,16 +111,31 @@ export const Auth: React.FC = () => {
 
     if (!otpSent) {
       setLoading(true);
-      setTimeout(() => {
-        setOtpSent(true);
+      const otp = Math.floor(1000 + Math.random() * 9000).toString();
+      setGeneratedOtp(otp);
+      
+      try {
+        const res = await sendSMS(phone, `TavMax: Burtgeliin batalgaajuulah kod: ${otp}`);
         setLoading(false);
-        setSuccessMsg('Таны утсанд баталгаажуулах код илгээгдлээ. (Туршилтын код: 1234)');
-      }, 1000);
+        if (res.success) {
+          setOtpSent(true);
+          if (res.message === 'DEV_MODE') {
+            setSuccessMsg(`Таны утсанд баталгаажуулах код илгээгдлээ. (Туршилтын код: ${otp})`);
+          } else {
+            setSuccessMsg('Таны утсанд баталгаажуулах код илгээгдлээ.');
+          }
+        } else {
+          setErrorMsg(res.message || 'Баталгаажуулах код илгээхэд алдаа гарлаа.');
+        }
+      } catch (err: any) {
+        setLoading(false);
+        setErrorMsg('Баталгаажуулах код илгээхэд алдаа гарлаа.');
+      }
       return;
     }
 
-    if (otpCode !== '1234') {
-      setErrorMsg('Баталгаажуулах код буруу байна! (Туршилтын OTP код: 1234)');
+    if (otpCode !== generatedOtp) {
+      setErrorMsg('Баталгаажуулах код буруу байна!');
       return;
     }
 
@@ -437,7 +454,7 @@ export const Auth: React.FC = () => {
 
             {otpSent && (
               <div className="flex flex-col gap-1.5 bg-amber-500/5 p-3 rounded-xl border border-amber-500/10">
-                <label className="text-xs text-amber-500 font-semibold">Баталгаажуулах код (Жишээ: 1234)</label>
+                <label className="text-xs text-amber-500 font-semibold">Баталгаажуулах код</label>
                 <input
                   type="text"
                   maxLength={4}
