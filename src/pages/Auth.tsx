@@ -15,9 +15,6 @@ export const Auth: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
-  const [otpCode, setOtpCode] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [generatedOtp, setGeneratedOtp] = useState('');
 
   // SaaS Payment Dialog states
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -106,36 +103,6 @@ export const Auth: React.FC = () => {
     setErrorMsg('');
     if (!phone || !name || !password) {
       setErrorMsg('Бүх талбарыг бөглөнө үү!');
-      return;
-    }
-
-    if (!otpSent) {
-      setLoading(true);
-      const otp = Math.floor(1000 + Math.random() * 9000).toString();
-      setGeneratedOtp(otp);
-      
-      try {
-        const res = await sendSMS(phone, `TavMax: Burtgeliin batalgaajuulah kod: ${otp}`);
-        setLoading(false);
-        if (res.success) {
-          setOtpSent(true);
-          if (res.message === 'DEV_MODE') {
-            setSuccessMsg(`Таны утсанд баталгаажуулах код илгээгдлээ. (Туршилтын код: ${otp})`);
-          } else {
-            setSuccessMsg('Таны утсанд баталгаажуулах код илгээгдлээ.');
-          }
-        } else {
-          setErrorMsg(res.message || 'Баталгаажуулах код илгээхэд алдаа гарлаа.');
-        }
-      } catch (err: any) {
-        setLoading(false);
-        setErrorMsg('Баталгаажуулах код илгээхэд алдаа гарлаа.');
-      }
-      return;
-    }
-
-    if (otpCode !== generatedOtp) {
-      setErrorMsg('Баталгаажуулах код буруу байна!');
       return;
     }
 
@@ -452,26 +419,12 @@ export const Auth: React.FC = () => {
               </div>
             </div>
 
-            {otpSent && (
-              <div className="flex flex-col gap-1.5 bg-amber-500/5 p-3 rounded-xl border border-amber-500/10">
-                <label className="text-xs text-amber-500 font-semibold">Баталгаажуулах код</label>
-                <input
-                  type="text"
-                  maxLength={4}
-                  placeholder="XXXX"
-                  value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value)}
-                  className="w-full text-center py-2 bg-neutral-900 border border-white/10 rounded-lg focus:border-amber-500 outline-none text-white font-bold tracking-widest text-base"
-                />
-              </div>
-            )}
-
             <button
               type="submit"
               disabled={loading}
               className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl active:scale-[0.98] transition-all text-xs cursor-pointer"
             >
-              {loading ? 'Уншиж байна...' : otpSent ? 'Бүртгэл дуусгах' : 'Баталгаажуулах код авах'}
+              {loading ? 'Уншиж байна...' : 'Бүртгэл дуусгах'}
             </button>
 
             <div className="text-center mt-2">
