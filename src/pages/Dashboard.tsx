@@ -19,23 +19,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigat
   };
 
   const handleCreateNew = () => {
-    // Generate new blank project
+    // Generate new blank project (custom/empty type)
     const newProj: Project = {
       id: `proj-${Date.now()}`,
       name: 'Шинэ тавилга загвар',
-      furnitureType: 'wardrobe',
+      furnitureType: 'custom',
       config: {
-        width: 1500,
-        height: 2000,
-        depth: 550,
-        shelves: 4,
-        drawers: 2,
-        doors: 2,
+        width: 1200,
+        height: 850,
+        depth: 600,
+        shelves: 0,
+        drawers: 0,
+        doors: 0,
         hasLegs: false,
-        handleType: 'minimal',
-        materialId: 'mat-1',
+        handleType: 'none',
+        materialId: 'mat-3',
         doorMaterialId: 'mat-3',
-        color: '#d7c29e'
+        color: '#faf9f6'
       },
       parts: [],
       createdAt: new Date().toISOString(),
@@ -43,7 +43,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigat
       status: 'шинэ',
       customerName: 'Захиалагч',
       customerPhone: '99009900',
-      price: 980000
+      price: 0
     };
     addProject(newProj);
     onSelectProject(newProj);

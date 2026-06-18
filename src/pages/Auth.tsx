@@ -20,6 +20,7 @@ export const Auth: React.FC = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<{ name: string; price: number; code: string } | null>(null);
   const [paying, setPaying] = useState(false);
+  const [inactiveSelectedPlan, setInactiveSelectedPlan] = useState<'24H' | '30D'>('30D');
   const [paidCode, setPaidCode] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<'account' | 'name' | 'amount' | 'desc' | 'iban' | null>(null);
 
@@ -201,6 +202,32 @@ export const Auth: React.FC = () => {
               </div>
             </div>
 
+            {/* Plan Selector */}
+            <div className="grid grid-cols-2 gap-1.5 p-1 bg-neutral-900/60 border border-white/5 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setInactiveSelectedPlan('24H')}
+                className={`py-1.5 rounded-lg text-center font-bold text-[10px] transition-all cursor-pointer ${
+                  inactiveSelectedPlan === '24H'
+                    ? 'bg-amber-500 text-neutral-950 shadow-md'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                24 цагийн эрх (9,900 ₮)
+              </button>
+              <button
+                type="button"
+                onClick={() => setInactiveSelectedPlan('30D')}
+                className={`py-1.5 rounded-lg text-center font-bold text-[10px] transition-all cursor-pointer ${
+                  inactiveSelectedPlan === '30D'
+                    ? 'bg-amber-500 text-neutral-950 shadow-md'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                1 сарын эрх (29,900 ₮)
+              </button>
+            </div>
+
             {/* Bank Transfer Instructions Card inside alert */}
             <div className="flex flex-col gap-2.5 bg-neutral-950/50 border border-white/5 p-3.5 rounded-xl text-[11px]">
               <div className="flex justify-between items-center">
@@ -234,12 +261,14 @@ export const Auth: React.FC = () => {
                 </div>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-neutral-400">Төлөх дүн (1 Сар):</span>
+                <span className="text-neutral-400">
+                  Төлөх дүн ({inactiveSelectedPlan === '24H' ? '24 Цаг' : '1 Сар'}):
+                </span>
                 <div className="flex items-center gap-1.5 font-bold text-white">
-                  <span>29,900 ₮</span>
+                  <span>{inactiveSelectedPlan === '24H' ? '9,900 ₮' : '29,900 ₮'}</span>
                   <button 
                     type="button"
-                    onClick={() => handleCopy('29900', 'amount')}
+                    onClick={() => handleCopy(inactiveSelectedPlan === '24H' ? '9900' : '29900', 'amount')}
                     className="p-1 hover:bg-white/5 rounded text-neutral-400 hover:text-white cursor-pointer hover:bg-neutral-800"
                   >
                     {copiedField === 'amount' ? <Check size={10} className="text-emerald-500" /> : <Copy size={10} />}
@@ -509,12 +538,16 @@ export const Auth: React.FC = () => {
               </div>
 
               <div className="flex justify-between items-center py-1.5 border-b border-white/5">
-                <span className="text-xs text-neutral-400">Сар бэлтгэх төлбөр:</span>
+                <span className="text-xs text-neutral-400">
+                  {selectedPlan ? `${selectedPlan.name} төлбөр:` : 'Сар бэлтгэх төлбөр:'}
+                </span>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-white">29,900 ₮</span>
+                  <span className="text-xs font-bold text-white">
+                    {selectedPlan ? `${selectedPlan.price.toLocaleString('mn-MN')} ₮` : '29,900 ₮'}
+                  </span>
                   <button 
                     type="button"
-                    onClick={() => handleCopy('29900', 'amount')}
+                    onClick={() => handleCopy(selectedPlan ? selectedPlan.price.toString() : '29900', 'amount')}
                     className="p-1 hover:bg-white/5 rounded transition-colors text-neutral-400 hover:text-white cursor-pointer hover:bg-neutral-800"
                   >
                     {copiedField === 'amount' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
@@ -577,13 +610,7 @@ export const Auth: React.FC = () => {
               )}
             </div>
 
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-[11px] text-amber-400 flex flex-col gap-1">
-              <span className="font-bold flex items-center gap-1">💡 Админ Бүртгэл:</span>
-              <div className="flex justify-between font-mono">
-                <span>Утас: 90860926</span>
-                <span>Нууц үг: Zolboo12@</span>
-              </div>
-            </div>
+
 
             <div className="flex flex-col gap-1.5">
               <label className="text-xs text-neutral-400 font-medium">Утасны Дугаар</label>

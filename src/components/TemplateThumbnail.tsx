@@ -104,7 +104,77 @@ function renderThumbnail(type: string, cfg: TemplateConfig): string {
     return mesh;
   };
 
-  if (type === 'fridge') {
+  if (type === 'bed') {
+    // Bed rendering: frame, headboard, footboard, mattress, bedding, pillows
+    // W3 = width of bed, depth = length of bed, height = headboard height
+
+    const frameH = 180;       // bed frame height off floor
+    const legH2  = 80;        // leg height
+    const legSz  = 60;        // leg size
+    const boardT = 60;        // headboard / footboard thickness
+
+    const frameMat   = new THREE.MeshStandardMaterial({ color: '#c8b89a', roughness: 0.5, metalness: 0.05 });
+    const legMat     = new THREE.MeshStandardMaterial({ color: '#a08060', roughness: 0.6, metalness: 0.05 });
+    const mattressMat= new THREE.MeshStandardMaterial({ color: '#f5f0eb', roughness: 0.8 });
+    const beddingMat = new THREE.MeshStandardMaterial({ color: '#e8e0f0', roughness: 0.85 });
+    const pillowMat  = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9 });
+    const headMat    = new THREE.MeshStandardMaterial({ color: '#b89a72', roughness: 0.4, metalness: 0.08 });
+
+    // Legs (4 corners)
+    for (const lx of [-halfW + legSz / 2, halfW - legSz / 2])
+      for (const lz of [-depth / 2 + legSz / 2, depth / 2 - legSz / 2])
+        addBox(legSz, legH2, legSz, lx, legH2 / 2, lz, legMat);
+
+    // Bed frame sides (long rails)
+    addBox(W3, frameH, 40, 0, legH2 + frameH / 2, -depth / 2 + 20, frameMat); // back
+    addBox(W3, frameH, 40, 0, legH2 + frameH / 2,  depth / 2 - 20, frameMat); // front
+    addBox(40, frameH, depth, -halfW + 20, legH2 + frameH / 2, 0, frameMat);  // left rail
+    addBox(40, frameH, depth,  halfW - 20, legH2 + frameH / 2, 0, frameMat);  // right rail
+
+    // Bottom slat
+    addBox(W3 - 80, 20, depth - 80, 0, legH2 + 10, 0, frameMat);
+
+    // Headboard (tall, at back = -depth/2)
+    const headH = height - legH2;
+    addBox(W3 + 20, headH, boardT, 0, legH2 + headH / 2, -depth / 2 - boardT / 2, headMat);
+
+    // Footboard (shorter, at front = +depth/2)
+    const footH = Math.min(300, headH * 0.55);
+    addBox(W3 + 20, footH, boardT, 0, legH2 + footH / 2, depth / 2 + boardT / 2, headMat);
+
+    // Mattress
+    const mattH = 120;
+    const mattY = legH2 + frameH + mattH / 2;
+    addBox(W3 - 50, mattH, depth - 50, 0, mattY, 0, mattressMat);
+
+    // Bedding / duvet on top (slightly smaller, raised)
+    const beddingH = 60;
+    const beddingZ = depth * 0.1; // shifted toward foot end
+    addBox(W3 - 70, beddingH, depth * 0.65, 0, mattY + mattH / 2 + beddingH / 2, beddingZ, beddingMat);
+
+    // Pillows (1 or 2 depending on width)
+    const pilH = 50; const pilD = 350; const pilW2 = Math.min(550, W3 * 0.38);
+    const pilY = mattY + mattH / 2 + pilH / 2;
+    const pilZ = -depth / 2 + 220;
+    if (W3 >= 1400) {
+      addBox(pilW2, pilH, pilD, -W3 * 0.22, pilY, pilZ, pillowMat);
+      addBox(pilW2, pilH, pilD,  W3 * 0.22, pilY, pilZ, pillowMat);
+    } else {
+      addBox(W3 * 0.6, pilH, pilD, 0, pilY, pilZ, pillowMat);
+    }
+
+    // Camera: top-angled so the top of the bed is clearly visible
+    const maxDim2 = Math.max(W3, depth);
+    const camDist2 = maxDim2 * 1.4;
+    const camera = new THREE.PerspectiveCamera(42, RW / RH, 1, 100000);
+    camera.position.set(camDist2 * 0.55, height * 2.2, camDist2 * 1.1);
+    camera.lookAt(0, legH2 + frameH + mattH, 0);
+    renderer.render(scene, camera);
+    const dataUrl2 = renderer.domElement.toDataURL('image/jpeg', 0.88);
+    scene.traverse((obj) => { const m = obj as THREE.Mesh; if (m.geometry) m.geometry.dispose(); });
+    return dataUrl2;
+  } else if (type === 'fridge') {
+
     const fridgeMat = new THREE.MeshStandardMaterial({ color: '#d1d5db', roughness: 0.2, metalness: 0.45 });
     addBox(W3, height, depth, 0, height / 2, 0, fridgeMat);
     addBox(W3 - 10, height - 10, 20, 0, height / 2, halfD + 10, fridgeMat);

@@ -3,6 +3,7 @@ import { useAuthStore } from './store/authStore';
 import { useProjectStore } from './store/projectStore';
 import { isSupabaseConfigured } from './utils/supabaseClient';
 import { Auth } from './pages/Auth';
+import { ParticleBackground } from './components/ParticleBackground';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Dashboard } from './pages/Dashboard';
 import { Editor } from './pages/Editor';
@@ -95,7 +96,12 @@ export const App: React.FC = () => {
 
   // Authentication gate
   if (!isLoggedIn) {
-    return <Auth />;
+    return (
+      <>
+        <ParticleBackground />
+        <Auth />
+      </>
+    );
   }
 
   // Navigation Links
@@ -116,7 +122,8 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#08090d] text-neutral-100 flex flex-col">
+    <div className="min-h-screen bg-[#08090d] text-neutral-100 flex flex-col relative">
+      <ParticleBackground />
       {/* Top Header bar */}
       <header className="sticky top-0 z-40 bg-[#0c0d12]/80 backdrop-blur-md border-b border-white/5 px-6 py-4 flex justify-between items-center glass">
         <div className="flex items-center gap-3">
