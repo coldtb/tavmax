@@ -3270,26 +3270,33 @@ return (
                     >
                       <Trash2 size={10} />
                     </button>
-                    <div className="w-full aspect-[4/3] overflow-hidden relative">
-                      <TemplateThumbnail type={tpl.type} config={tpl.config} name={tpl.name} />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-1.5 pointer-events-none">
-                        <span className="text-[8px] font-bold text-white leading-tight drop-shadow">{tpl.name}</span>
-                      </div>
-                      <div className="absolute inset-0 bg-amber-500/0 group-hover:bg-amber-500/5 transition-all pointer-events-none" />
-                    </div>
-                    <button
-                      onClick={() => {
-                        addModuleToActive(tpl.type, tpl.config, tpl.name);
-                        if (isMobile) setMobileTab('3d');
-                      }}
-                      className="w-full py-1 bg-neutral-800/80 hover:bg-amber-500 hover:text-neutral-950 text-neutral-300 font-bold text-[8px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-0.5"
-                    >
-                      <Plus size={8} /> Нэмэх
-                    </button>
+                  <div className="w-full aspect-[4/3] overflow-hidden relative">
+                    <TemplateThumbnail type={tpl.type} config={tpl.config} name={tpl.name} />
+                    <div className="absolute inset-0 bg-amber-500/0 group-hover:bg-amber-500/5 transition-all pointer-events-none" />
                   </div>
-                ))}
-              </div>
-            )}
+                  {/* Card info below thumbnail */}
+                  <div className="px-2 py-1.5 flex flex-col gap-0.5 bg-[#0c0d12]/60">
+                    <span className="text-[9px] font-bold text-white leading-tight truncate">{tpl.name}</span>
+                    <div className="flex items-center gap-1.5 text-[8px] text-neutral-500 flex-wrap">
+                      <span className="text-amber-500/70 font-semibold">{tpl.config.width}×{tpl.config.height}</span>
+                      {(tpl.config.doors ?? 0) > 0 && <span>{tpl.config.doors}🚪</span>}
+                      {(tpl.config.shelves ?? 0) > 0 && <span>{tpl.config.shelves}📐</span>}
+                      {(tpl.config.drawers ?? 0) > 0 && <span>{tpl.config.drawers}🗃</span>}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      addModuleToActive(tpl.type, tpl.config, tpl.name);
+                      if (isMobile) setMobileTab('3d');
+                    }}
+                    className="w-full py-1 bg-neutral-800/80 hover:bg-amber-500 hover:text-neutral-950 text-neutral-300 font-bold text-[8px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-0.5"
+                  >
+                    <Plus size={8} /> Нэмэх
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           </div>
 
           {/* Saved Layouts Section — full layout snapshots */}
@@ -3384,10 +3391,17 @@ return (
                   >
                     <div className="w-full aspect-[4/3] overflow-hidden relative">
                       <TemplateThumbnail type={tpl.type} config={tpl.config} name={tpl.name} />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-1.5 pointer-events-none">
-                        <span className="text-[8px] font-bold text-white leading-tight drop-shadow">{tpl.name}</span>
-                      </div>
                       <div className="absolute inset-0 bg-amber-500/0 group-hover:bg-amber-500/5 transition-all pointer-events-none" />
+                    </div>
+                    {/* Card info below thumbnail */}
+                    <div className="px-2 py-1.5 flex flex-col gap-0.5 bg-[#0c0d12]/60">
+                      <span className="text-[9px] font-bold text-white leading-tight truncate">{tpl.name}</span>
+                      <div className="flex items-center gap-1.5 text-[8px] text-neutral-500 flex-wrap">
+                        <span className="text-amber-500/70 font-semibold">{tpl.config.width}×{tpl.config.height}</span>
+                        {(tpl.config.doors ?? 0) > 0 && <span>{tpl.config.doors}🚪</span>}
+                        {(tpl.config.shelves ?? 0) > 0 && <span>{tpl.config.shelves}📐</span>}
+                        {(tpl.config.drawers ?? 0) > 0 && <span>{tpl.config.drawers}🗃</span>}
+                      </div>
                     </div>
                     <button
                       onClick={() => {
@@ -3402,6 +3416,7 @@ return (
                 );
               })}
             </div>
+
           </div>
         </div>
       </div>
