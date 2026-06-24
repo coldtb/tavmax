@@ -1761,7 +1761,10 @@ export const useProjectStore = create<ProjectState>()(
         // Handle drawers count changes or partition count changes for drawer distribution
         if (newDrawers !== oldDrawers || newPartitions !== oldPartitions || (newDrawers > 0 && !updatedConfig.sectionDrawerCounts)) {
           const sections = getCabinetSections(newWidth, updatedConfig, mod.type);
-          const newDrawerCounts = sections.map((_, sIdx) =>
+          const storedCounts = updatedConfig.sectionDrawerCounts;
+          const hasValidStored = storedCounts && storedCounts.length === sections.length && storedCounts.reduce((a, b) => a + b, 0) === newDrawers;
+          
+          const newDrawerCounts = hasValidStored ? storedCounts : sections.map((_, sIdx) =>
             Math.floor(newDrawers / sections.length) + (sIdx < newDrawers % sections.length ? 1 : 0)
           );
           updatedConfig.sectionDrawerCounts = newDrawerCounts;
