@@ -12,6 +12,7 @@ import { Materials } from './pages/Materials';
 import { Customer } from './pages/Customer';
 import { Admin } from './pages/Admin';
 import { Settings } from './pages/Settings';
+import { SupportChat } from './components/SupportChat';
 import {
   LayoutDashboard,
   Box,
@@ -24,7 +25,9 @@ import {
   X,
   Sun,
   Moon,
-  Users
+  Users,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 // Attach global log helper (DEV only)
@@ -69,6 +72,14 @@ export const App: React.FC = () => {
     return localStorage.getItem('tavmax_active_tab') || 'dashboard';
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    return localStorage.getItem('tavmax_sidebar_collapsed') === 'true';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tavmax_sidebar_collapsed', String(sidebarCollapsed));
+  }, [sidebarCollapsed]);
+
   const [showDebug, setShowDebug] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
 
@@ -186,25 +197,36 @@ export const App: React.FC = () => {
       {/* Main layout grid */}
       <div className="flex-1 flex relative">
         {/* Sidebar Nav (Desktop) */}
-        <aside className="hidden lg:flex w-64 flex-col border-r border-white/5 p-6 bg-[#0c0d12]/50 shrink-0">
+        <aside className={`hidden lg:flex flex-col border-r border-white/5 bg-[#0c0d12]/50 shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'w-20 p-3' : 'w-64 p-6'}`}>
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="mb-4 p-2 rounded-xl bg-neutral-800/40 hover:bg-neutral-800 border border-white/5 text-neutral-400 hover:text-white transition-all cursor-pointer flex items-center justify-center self-center"
+            title={sidebarCollapsed ? 'Цэсийг дэлгэх' : 'Цэсийг хумих'}
+          >
+            {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          </button>
+
           <nav className="flex-1 flex flex-col gap-1">
             {navLinks.map((link) => (
               <button
                 key={link.id}
                 onClick={() => handleTabChange(link.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all text-left cursor-pointer ${
+                className={`w-full flex items-center rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                  sidebarCollapsed ? 'justify-center py-3.5 px-0' : 'px-4 py-3.5 gap-3 justify-start text-left'
+                } ${
                   activeTab === link.id
                     ? 'bg-amber-500 text-neutral-950 font-bold shadow-lg shadow-amber-500/10'
                     : 'text-neutral-400 hover:text-white hover:bg-white/[0.02]'
                 }`}
+                title={sidebarCollapsed ? link.label : ''}
               >
                 {link.icon}
-                {link.label}
+                {!sidebarCollapsed && <span className="truncate">{link.label}</span>}
               </button>
             ))}
           </nav>
           
-          <div className="text-[10px] text-neutral-600 text-center border-t border-white/5 pt-4 mt-6">
+          <div className={`text-[10px] text-neutral-600 text-center border-t border-white/5 pt-4 mt-6 truncate transition-all duration-300 ${sidebarCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
             © 2026 TavMax Platform
           </div>
         </aside>
@@ -246,8 +268,7 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* Content Pane */}
-        <main className="flex-1 p-3 md:p-8 max-w-7xl mx-auto w-full overflow-y-auto">
+        <main className={`flex-1 overflow-y-auto ${activeTab === 'editor' ? 'p-0 max-w-none' : 'p-3 md:p-8 max-w-7xl mx-auto w-full'}`}>
           <ErrorBoundary>
             {activeTab === 'dashboard' && (
               <Dashboard onSelectProject={setActiveProject} onNavigate={handleTabChange} />
@@ -291,6 +312,8 @@ export const App: React.FC = () => {
           )}
         </div>
       )}
+      {/* Customer Help Interactive FAQ Chatbot */}
+      <SupportChat />
     </div>
   );
 };

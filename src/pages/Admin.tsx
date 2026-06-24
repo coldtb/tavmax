@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { supabase, isSupabaseConfigured } from '../utils/supabaseClient';
-import { Users, CheckCircle2, Clock, Search, Shield, ShieldAlert, RefreshCw, Ban, User } from 'lucide-react';
+import { Users, CheckCircle2, Clock, Search, Shield, ShieldAlert, RefreshCw, Ban, User, CreditCard } from 'lucide-react';
 
 interface ProfileData {
   id: string; // phone or supabase uuid
@@ -117,6 +117,29 @@ export const Admin: React.FC = () => {
   
   const expiredUsers = totalUsers - activeUsers;
 
+  const totalRevenue = React.useMemo(() => {
+    let sum = 0;
+    profiles.forEach((p) => {
+      if (p.role === 'admin') return;
+      if (p.subscription !== 'factory' && p.subscription !== 'pro') return;
+
+      // Heuristic: check duration from updated_at and expires_at
+      if (p.expires_at && p.updated_at) {
+        const diffMs = new Date(p.expires_at).getTime() - new Date(p.updated_at).getTime();
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+        if (diffDays > 5) {
+          sum += 29900; // 30-day plan (29,900 MNT)
+        } else if (diffDays > 0) {
+          sum += 9900; // 24-hour plan (9,900 MNT)
+        }
+      } else if (p.expires_at) {
+        // Fallback: assume 30-day plan
+        sum += 29900;
+      }
+    });
+    return sum;
+  }, [profiles]);
+
   const getRemainingTimeText = (expiresAt?: string, subscription?: string) => {
     if (subscription !== 'factory' && subscription !== 'pro') return 'Эрхгүй';
     if (!expiresAt) return 'Хязгааргүй';
@@ -154,7 +177,7 @@ export const Admin: React.FC = () => {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-[#12141c] border border-white/5 p-5 rounded-2xl flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
             <Users size={22} />
@@ -182,6 +205,16 @@ export const Admin: React.FC = () => {
           <div>
             <span className="text-[10px] text-neutral-500 uppercase font-semibold">Үнэгүй / Дууссан</span>
             <h3 className="text-2xl font-bold text-red-400 mt-0.5">{expiredUsers}</h3>
+          </div>
+        </div>
+
+        <div className="bg-[#12141c] border border-white/5 p-5 rounded-2xl flex items-center gap-4 bg-gradient-to-br from-[#12141c] to-amber-500/[0.02]">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+            <CreditCard size={22} />
+          </div>
+          <div>
+            <span className="text-[10px] text-neutral-500 uppercase font-semibold">Нийт Олсон Орлого</span>
+            <h3 className="text-2xl font-bold text-amber-400 mt-0.5">{totalRevenue.toLocaleString()} ₮</h3>
           </div>
         </div>
       </div>
