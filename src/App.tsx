@@ -27,8 +27,8 @@ import {
   Users
 } from 'lucide-react';
 
-// Attach global log helper
-if (typeof window !== 'undefined') {
+// Attach global log helper (DEV only)
+if (import.meta.env.DEV && typeof window !== 'undefined') {
   (window as any).tavmaxLog = (msg: string) => {
     console.log(`[TavmaxDebug] ${msg}`);
     window.dispatchEvent(new CustomEvent('tavmax-log', { detail: `[${new Date().toLocaleTimeString()}] ${msg}` }));
@@ -262,33 +262,35 @@ export const App: React.FC = () => {
         </main>
       </div>
 
-      {/* Floating Debug Panel */}
-      <div className="hidden lg:flex fixed bottom-4 right-4 z-[999999] flex-col items-end gap-2">
-        <button
-          onClick={() => setShowDebug(!showDebug)}
-          className="px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-[10px] font-bold text-amber-500 hover:bg-neutral-800 transition-colors shadow-xl shadow-black/50 cursor-pointer"
-        >
-          {showDebug ? '✕ Debug Хаах' : '⚙️ Debug Нээх'}
-        </button>
-        
-        {showDebug && (
-          <div className="w-96 h-80 bg-[#0c0d12]/95 border border-white/10 rounded-xl p-4 flex flex-col gap-3 shadow-2xl font-mono text-[9px] text-neutral-300">
-            <div className="flex justify-between items-center border-b border-white/5 pb-2 text-white font-bold">
-              <span>Системийн Лог (Debug)</span>
-              <button onClick={() => setLogs([])} className="text-red-400 hover:text-red-300">Цэвэрлэх</button>
+      {/* Floating Debug Panel — DEV only */}
+      {import.meta.env.DEV && (
+        <div className="hidden lg:flex fixed bottom-4 right-4 z-[999999] flex-col items-end gap-2">
+          <button
+            onClick={() => setShowDebug(!showDebug)}
+            className="px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-[10px] font-bold text-amber-500 hover:bg-neutral-800 transition-colors shadow-xl shadow-black/50 cursor-pointer"
+          >
+            {showDebug ? '✕ Debug Хаах' : '⚙️ Debug Нээх'}
+          </button>
+          
+          {showDebug && (
+            <div className="w-96 h-80 bg-[#0c0d12]/95 border border-white/10 rounded-xl p-4 flex flex-col gap-3 shadow-2xl font-mono text-[9px] text-neutral-300">
+              <div className="flex justify-between items-center border-b border-white/5 pb-2 text-white font-bold">
+                <span>Системийн Лог (Debug)</span>
+                <button onClick={() => setLogs([])} className="text-red-400 hover:text-red-300">Цэвэрлэх</button>
+              </div>
+              <div className="flex-1 overflow-y-auto flex flex-col gap-1 pr-1" style={{ scrollbarWidth: 'thin' }}>
+                {logs.length === 0 ? (
+                  <span className="text-neutral-600">Одоогоор лог байхгүй байна.</span>
+                ) : (
+                  logs.map((log, idx) => (
+                    <div key={idx} className="whitespace-pre-wrap leading-tight break-all border-b border-white/2 pb-1 last:border-0">{log}</div>
+                  ))
+                )}
+              </div>
             </div>
-            <div className="flex-1 overflow-y-auto flex flex-col gap-1 pr-1" style={{ scrollbarWidth: 'thin' }}>
-              {logs.length === 0 ? (
-                <span className="text-neutral-600">Одоогоор лог байхгүй байна.</span>
-              ) : (
-                logs.map((log, idx) => (
-                  <div key={idx} className="whitespace-pre-wrap leading-tight break-all border-b border-white/2 pb-1 last:border-0">{log}</div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

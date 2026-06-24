@@ -76,7 +76,7 @@ function renderThumbnail(type: string, cfg: TemplateConfig): string {
   const hdfMat  = new THREE.MeshStandardMaterial({ color: '#e5e1da', roughness: 0.8 });
   const chromeMat = new THREE.MeshStandardMaterial({ color: '#e5e5e5', roughness: 0.05, metalness: 0.95 });
   const stoneMat  = new THREE.MeshStandardMaterial({ color: '#d1d1d6', roughness: 0.25, metalness: 0.05 });
-  const woodCtMat = new THREE.MeshStandardMaterial({ color: '#d99a4e', roughness: 0.5 });
+  const woodCtMat = new THREE.MeshStandardMaterial({ color: '#c07830', roughness: 0.45, metalness: 0.0 });
 
   const { width: W3, height, depth,
           doors = 0, drawers = 0, shelves = 0,

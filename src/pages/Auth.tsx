@@ -49,7 +49,7 @@ export const Auth: React.FC = () => {
       color: 'border-amber-500/30 bg-amber-500/5 ring-1 ring-amber-500/10',
       actionText: 'Идэвхжүүлэх (9,900 ₮)',
       highlight: true,
-      code: 'TAVMAX-24H-9900',
+      code: import.meta.env.VITE_CODE_24H || '',
     },
     {
       name: '1 сарын эрх',
@@ -63,7 +63,7 @@ export const Auth: React.FC = () => {
       ],
       color: 'border-blue-500/30 bg-blue-500/5',
       actionText: 'Идэвхжүүлэх (29,900 ₮)',
-      code: 'TAVMAX-30D-29900',
+      code: import.meta.env.VITE_CODE_30D || '',
     },
   ];
 

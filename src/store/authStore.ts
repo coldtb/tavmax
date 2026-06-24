@@ -33,13 +33,7 @@ interface AuthState {
   adminUpdateUserSubscription: (phone: string, duration: '24h' | '30d' | 'cancel') => Promise<boolean>;
 }
 
-// Obfuscated license code hashes (DJB2 hashes of 'TAVMAX-24H-9900', 'TAVMAX-30D-29900', 'TAVMAX-DEMO-CODE')
-const MOCK_CODE_HASHES: Record<string, 'pro' | 'factory'> = {
-  '66a6ea9c': 'factory', // TAVMAX-24H-9900
-  '71db1e7': 'factory',  // TAVMAX-30D-29900
-  '2acdcebc': 'factory'  // TAVMAX-DEMO-CODE
-};
-
+// DJB2 hash helper
 const hashString = (str: string): string => {
   let hash = 5381;
   for (let i = 0; i < str.length; i++) {
@@ -48,22 +42,41 @@ const hashString = (str: string): string => {
   return (hash >>> 0).toString(16);
 };
 
+// Build code hash map from env variables (never hardcoded in source)
+const buildCodeHashes = (): Record<string, 'pro' | 'factory'> => {
+  const map: Record<string, 'pro' | 'factory'> = {};
+  const c1 = import.meta.env.VITE_CODE_24H?.trim();
+  const c2 = import.meta.env.VITE_CODE_30D?.trim();
+  const c3 = import.meta.env.VITE_CODE_DEMO?.trim();
+  if (c1) map[hashString(c1.toUpperCase())] = 'factory';
+  if (c2) map[hashString(c2.toUpperCase())] = 'factory';
+  if (c3) map[hashString(c3.toUpperCase())] = 'factory';
+  return map;
+};
+const MOCK_CODE_HASHES = buildCodeHashes();
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       isLoggedIn: false, // Default false for security
       user: null,
       activationCodeUsed: null,
-      registeredUsers: [
-        {
-          name: 'Золбоо',
-          phone: '90860926',
-          passwordHash: '73326a1d', // DJB2 hash of "Zolboo12@"
-          role: 'admin',
-          subscription: 'factory',
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // default 30 days active
-        }
-      ],
+      registeredUsers: (() => {
+        const adminPhone = import.meta.env.VITE_ADMIN_PHONE?.trim();
+        const adminHash  = import.meta.env.VITE_ADMIN_HASH?.trim();
+        const adminName  = import.meta.env.VITE_ADMIN_NAME?.trim() || 'Admin';
+        if (!adminPhone || !adminHash) return [];
+        return [
+          {
+            name: adminName,
+            phone: adminPhone,
+            passwordHash: adminHash,
+            role: 'admin' as const,
+            subscription: 'factory' as const,
+            expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ];
+      })(),
 
       validateCode: (code: string) => {
         const hashed = hashString(code.trim().toUpperCase());

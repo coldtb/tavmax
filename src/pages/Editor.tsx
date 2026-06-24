@@ -5,7 +5,17 @@ import { exportProjectToPDF } from '../utils/pdfExport';
 import { runNestingOptimizer } from '../utils/nesting';
 import type { NestingPartInput } from '../utils/nesting';
 import { TemplateThumbnail } from '../components/TemplateThumbnail';
-import { Sparkles, Eye, Ruler, Grid, Layers, Move, Send, Plus, Trash2, Box, Copy, Magnet, Printer, X, FileText, HelpCircle, Info, ChevronLeft, ChevronRight, Columns, AlignLeft, Loader2, Home, ChevronDown } from 'lucide-react';
+import { Sparkles, Eye, Ruler, Grid, Layers, Move, Send, Plus, Trash2, Box, Copy, Magnet, Printer, X, FileText, HelpCircle, Info, ChevronLeft, ChevronRight, Columns, AlignLeft, Loader2, Home, ChevronDown, CheckCircle2 } from 'lucide-react';
+
+// ─── Inline Toast ─────────────────────────────────────────────────────────────
+function useEditorToast() {
+  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+  const show = (msg: string, type: 'success' | 'error' = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
+  return { toast, show };
+}
 
 const COLOR_PALETTE = [
   // Pastel / Warm
@@ -23,6 +33,7 @@ const COLOR_PALETTE = [
 ];
 
 export const Editor: React.FC = () => {
+  const { toast: editorToast, show: showEditorToast } = useEditorToast();
   const {
     activeProject,
     updateActiveConfig,
@@ -838,13 +849,13 @@ export const Editor: React.FC = () => {
 
   const handleSendEmailSimulate = () => {
     if (!emailToSend || !emailToSend.includes('@')) {
-      alert('Зөв цахим шуудангийн хаяг оруулна уу.');
+      showEditorToast('Зөв цахим шуудангийн хаяг оруулна уу.', 'error');
       return;
     }
     setEmailSending(true);
     setTimeout(() => {
       setEmailSending(false);
-      alert(`Сонгосон PDF тохиргоог ${emailToSend} хаяг руу амжилттай илгээлээ!`);
+      showEditorToast(`PDF тохиргоог ${emailToSend} хаяг руу амжилттай илгээлээ!`, 'success');
       setEmailToSend('');
     }, 2000);
   };
@@ -4931,6 +4942,18 @@ return (
           </div>
         );
       })()}
+
+      {/* Editor Toast Notification */}
+      {editorToast && (
+        <div className={`fixed top-6 right-6 z-[99999] flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border text-sm font-bold transition-all animate-slide-up ${
+          editorToast.type === 'success'
+            ? 'bg-emerald-950/90 border-emerald-500/30 text-emerald-300'
+            : 'bg-red-950/90 border-red-500/30 text-red-300'
+        }`}>
+          {editorToast.type === 'success' ? <CheckCircle2 size={16} className="shrink-0" /> : <X size={16} className="shrink-0" />}
+          {editorToast.msg}
+        </div>
+      )}
     </div>
   );
 };

@@ -1785,8 +1785,8 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
             const woodTex = rotate ? getWoodTextureRotated() : getWoodTexture();
             return new THREE.MeshStandardMaterial({
               map: woodTex,
-              color: new THREE.Color('#d97706'), // Warm wood brown tint
-              roughness: 0.35,
+              color: new THREE.Color('#c07830'), // Rich warm oak color
+              roughness: 0.45,
               metalness: 0.0,
               polygonOffset: true,
               polygonOffsetFactor: 1,
