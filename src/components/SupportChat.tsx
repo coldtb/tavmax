@@ -1,5 +1,7 @@
-import React, { useState } from "react";
-import { MessageCircle, X, ChevronLeft, HelpCircle, BookOpen, Wrench, Layers, CreditCard } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { MessageCircle, X, ChevronLeft, HelpCircle, BookOpen, Wrench, Layers, CreditCard, Send, User, Phone } from "lucide-react";
+import { useAuthStore } from "../store/authStore";
+import { useChatStore } from "../store/chatStore";
 
 interface FAQNode {
   title: string;
@@ -79,16 +81,32 @@ const FAQ_TREE: Record<string, FAQNode> = {
 };
 
 export const SupportChat: React.FC = () => {
+  const { isLoggedIn, user } = useAuthStore();
+  const { messages, fetchUserMessages, sendMessage } = useChatStore();
+
   const [isOpen, setIsOpen] = useState(false);
   const [currentPath, setCurrentPath] = useState<string[]>([]);
+  const [chatMode, setChatMode] = useState<'faq' | 'form' | 'chat'>('faq');
+  const [chatName, setChatName] = useState('');
+  const [chatPhone, setChatPhone] = useState('');
+  const [inputText, setInputText] = useState('');
+  const [formError, setFormError] = useState('');
+
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const pollingIntervalRef = useRef<number | null>(null);
 
   // Navigate back one step
   const handleBack = () => {
+    if (chatMode !== 'faq') {
+      setChatMode('faq');
+      return;
+    }
     setCurrentPath((prev) => prev.slice(0, -1));
   };
 
   // Reset to root
   const handleHome = () => {
+    setChatMode('faq');
     setCurrentPath([]);
   };
 
@@ -105,6 +123,104 @@ export const SupportChat: React.FC = () => {
 
   const currentNode = getCurrentNode();
 
+  // Initialize and handle polling for chat mode
+  useEffect(() => {
+    if (chatMode === 'chat' && chatPhone && isOpen) {
+      fetchUserMessages(chatPhone);
+
+      const interval = window.setInterval(() => {
+        fetchUserMessages(chatPhone);
+      }, 4000);
+      pollingIntervalRef.current = interval;
+
+      return () => {
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null;
+        }
+      };
+    }
+  }, [chatMode, chatPhone, isOpen, fetchUserMessages]);
+
+  // Scroll to bottom when messages update
+  useEffect(() => {
+    if (chatMode === 'chat' && messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, chatMode]);
+
+  // Set chat details when drawer opens
+  useEffect(() => {
+    if (isOpen) {
+      if (isLoggedIn && user) {
+        setChatName(user.name);
+        setChatPhone(user.phone);
+      } else {
+        const storedName = localStorage.getItem('tavmax_chat_name') || '';
+        const storedPhone = localStorage.getItem('tavmax_chat_phone') || '';
+        if (storedName && storedPhone) {
+          setChatName(storedName);
+          setChatPhone(storedPhone);
+        }
+      }
+    } else {
+      // Clear interval when closed
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    }
+  }, [isOpen, isLoggedIn, user]);
+
+  const handleStartChatClick = () => {
+    if (isLoggedIn && user) {
+      setChatName(user.name);
+      setChatPhone(user.phone);
+      setChatMode('chat');
+    } else {
+      const storedName = localStorage.getItem('tavmax_chat_name') || '';
+      const storedPhone = localStorage.getItem('tavmax_chat_phone') || '';
+      if (storedName && storedPhone) {
+        setChatName(storedName);
+        setChatPhone(storedPhone);
+        setChatMode('chat');
+      } else {
+        setChatMode('form');
+      }
+    }
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatName.trim()) {
+      setFormError('Нэрээ оруулна уу.');
+      return;
+    }
+    if (!chatPhone.trim() || chatPhone.trim().length < 8) {
+      setFormError('Утасны дугаараа зөв оруулна уу.');
+      return;
+    }
+    localStorage.setItem('tavmax_chat_name', chatName.trim());
+    localStorage.setItem('tavmax_chat_phone', chatPhone.trim());
+    setFormError('');
+    setChatMode('chat');
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputText.trim()) return;
+
+    const phone = chatPhone || (isLoggedIn && user ? user.phone : '');
+    const name = chatName || (isLoggedIn && user ? user.name : 'Зочин');
+
+    if (!phone) return;
+
+    const success = await sendMessage(phone, name, inputText.trim(), false);
+    if (success) {
+      setInputText('');
+    }
+  };
+
   return (
     <div className="fixed bottom-6 right-6 z-[99999] flex flex-col items-end select-none font-sans">
       {/* Expanded Chat Drawer */}
@@ -113,7 +229,7 @@ export const SupportChat: React.FC = () => {
           {/* Header */}
           <div className="px-4 py-3 bg-[#12141c] border-b border-white/5 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {currentPath.length > 0 && (
+              {(currentPath.length > 0 || chatMode !== 'faq') && (
                 <button
                   onClick={handleBack}
                   className="p-1 hover:bg-white/5 text-neutral-400 hover:text-white rounded-lg transition-colors cursor-pointer"
@@ -122,7 +238,9 @@ export const SupportChat: React.FC = () => {
                 </button>
               )}
               <div className="flex flex-col">
-                <span className="text-xs font-bold text-white">TavMax Туслах</span>
+                <span className="text-xs font-bold text-white">
+                  {chatMode === 'chat' ? 'Админтай холбогдох' : 'TavMax Туслах'}
+                </span>
                 <span className="text-[9px] text-emerald-400 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   Ашиглахад бэлэн
@@ -137,78 +255,210 @@ export const SupportChat: React.FC = () => {
             </button>
           </div>
 
-          {/* Chat Bubble Area */}
-          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4" style={{ scrollbarWidth: "thin" }}>
-            {/* Welcoming bot bubble */}
-            <div className="flex gap-2.5 items-start">
-              <div className="w-7 h-7 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0 font-bold text-[10px]">
-                TM
+          {/* Chat Form Mode */}
+          {chatMode === 'form' && (
+            <form onSubmit={handleFormSubmit} className="flex-1 flex flex-col justify-center p-6 gap-4">
+              <div className="text-center mb-2">
+                <h4 className="text-sm font-bold text-white mb-1">Админтай холбогдох</h4>
+                <p className="text-[10px] text-neutral-400">Та өөрийн нэр, утасны дугаарыг оруулан шууд чатлах боломжтой.</p>
               </div>
-              <div className="flex-1 flex flex-col gap-1.5">
-                <div className="bg-[#1c1d24] text-neutral-200 text-xs px-3 py-2.5 rounded-2xl rounded-tl-none border border-white/5 leading-normal whitespace-pre-wrap">
-                  Сайн байна уу! Танд систем ашиглах, тавилга зурах болон зүсэлтийн тооцоотой холбоотой ямар тусламж хэрэгтэй байна? Сэдвээ сонгоно уу.
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] text-neutral-400 font-semibold uppercase">Таны нэр</label>
+                <div className="relative">
+                  <User size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                  <input
+                    type="text"
+                    required
+                    placeholder="Нэрээ оруулна уу..."
+                    value={chatName}
+                    onChange={(e) => setChatName(e.target.value)}
+                    className="w-full bg-neutral-900/60 border border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs text-white outline-none focus:border-amber-500 transition-colors"
+                  />
                 </div>
               </div>
-            </div>
 
-            {/* Display history path if viewing a question */}
-            {currentPath.length > 1 && (
-              <div className="flex gap-2.5 items-start justify-end">
-                <div className="flex-1 flex flex-col items-end">
-                  <div className="bg-amber-500 text-neutral-950 font-bold text-xs px-3 py-2 rounded-2xl rounded-tr-none shadow shadow-amber-500/10">
-                    {currentNode.title}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] text-neutral-400 font-semibold uppercase">Утасны дугаар</label>
+                <div className="relative">
+                  <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                  <input
+                    type="text"
+                    required
+                    maxLength={8}
+                    placeholder="Утасны дугаар..."
+                    value={chatPhone}
+                    onChange={(e) => setChatPhone(e.target.value.replace(/\D/g, ''))}
+                    className="w-full bg-neutral-900/60 border border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs text-white outline-none focus:border-amber-500 transition-colors font-mono"
+                  />
+                </div>
+              </div>
+
+              {formError && <p className="text-[10px] text-red-400 text-center font-medium">{formError}</p>}
+
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-lg mt-2"
+              >
+                Чатлах
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setChatMode('faq')}
+                className="w-full py-2 bg-neutral-900 hover:bg-neutral-850 text-neutral-400 text-[10px] font-bold rounded-xl border border-white/5 transition-all cursor-pointer text-center"
+              >
+                ← Буцах
+              </button>
+            </form>
+          )}
+
+          {/* Chat Messages Mode */}
+          {chatMode === 'chat' && (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* Message History */}
+              <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3" style={{ scrollbarWidth: "thin" }}>
+                {messages.length === 0 ? (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
+                    <MessageCircle size={24} className="text-amber-500/30 mb-2" />
+                    <span className="text-[10px] text-neutral-500 leading-normal">
+                      Чат эхэллээ. Та асуух зүйлээ бичиж админаас тусламж авна уу.
+                    </span>
                   </div>
-                </div>
-              </div>
-            )}
+                ) : (
+                  messages.map((msg) => {
+                    const isMe = !msg.is_from_admin;
+                    const date = new Date(msg.created_at);
+                    const timeText = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-            {/* Show content (answer) if present */}
-            {currentNode.content && (
-              <div className="flex gap-2.5 items-start animate-fade-in">
+                    return (
+                      <div
+                        key={msg.id}
+                        className={`flex gap-2 items-start ${isMe ? 'justify-end' : 'justify-start'}`}
+                      >
+                        {!isMe && (
+                          <div className="w-6 h-6 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0 font-bold text-[9px]">
+                            TM
+                          </div>
+                        )}
+                        <div className={`flex flex-col max-w-[75%] gap-0.5 ${isMe ? 'items-end' : 'items-start'}`}>
+                          <div
+                            className={`px-3 py-2 rounded-2xl text-[11px] leading-normal whitespace-pre-wrap shadow-sm border ${
+                              isMe
+                                ? 'bg-amber-500 text-neutral-950 border-amber-400 font-medium rounded-tr-none'
+                                : 'bg-[#1c1d24] text-neutral-200 border-white/5 rounded-tl-none'
+                            }`}
+                          >
+                            {msg.message}
+                          </div>
+                          <span className="text-[8px] text-neutral-500 px-1 font-medium">{timeText}</span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Chat Input Bar */}
+              <form onSubmit={handleSendMessage} className="p-3 bg-[#12141c] border-t border-white/5 flex gap-2 items-center">
+                <input
+                  type="text"
+                  placeholder="Асуултаа бичнэ үү..."
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  className="flex-1 bg-neutral-900 border border-white/10 rounded-xl py-2 px-3.5 text-xs text-white outline-none focus:border-amber-500 transition-colors"
+                />
+                <button
+                  type="submit"
+                  className="p-2 bg-amber-500 hover:bg-amber-600 text-neutral-950 rounded-xl transition-all cursor-pointer"
+                >
+                  <Send size={14} />
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* FAQ Tree Mode */}
+          {chatMode === 'faq' && (
+            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4" style={{ scrollbarWidth: "thin" }}>
+              {/* Welcoming bot bubble */}
+              <div className="flex gap-2.5 items-start">
                 <div className="w-7 h-7 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0 font-bold text-[10px]">
                   TM
                 </div>
-                <div className="flex-1 flex flex-col gap-3">
-                  <div className="bg-[#1c1d24] text-neutral-200 text-[11px] px-3.5 py-3 rounded-2xl rounded-tl-none border border-white/5 leading-relaxed whitespace-pre-wrap">
-                    {currentNode.content
-                      .replace("{ADMIN_NAME}", import.meta.env.VITE_ADMIN_NAME || "Админ")
-                      .replace("{ADMIN_PHONE}", import.meta.env.VITE_ADMIN_PHONE || "99009900")
-                      .split("\n\n")
-                      .map((para, i) => {
-                        // Basic parsing for bold markdown **text**
-                        const parts = para.split("**");
-                        return (
-                          <p key={i} className="mb-2 last:mb-0">
-                            {parts.map((p, idx) => (idx % 2 === 1 ? <strong key={idx} className="text-white font-bold">{p}</strong> : p))}
-                          </p>
-                        );
-                      })}
-                  </div>
-                  {currentPath[0] === "contact-admin" && (
-                    <a
-                      href={`tel:${import.meta.env.VITE_ADMIN_PHONE || "99009900"}`}
-                      className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-neutral-950 text-xs font-bold rounded-xl transition-all cursor-pointer text-center block uppercase tracking-wider shadow"
-                    >
-                      📞 Шууд залгах ({import.meta.env.VITE_ADMIN_PHONE || "99009900"})
-                    </a>
-                  )}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleBack}
-                      className="flex-1 py-1.5 bg-neutral-800 hover:bg-neutral-750 text-neutral-350 text-[10px] font-bold rounded-lg border border-white/5 transition-all cursor-pointer text-center"
-                    >
-                      ← Буцах
-                    </button>
-                    <button
-                      onClick={handleHome}
-                      className="flex-1 py-1.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 text-[10px] font-bold rounded-lg transition-all cursor-pointer text-center"
-                    >
-                      🏠 Эхлэл
-                    </button>
+                <div className="flex-1 flex flex-col gap-1.5">
+                  <div className="bg-[#1c1d24] text-neutral-200 text-xs px-3 py-2.5 rounded-2xl rounded-tl-none border border-white/5 leading-normal whitespace-pre-wrap">
+                    Сайн байна уу! Танд систем ашиглах, тавилга зурах болон зүсэлтийн тооцоотой холбоотой ямар тусламж хэрэгтэй байна? Сэдвээ сонгоно уу.
                   </div>
                 </div>
               </div>
-            )}
+
+              {/* Display history path if viewing a question */}
+              {currentPath.length > 1 && (
+                <div className="flex gap-2.5 items-start justify-end">
+                  <div className="flex-1 flex flex-col items-end">
+                    <div className="bg-amber-500 text-neutral-950 font-bold text-xs px-3 py-2 rounded-2xl rounded-tr-none shadow shadow-amber-500/10">
+                      {currentNode.title}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Show content (answer) if present */}
+              {currentNode.content && (
+                <div className="flex gap-2.5 items-start animate-fade-in">
+                  <div className="w-7 h-7 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0 font-bold text-[10px]">
+                    TM
+                  </div>
+                  <div className="flex-1 flex flex-col gap-3">
+                    <div className="bg-[#1c1d24] text-neutral-200 text-[11px] px-3.5 py-3 rounded-2xl rounded-tl-none border border-white/5 leading-relaxed whitespace-pre-wrap">
+                      {currentNode.content
+                        .replace("{ADMIN_NAME}", import.meta.env.VITE_ADMIN_NAME || "Админ")
+                        .replace("{ADMIN_PHONE}", import.meta.env.VITE_ADMIN_PHONE || "99009900")
+                        .split("\n\n")
+                        .map((para, i) => {
+                          const parts = para.split("**");
+                          return (
+                            <p key={i} className="mb-2 last:mb-0">
+                              {parts.map((p, idx) => (idx % 2 === 1 ? <strong key={idx} className="text-white font-bold">{p}</strong> : p))}
+                            </p>
+                          );
+                        })}
+                    </div>
+                    {currentPath[0] === "contact-admin" && (
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={handleStartChatClick}
+                          className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 text-xs font-bold rounded-xl transition-all cursor-pointer text-center flex items-center justify-center gap-1.5 shadow"
+                        >
+                          💬 Админтай чатлах
+                        </button>
+                        <a
+                          href={`tel:${import.meta.env.VITE_ADMIN_PHONE || "99009900"}`}
+                          className="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-neutral-950 text-xs font-bold rounded-xl transition-all cursor-pointer text-center block uppercase tracking-wider shadow"
+                        >
+                          📞 Шууд залгах ({import.meta.env.VITE_ADMIN_PHONE || "99009900"})
+                        </a>
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleBack}
+                        className="flex-1 py-1.5 bg-neutral-800 hover:bg-neutral-750 text-neutral-350 text-[10px] font-bold rounded-lg border border-white/5 transition-all cursor-pointer text-center"
+                      >
+                        ← Буцах
+                      </button>
+                      <button
+                        onClick={handleHome}
+                        className="flex-1 py-1.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 text-[10px] font-bold rounded-lg transition-all cursor-pointer text-center"
+                      >
+                        🏠 Эхлэл
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
             {/* Render options/children if present */}
             {currentNode.children && (
@@ -226,8 +476,9 @@ export const SupportChat: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
+    )}
 
       {/* Floating Trigger Bubble Button */}
       <button
