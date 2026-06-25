@@ -75,8 +75,8 @@ const FAQ_TREE: Record<string, FAQNode> = {
     }
   },
   "contact-admin": {
-    title: "📞 Админтай холбогдох",
-    content: "TavMax платформын админ ажилтантай холбогдох мэдээлэл:\n\n* **Хариуцах ажилтан**: {ADMIN_NAME}\n* **Холбоо барих утас**: {ADMIN_PHONE}\n\nТа дараах утсаар холбогдон эрхээ сунгуулах, төлбөр баталгаажуулах болон техникийн бусад асуудлаар тусламж авах боломжтой."
+    title: "💬 Админтай холбогдох",
+    content: "Та систем ашиглах, эрх сунгалт, төлбөр баталгаажуулах болон техникийн асуудлаар манай админтай шууд чатлаж тусламж авах боломжтой."
   }
 };
 
@@ -434,12 +434,6 @@ export const SupportChat: React.FC = () => {
                         >
                           💬 Админтай чатлах
                         </button>
-                        <a
-                          href={`tel:${import.meta.env.VITE_ADMIN_PHONE || "99009900"}`}
-                          className="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-neutral-950 text-xs font-bold rounded-xl transition-all cursor-pointer text-center block uppercase tracking-wider shadow"
-                        >
-                          📞 Шууд залгах ({import.meta.env.VITE_ADMIN_PHONE || "99009900"})
-                        </a>
                       </div>
                     )}
                     <div className="flex gap-2">
