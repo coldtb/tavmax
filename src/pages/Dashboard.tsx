@@ -112,18 +112,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigat
     <div className="flex flex-col gap-10 pb-16 max-w-6xl mx-auto animate-fade-in text-neutral-200">
       
       {/* 1. HERO SECTION */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-[#1c1d24]/80 via-[#12141c]/90 to-[#0c0d12]/95 p-8 md:p-12 shadow-2xl glass flex flex-col md:flex-row items-center justify-between gap-8">
+      <div className="relative overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-[#1c1d24]/80 via-[#12141c]/90 to-[#0c0d12]/95 p-8 md:p-12 shadow-2xl glass flex flex-col items-start gap-6">
         <div className="absolute -top-24 -left-24 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-amber-600/5 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex-1 flex flex-col items-start gap-4 text-left z-10">
+        <div className="flex flex-col items-start gap-4 text-left z-10">
           <span className="px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold uppercase tracking-wider">
             🛋️ Өөрийн орон зайгаа тохижуул
           </span>
           <h1 className="font-display font-black text-3xl md:text-4xl text-white leading-tight">
             Өөрийн хүссэн тавилгаа бүтээ
           </h1>
-          <p className="text-neutral-400 text-sm md:text-base max-w-lg leading-relaxed">
+          <p className="text-neutral-400 text-sm md:text-base max-w-2xl leading-relaxed">
             Хэмжээгээ оруулж, загвараа сонгон, 3D дүрслэлээ шууд хараарай. Хэдхэн минутын дотор өөрийн санааг бодит болгож, үнийг нь мэдэх боломжтой.
           </p>
           <div className="flex flex-wrap gap-3 mt-2">
@@ -140,28 +140,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigat
             >
               📹 Видео заавар үзэх
             </button>
-          </div>
-        </div>
-        
-        {/* Decorative simulated visualizer pane */}
-        <div className="w-full md:w-[320px] lg:w-[360px] aspect-[4/3] rounded-2xl border border-white/10 bg-gradient-to-tr from-amber-500/10 to-transparent p-4 flex flex-col justify-between relative overflow-hidden group shrink-0 shadow-lg">
-          <div className="absolute inset-0 bg-grid-white/[0.02] pointer-events-none" />
-          <div className="flex justify-between items-start">
-            <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest">3D Real-time Visualizer</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          </div>
-          
-          <div className="my-auto flex flex-col items-center justify-center gap-2 z-10 text-center">
-            <div className="w-14 h-14 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 text-xl font-bold animate-bounce-slow">
-              📐
-            </div>
-            <span className="text-xs text-white font-black">IKEA загварын хялбар төлөвлөгч</span>
-            <span className="text-[10px] text-neutral-400 max-w-[200px]">Материал, хэмжээ, загварыг нэг дор өөрчилж харна</span>
-          </div>
-
-          <div className="flex justify-between items-center text-[10px] text-neutral-500">
-            <span>Энгийн & Хурдан</span>
-            <span>Tavmax Design</span>
           </div>
         </div>
       </div>
