@@ -1929,22 +1929,6 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
         if (mod.rotation) moduleGroup.rotation.y = mod.rotation;
         furnitureGroup.add(moduleGroup);
 
-        // Contact shadow plane for base cabinets (sits near the floor)
-        if (mod.yOffset < 200) {
-          const shadowGeo = new THREE.PlaneGeometry(width + 80, depth + 80);
-          const shadowMat = new THREE.MeshBasicMaterial({
-            map: getContactShadowTexture(),
-            transparent: true,
-            opacity: 0.8,
-            depthWrite: false
-          });
-          const shadowPlane = new THREE.Mesh(shadowGeo, shadowMat);
-          shadowPlane.rotation.x = -Math.PI / 2;
-          shadowPlane.position.set(0, -mod.yOffset + 1.5, 0);
-          moduleGroup.add(shadowPlane);
-        }
-
-
         const config = mod.config;
         const width = Number(config.width) || 0;
         const height = Number(config.height) || 0;
@@ -1959,6 +1943,21 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
         const halfD = depth / 2;
         const legHeight = hasLegs ? 100 : 0;
         const bodyHeight = height - legHeight;
+
+        // Contact shadow plane for base cabinets (sits near the floor)
+        if (mod.yOffset < 200) {
+          const shadowGeo = new THREE.PlaneGeometry(width + 80, depth + 80);
+          const shadowMat = new THREE.MeshBasicMaterial({
+            map: getContactShadowTexture(),
+            transparent: true,
+            opacity: 0.8,
+            depthWrite: false
+          });
+          const shadowPlane = new THREE.Mesh(shadowGeo, shadowMat);
+          shadowPlane.rotation.x = -Math.PI / 2;
+          shadowPlane.position.set(0, -mod.yOffset + 1.5, 0);
+          moduleGroup.add(shadowPlane);
+        }
 
         // Material caching helper
         const primaryMatInfo = materials.find((m) => m.id === materialId) || materials[0];
