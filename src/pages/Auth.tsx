@@ -618,7 +618,7 @@ export const Auth: React.FC = () => {
                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={16} />
                 <input
                   type="tel"
-                  placeholder="Бүртгэлтэй утас (90860926)"
+                  placeholder="Бүртгэлтэй утасны дугаар"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-neutral-900/60 border border-white/10 rounded-xl focus:border-amber-500 outline-none text-white text-xs"

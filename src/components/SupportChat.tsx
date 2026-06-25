@@ -171,8 +171,8 @@ export const SupportChat: React.FC = () => {
                 <div className="flex-1 flex flex-col gap-3">
                   <div className="bg-[#1c1d24] text-neutral-200 text-[11px] px-3.5 py-3 rounded-2xl rounded-tl-none border border-white/5 leading-relaxed whitespace-pre-wrap">
                     {currentNode.content
-                      .replace("{ADMIN_NAME}", import.meta.env.VITE_ADMIN_NAME || "Золбоо")
-                      .replace("{ADMIN_PHONE}", import.meta.env.VITE_ADMIN_PHONE || "90860926")
+                      .replace("{ADMIN_NAME}", import.meta.env.VITE_ADMIN_NAME || "Админ")
+                      .replace("{ADMIN_PHONE}", import.meta.env.VITE_ADMIN_PHONE || "99009900")
                       .split("\n\n")
                       .map((para, i) => {
                         // Basic parsing for bold markdown **text**
@@ -186,10 +186,10 @@ export const SupportChat: React.FC = () => {
                   </div>
                   {currentPath[0] === "contact-admin" && (
                     <a
-                      href={`tel:${import.meta.env.VITE_ADMIN_PHONE || "90860926"}`}
+                      href={`tel:${import.meta.env.VITE_ADMIN_PHONE || "99009900"}`}
                       className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-neutral-950 text-xs font-bold rounded-xl transition-all cursor-pointer text-center block uppercase tracking-wider shadow"
                     >
-                      📞 Шууд залгах ({import.meta.env.VITE_ADMIN_PHONE || "90860926"})
+                      📞 Шууд залгах ({import.meta.env.VITE_ADMIN_PHONE || "99009900"})
                     </a>
                   )}
                   <div className="flex gap-2">
