@@ -1504,29 +1504,33 @@ const rebuildPartsFromModules = (modules: CabinetModule[]): Part[] => {
 const ensureProjectModules = (project: Project): Project => {
   if (!project) return project;
   try {
-    if (project.config) {
-      if (project.config.materialId === 'mat-ct-stone' || project.config.materialId === 'mat-ct-wood') {
-        project.config.materialId = 'mat-3';
+    let updatedProjectConfig = project.config ? { ...project.config } : undefined;
+    if (updatedProjectConfig) {
+      if (updatedProjectConfig.materialId === 'mat-ct-stone' || updatedProjectConfig.materialId === 'mat-ct-wood') {
+        updatedProjectConfig.materialId = 'mat-3';
       }
-      if (project.config.doorMaterialId === 'mat-ct-stone' || project.config.doorMaterialId === 'mat-ct-wood') {
-        project.config.doorMaterialId = 'mat-3';
+      if (updatedProjectConfig.doorMaterialId === 'mat-ct-stone' || updatedProjectConfig.doorMaterialId === 'mat-ct-wood') {
+        updatedProjectConfig.doorMaterialId = 'mat-3';
       }
     }
+
     if (project.modules && project.modules.length > 0) {
       const populatedModules = project.modules.map((mod) => {
         if (!mod) return mod;
-        if (mod.config) {
-          if (mod.config.materialId === 'mat-ct-stone' || mod.config.materialId === 'mat-ct-wood') {
-            mod.config.materialId = 'mat-3';
+        let updatedModConfig = mod.config ? { ...mod.config } : undefined;
+        if (updatedModConfig) {
+          if (updatedModConfig.materialId === 'mat-ct-stone' || updatedModConfig.materialId === 'mat-ct-wood') {
+            updatedModConfig.materialId = 'mat-3';
           }
-          if (mod.config.doorMaterialId === 'mat-ct-stone' || mod.config.doorMaterialId === 'mat-ct-wood') {
-            mod.config.doorMaterialId = 'mat-3';
+          if (updatedModConfig.doorMaterialId === 'mat-ct-stone' || updatedModConfig.doorMaterialId === 'mat-ct-wood') {
+            updatedModConfig.doorMaterialId = 'mat-3';
           }
         }
-        const freshCarcassParts = calculateDynamicParts(mod.type, mod.config) || [];
+        const freshCarcassParts = calculateDynamicParts(mod.type, updatedModConfig || mod.config) || [];
         if (!mod.parts || mod.parts.length === 0) {
           return {
             ...mod,
+            config: updatedModConfig || mod.config,
             parts: freshCarcassParts
           };
         }
@@ -1551,10 +1555,15 @@ const ensureProjectModules = (project: Project): Project => {
           });
         return {
           ...mod,
+          config: updatedModConfig || mod.config,
           parts: updatedParts
         };
       });
-      const populated = { ...project, modules: populatedModules };
+      const populated = { 
+        ...project, 
+        config: updatedProjectConfig || project.config, 
+        modules: populatedModules 
+      };
       populated.parts = rebuildPartsFromModules(populatedModules);
       return populated;
     }
@@ -1564,13 +1573,17 @@ const ensureProjectModules = (project: Project): Project => {
       id: `mod-${project.id}-1`,
       name: project.name,
       type: project.furnitureType,
-      config: project.config,
-      parts: calculateDynamicParts(project.furnitureType, project.config) || [],
+      config: updatedProjectConfig || project.config,
+      parts: calculateDynamicParts(project.furnitureType, updatedProjectConfig || project.config) || [],
       xOffset: 0,
       yOffset: 0,
       zOffset: 0
     };
-    const migratedProject = { ...project, modules: [defaultModule] };
+    const migratedProject = { 
+      ...project, 
+      config: updatedProjectConfig || project.config, 
+      modules: [defaultModule] 
+    };
     migratedProject.parts = rebuildPartsFromModules(migratedProject.modules);
     return migratedProject;
   } catch (err) {
@@ -2612,7 +2625,7 @@ export const useProjectStore = create<ProjectState>()(
         .eq('user_id', user.id);
 
       if (!projError && cloudProjects) {
-        const mappedProjects: Project[] = cloudProjects.map((cp: any) => ({
+        const mappedProjects: Project[] = cloudProjects.map((cp: any) => ensureProjectModules({
           id: cp.id,
           name: cp.name,
           furnitureType: cp.furniture_type as any,
