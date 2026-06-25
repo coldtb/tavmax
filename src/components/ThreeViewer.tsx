@@ -799,6 +799,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.1;
+      renderer.domElement.style.touchAction = 'none'; // Prevent default touch actions (scrolling, zooming) on mobile
       containerRef.current.appendChild(renderer.domElement);
       rendererRef.current = renderer;
 
@@ -1575,6 +1576,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
       renderer.domElement.addEventListener('pointerdown', onPointerDown);
       renderer.domElement.addEventListener('pointermove', onPointerMove);
       renderer.domElement.addEventListener('pointerup', onPointerUp);
+      renderer.domElement.addEventListener('pointercancel', onPointerUp); // Handle mobile touch cancel safely
       renderer.domElement.addEventListener('pointerleave', onPointerUp);
       renderer.domElement.addEventListener('contextmenu', onContextMenu);
       renderer.domElement.addEventListener('dblclick', onDoubleClick);
@@ -1609,32 +1611,35 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
       // Animation Loop
       const animate = () => {
         animId = requestAnimationFrame(animate);
-        
-        // Interpolate animation factors for smooth transitions
-        animState.current.explodeFactor += ( (explodeRef.current ? 1 : 0) - animState.current.explodeFactor ) * 0.1;
-        animState.current.doorOpenFactor += ( (openDoorsRef.current ? 1 : 0) - animState.current.doorOpenFactor ) * 0.08;
+        try {
+          // Interpolate animation factors for smooth transitions
+          animState.current.explodeFactor += ( (explodeRef.current ? 1 : 0) - animState.current.explodeFactor ) * 0.1;
+          animState.current.doorOpenFactor += ( (openDoorsRef.current ? 1 : 0) - animState.current.doorOpenFactor ) * 0.08;
 
-        // Update interactive transformations inside groups
-        updatePiecePositions();
+          // Update interactive transformations inside groups
+          updatePiecePositions();
 
-        const labelsContainer = document.getElementById('dimensions-labels-container') as HTMLDivElement | null;
-        if (labelsContainer) {
-          updateDimensionLabelsRef.current(labelsContainer);
-        }
+          const labelsContainer = document.getElementById('dimensions-labels-container') as HTMLDivElement | null;
+          if (labelsContainer) {
+            updateDimensionLabelsRef.current(labelsContainer);
+          }
 
-        if (controlsRef.current) controlsRef.current.update();
-        if (rendererRef.current && sceneRef.current && cameraRef.current) {
-          rendererRef.current.render(sceneRef.current, cameraRef.current);
-          const now = Date.now();
-          if (now - lastScreenshotTime > 1500) {
-            lastScreenshotTime = now;
-            try {
-              const dataUrl = rendererRef.current.domElement.toDataURL('image/png');
-              sessionStorage.setItem('tavmax-three-screenshot', dataUrl);
-            } catch (e) {
-              console.error('Error saving 3D screenshot', e);
+          if (controlsRef.current) controlsRef.current.update();
+          if (rendererRef.current && sceneRef.current && cameraRef.current) {
+            rendererRef.current.render(sceneRef.current, cameraRef.current);
+            const now = Date.now();
+            if (now - lastScreenshotTime > 1500) {
+              lastScreenshotTime = now;
+              try {
+                const dataUrl = rendererRef.current.domElement.toDataURL('image/png');
+                sessionStorage.setItem('tavmax-three-screenshot', dataUrl);
+              } catch (e) {
+                console.error('Error saving 3D screenshot', e);
+              }
             }
           }
+        } catch (loopErr) {
+          console.error("Error in animation frame:", loopErr);
         }
       };
       animate();
@@ -1646,6 +1651,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
           renderer.domElement.removeEventListener('pointerdown', onPointerDown);
           renderer.domElement.removeEventListener('pointermove', onPointerMove);
           renderer.domElement.removeEventListener('pointerup', onPointerUp);
+          renderer.domElement.removeEventListener('pointercancel', onPointerUp);
           renderer.domElement.removeEventListener('pointerleave', onPointerUp);
           renderer.domElement.removeEventListener('contextmenu', onContextMenu);
           renderer.domElement.removeEventListener('dblclick', onDoubleClick);
