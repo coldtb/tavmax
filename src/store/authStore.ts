@@ -201,9 +201,9 @@ export const useAuthStore = create<AuthState>()(
               let subscription = profile?.subscription || metadata.subscription || 'free';
               let expiresAt = profile?.expires_at || metadata.expiresAt;
 
-              // Auto-grant 1 hour free trial for new free accounts
+              // Auto-grant 10 minutes free trial for new free accounts
               if (subscription === 'free' && !expiresAt) {
-                const trialExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString();
+                const trialExpiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
                 
                 const { error: updateError } = await supabase
                   .from('profiles')
@@ -227,7 +227,7 @@ export const useAuthStore = create<AuthState>()(
                     }
                   });
                 } else {
-                  console.error('Failed to auto-activate 1h trial:', updateError.message);
+                  console.error('Failed to auto-activate 10m trial:', updateError.message);
                 }
               }
 
@@ -268,9 +268,9 @@ export const useAuthStore = create<AuthState>()(
               let subscription = user.subscription;
               let expiresAt = user.expiresAt;
 
-              // Auto-grant 1 hour trial in offline mode too
+              // Auto-grant 10 minutes trial in offline mode too
               if (subscription === 'free' && !expiresAt) {
-                const trialExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString();
+                const trialExpiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
                 subscription = 'factory';
                 role = 'factory';
                 expiresAt = trialExpiresAt;

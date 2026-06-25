@@ -27,7 +27,8 @@ import {
   Moon,
   Users,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Sparkles
 } from 'lucide-react';
 
 // Attach global log helper (DEV only)
@@ -77,6 +78,7 @@ export const App: React.FC = () => {
   });
 
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
+  const [showTrialWelcome, setShowTrialWelcome] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('tavmax_sidebar_collapsed', String(sidebarCollapsed));
@@ -106,6 +108,21 @@ export const App: React.FC = () => {
       syncWithCloud().catch(console.error);
     }
   }, [isLoggedIn, syncWithCloud]);
+
+  // Check trial welcome popup
+  useEffect(() => {
+    if (isLoggedIn && user?.expiresAt) {
+      const expiresAt = new Date(user.expiresAt).getTime();
+      const diff = expiresAt - Date.now();
+      const isTrial = diff > 0 && diff <= 10 * 60 * 1000 + 30000; // 10 minutes (plus 30s buffer)
+      
+      if (isTrial && sessionStorage.getItem('tavmax_trial_welcome_shown') !== 'true') {
+        setShowTrialWelcome(true);
+      }
+    } else {
+      setShowTrialWelcome(false);
+    }
+  }, [isLoggedIn, user?.expiresAt]);
 
   // Subcription timer updater
   useEffect(() => {
@@ -362,6 +379,33 @@ export const App: React.FC = () => {
       )}
       {/* Customer Help Interactive FAQ Chatbot */}
       <SupportChat />
+
+      {/* Trial Welcome Alert Modal */}
+      {showTrialWelcome && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="w-full max-w-md bg-[#12141c] border border-amber-500/30 rounded-3xl p-6 flex flex-col gap-5 shadow-2xl glass-dark">
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-500">
+                <Sparkles size={24} className="animate-pulse" />
+              </div>
+              <h3 className="font-display font-bold text-white text-base">Туршилтын эрх идэвхжлээ</h3>
+              <p className="text-neutral-300 text-xs leading-relaxed mt-1.5">
+                Танд <b>10 минутын</b> туршилтын эрх олгогдлоо. Та манай вэбсайтыг ашиглаж үзээд таалагдаж байвал эрхээ сунган 24 цаг, 1 сараас сонголтоо хийгээд цааш үргэлжлүүлэх боломжтой.
+              </p>
+            </div>
+            
+            <button
+              onClick={() => {
+                setShowTrialWelcome(false);
+                sessionStorage.setItem('tavmax_trial_welcome_shown', 'true');
+              }}
+              className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl active:scale-[0.98] transition-all text-xs cursor-pointer text-center"
+            >
+              Ашиглаж эхлэх
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
