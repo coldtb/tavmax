@@ -5,6 +5,7 @@ const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
 
 // Verify that keys are not placeholders or empty
 export const isSupabaseConfigured = 
+  !(typeof window !== 'undefined' && (window as any).__MOCK_AUTH__) &&
   !!supabaseUrl && 
   !!supabaseAnonKey && 
   !supabaseUrl.includes('your-') && 
