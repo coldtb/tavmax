@@ -112,18 +112,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigat
     <div className="flex flex-col gap-10 pb-16 max-w-6xl mx-auto animate-fade-in text-neutral-200">
       
       {/* 1. HERO SECTION */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-[#1c1d24]/80 via-[#12141c]/90 to-[#0c0d12]/95 p-8 md:p-12 shadow-2xl glass flex flex-col items-start gap-6">
+      <div className="relative overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-[#1c1d24]/80 via-[#12141c]/90 to-[#0c0d12]/95 p-8 md:p-10 shadow-2xl glass flex flex-col md:flex-row items-center justify-between gap-8">
         <div className="absolute -top-24 -left-24 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-amber-600/5 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex flex-col items-start gap-4 text-left z-10">
+        <div className="flex-1 flex flex-col items-start gap-4 text-left z-10">
           <span className="px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold uppercase tracking-wider">
             🛋️ Өөрийн орон зайгаа тохижуул
           </span>
           <h1 className="font-display font-black text-3xl md:text-4xl text-white leading-tight">
             Өөрийн хүссэн тавилгаа бүтээ
           </h1>
-          <p className="text-neutral-400 text-sm md:text-base max-w-2xl leading-relaxed">
+          <p className="text-neutral-400 text-sm leading-relaxed max-w-xl">
             Хэмжээгээ оруулж, загвараа сонгон, 3D дүрслэлээ шууд хараарай. Хэдхэн минутын дотор өөрийн санааг бодит болгож, үнийг нь мэдэх боломжтой.
           </p>
           <div className="flex flex-wrap gap-3 mt-2">
@@ -140,6 +140,59 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigat
             >
               📹 Видео заавар үзэх
             </button>
+          </div>
+        </div>
+        
+        {/* Getting Started Guide Pane */}
+        <div className="w-full md:w-[360px] lg:w-[400px] rounded-2xl border border-white/10 bg-white/[0.02] p-6 flex flex-col gap-4 relative overflow-hidden group shrink-0 shadow-lg backdrop-blur-md z-10">
+          <div className="absolute inset-0 bg-grid-white/[0.01] pointer-events-none" />
+          <div className="flex justify-between items-center border-b border-white/5 pb-2">
+            <span className="text-[10px] text-amber-500 font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+              💡 Хурдан эхлэх заавар зөвлөгөө
+            </span>
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+          </div>
+          
+          <div className="flex flex-col gap-3.5 text-left">
+            <div className="flex gap-3">
+              <div className="w-6 h-6 rounded-lg bg-neutral-800 border border-white/5 flex items-center justify-center text-[10px] font-bold text-amber-400 shrink-0">
+                1
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs font-bold text-white leading-tight">3D Засварлагч руу орох</span>
+                <span className="text-[10px] text-neutral-400 leading-normal">"3D Засварлагч" цэс рүү орж тавилгынхаа өндөр, өргөн, гүний хэмжээг оруулна.</span>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="w-6 h-6 rounded-lg bg-neutral-800 border border-white/5 flex items-center justify-center text-[10px] font-bold text-amber-400 shrink-0">
+                2
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs font-bold text-white leading-tight">Материал, загвар сонгох</span>
+                <span className="text-[10px] text-neutral-400 leading-normal">Их бие болон хаалганы материалыг өөрийн хүссэн өнгөөр солино.</span>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="w-6 h-6 rounded-lg bg-neutral-800 border border-white/5 flex items-center justify-center text-[10px] font-bold text-amber-400 shrink-0">
+                3
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs font-bold text-white leading-tight">Зүсэлт оновчлол хийх</span>
+                <span className="text-[10px] text-neutral-400 leading-normal">"Зүсэлт оновчлол" цэс рүү орж хавтангийн зүсэлт болон бэлдэц хэмжээг гаргуулж авна.</span>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="w-6 h-6 rounded-lg bg-neutral-800 border border-white/5 flex items-center justify-center text-[10px] font-bold text-amber-400 shrink-0">
+                4
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs font-bold text-white leading-tight">Эрхээ сунгаж файлаа татах</span>
+                <span className="text-[10px] text-neutral-400 leading-normal">10 минутын туршилт дуусахад 24 цаг эсвэл 1 сараас сонгон сунгаж CNC DXF/PDF файлаа татаж авна.</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
