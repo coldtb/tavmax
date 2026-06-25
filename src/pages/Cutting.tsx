@@ -3,7 +3,7 @@ import { useProjectStore } from '../store/projectStore';
 import { runNestingOptimizer } from '../utils/nesting';
 import type { NestingPartInput } from '../utils/nesting';
 import { CuttingCanvas } from '../components/CuttingCanvas';
-import { Play, Settings, Ruler, Info, Layers, Plus, Trash2, Download, Printer, RefreshCw } from 'lucide-react';
+import { Play, Settings, Ruler, Info, Layers, Plus, Trash2, Download, Printer, RefreshCw, AlertTriangle } from 'lucide-react';
 import { exportProjectToPDF } from '../utils/pdfExport';
 import { generatePartsDXF } from '../utils/dxfExport';
 import { DEFAULT_MATERIALS } from '../data/mockData';
@@ -261,6 +261,31 @@ export const Cutting: React.FC = () => {
 
     return allSheets;
   }, [activeProject, sheetDimensions, kerf, margin, allowRotation]);
+
+  // Find any parts that failed to place on any sheet
+  const unplacedParts = useMemo(() => {
+    if (!activeProject || !activeProject.parts || nestedSheets.length === 0) return [];
+    
+    // Count how many parts of each ID were successfully placed
+    const placedCounts: { [id: string]: number } = {};
+    nestedSheets.forEach((sheet) => {
+      sheet.parts.forEach((p: any) => {
+        const lastHyphenIdx = p.id.lastIndexOf('-');
+        const originalId = lastHyphenIdx !== -1 ? p.id.substring(0, lastHyphenIdx) : p.id;
+        placedCounts[originalId] = (placedCounts[originalId] || 0) + 1;
+      });
+    });
+
+    return activeProject.parts
+      .filter((p) => {
+        const placedQty = placedCounts[p.id] || 0;
+        return placedQty < p.quantity;
+      })
+      .map((p) => ({
+        ...p,
+        missingQuantity: p.quantity - (placedCounts[p.id] || 0)
+      }));
+  }, [activeProject, nestedSheets]);
 
   // Calculations for total price matching raw cost
   const calculations = useMemo(() => {
@@ -585,6 +610,25 @@ export const Cutting: React.FC = () => {
 
         {/* Nesting Results Viewports (Col 8) */}
         <div className="lg:col-span-8 flex flex-col gap-6">
+          {unplacedParts.length > 0 && (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-5 rounded-2xl flex flex-col gap-3">
+              <div className="font-bold flex items-center gap-2 text-sm">
+                <AlertTriangle size={16} className="text-red-400 shrink-0" />
+                Дараах бэлдэцүүд хуудасны хэмжээнээс хэтэрсэн тул зүсэлтэнд багтсангүй:
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-neutral-300">
+                {unplacedParts.map((p) => (
+                  <div key={p.id} className="flex justify-between items-center bg-white/[0.02] border border-white/5 px-3 py-1.5 rounded-lg">
+                    <span className="font-medium truncate max-w-[150px]" title={p.name}>{p.name}</span>
+                    <span className="font-mono text-neutral-400">{p.width}x{p.height}мм ({p.missingQuantity}ш)</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] text-neutral-500 leading-normal">
+                * Дээрх бэлдэцүүдийг багтаахын тулд зүүн талын тохиргооноос илүү том стандарт хавтангийн хэмжээ сонгох эсвэл хавтанг эргүүлэхийг зөвшөөрнө үү.
+              </p>
+            </div>
+          )}
           {/* General nesting summaries banner */}
           <div className="grid grid-cols-3 gap-4 bg-[#12141c] border border-white/5 p-4 rounded-xl">
             <div className="text-center border-r border-white/5">

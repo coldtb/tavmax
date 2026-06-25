@@ -277,11 +277,9 @@ export const runNestingOptimizer = (
       }
     }
 
-    // If still not placed, open a new sheet and place it there
+    // If still not placed, try to fit it on a new sheet
     if (!placed) {
       const newSheet = createNewSheet(sheets.length + 1);
-      sheets.push(newSheet);
-
       const freeRect = newSheet.freeRects[0];
       const normalScore = scorePlacement(freeRect, part.w + kerf, part.h + kerf);
       let fitRotated = false;
@@ -316,27 +314,30 @@ export const runNestingOptimizer = (
 
         const placedRect = { x: freeRect.x, y: freeRect.y, w: pw + kerf, h: ph + kerf };
         updateFreeRects(newSheet, placedRect);
+        sheets.push(newSheet); // Only add to sheets if the part successfully fits!
       } else {
         console.error(`Part ${part.name} (${part.w}x${part.h}) is too large for sheet size ${sheetWidth}x${sheetHeight}`);
       }
     }
   });
 
-  // Calculate efficiency metrics for each sheet and convert to NestedSheet[]
-  return sheets.map((s) => {
-    let usedArea = 0;
-    s.parts.forEach((p) => {
-      usedArea += p.width * p.height;
+  // Calculate efficiency metrics, filter out empty sheets (safeguard), and convert to NestedSheet[]
+  return sheets
+    .filter((s) => s.parts.length > 0)
+    .map((s, idx) => {
+      let usedArea = 0;
+      s.parts.forEach((p) => {
+        usedArea += p.width * p.height;
+      });
+      const totalArea = s.width * s.height;
+      return {
+        sheetId: idx + 1, // Sequentially index sheet IDs
+        width: s.width,
+        height: s.height,
+        parts: s.parts,
+        usedArea,
+        wasteArea: totalArea - usedArea,
+        efficiency: parseFloat(((usedArea / totalArea) * 100).toFixed(1)),
+      };
     });
-    const totalArea = s.width * s.height;
-    return {
-      sheetId: s.sheetId,
-      width: s.width,
-      height: s.height,
-      parts: s.parts,
-      usedArea,
-      wasteArea: totalArea - usedArea,
-      efficiency: parseFloat(((usedArea / totalArea) * 100).toFixed(1)),
-    };
-  });
 };

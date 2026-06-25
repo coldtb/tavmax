@@ -185,8 +185,14 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
   const shelves = Number(config.shelves) || 0;
   const drawers = Number(config.drawers) || 0;
   const doors = Number(config.doors) || 0;
-  const { materialId } = config;
+  let materialId = config.materialId;
+  if (materialId === 'mat-ct-stone' || materialId === 'mat-ct-wood') {
+    materialId = 'mat-3';
+  }
   let doorMaterialId = config.doorMaterialId;
+  if (doorMaterialId === 'mat-ct-stone' || doorMaterialId === 'mat-ct-wood') {
+    doorMaterialId = 'mat-3';
+  }
   if (config.doorStyle === 'classic') {
     doorMaterialId = 'mat-9';
   }
@@ -1498,9 +1504,25 @@ const rebuildPartsFromModules = (modules: CabinetModule[]): Part[] => {
 const ensureProjectModules = (project: Project): Project => {
   if (!project) return project;
   try {
+    if (project.config) {
+      if (project.config.materialId === 'mat-ct-stone' || project.config.materialId === 'mat-ct-wood') {
+        project.config.materialId = 'mat-3';
+      }
+      if (project.config.doorMaterialId === 'mat-ct-stone' || project.config.doorMaterialId === 'mat-ct-wood') {
+        project.config.doorMaterialId = 'mat-3';
+      }
+    }
     if (project.modules && project.modules.length > 0) {
       const populatedModules = project.modules.map((mod) => {
         if (!mod) return mod;
+        if (mod.config) {
+          if (mod.config.materialId === 'mat-ct-stone' || mod.config.materialId === 'mat-ct-wood') {
+            mod.config.materialId = 'mat-3';
+          }
+          if (mod.config.doorMaterialId === 'mat-ct-stone' || mod.config.doorMaterialId === 'mat-ct-wood') {
+            mod.config.doorMaterialId = 'mat-3';
+          }
+        }
         const freshCarcassParts = calculateDynamicParts(mod.type, mod.config) || [];
         if (!mod.parts || mod.parts.length === 0) {
           return {
@@ -1625,6 +1647,13 @@ export const useProjectStore = create<ProjectState>()(
 
   updateActiveConfig: (config) => set((state) => {
     if (!state.activeProject) return {};
+    
+    if (config.materialId === 'mat-ct-stone' || config.materialId === 'mat-ct-wood') {
+      config.materialId = 'mat-3';
+    }
+    if (config.doorMaterialId === 'mat-ct-stone' || config.doorMaterialId === 'mat-ct-wood') {
+      config.doorMaterialId = 'mat-3';
+    }
     
     const targetModuleId = state.selectedModuleId || (state.activeProject.modules && state.activeProject.modules[0]?.id);
     

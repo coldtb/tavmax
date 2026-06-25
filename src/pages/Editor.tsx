@@ -1261,7 +1261,7 @@ export const Editor: React.FC = () => {
               onChange={(e) => updateActiveConfig({ materialId: e.target.value, bodyColor: undefined })}
               className="col-span-8 bg-[#121212] border border-white/5 rounded px-1.5 py-0.5 text-white text-[10px] outline-none font-semibold focus:border-amber-500"
             >
-              {materials.map(m => (
+              {materials.filter(m => m.category !== 'Countertop' && m.id !== 'mat-ct-wood' && m.id !== 'mat-ct-stone').map(m => (
                 <option key={m.id} value={m.id}>{m.name}</option>
               ))}
             </select>
@@ -1275,7 +1275,7 @@ export const Editor: React.FC = () => {
               onChange={(e) => updateActiveConfig({ doorMaterialId: e.target.value, color: undefined })}
               className="col-span-8 bg-[#121212] border border-white/5 rounded px-1.5 py-0.5 text-white text-[10px] outline-none font-semibold focus:border-amber-500"
             >
-              {materials.map(m => (
+              {materials.filter(m => m.category !== 'Countertop' && m.id !== 'mat-ct-wood' && m.id !== 'mat-ct-stone').map(m => (
                 <option key={m.id} value={m.id}>{m.name}</option>
               ))}
             </select>
@@ -2727,7 +2727,7 @@ export const Editor: React.FC = () => {
                       <div className="flex flex-col gap-3">
                         <span className="text-xs text-neutral-400 font-semibold">Их биеийн материал:</span>
                         <div className="grid grid-cols-2 gap-2">
-                          {materials.map((mat) => (
+                          {materials.filter(m => m.category !== 'Countertop' && m.id !== 'mat-ct-wood' && m.id !== 'mat-ct-stone').map((mat) => (
                             <button
                               key={mat.id}
                               onClick={() => updateActiveConfig({ materialId: mat.id, bodyColor: undefined })}
@@ -2865,7 +2865,7 @@ export const Editor: React.FC = () => {
                       <div className="flex flex-col gap-3 border-t border-white/5 pt-3">
                         <span className="text-xs text-neutral-400 font-semibold">Хаалга / Нүүрний материал:</span>
                         <div className="grid grid-cols-2 gap-2">
-                          {materials.map((mat) => (
+                          {materials.filter(m => m.category !== 'Countertop' && m.id !== 'mat-ct-wood' && m.id !== 'mat-ct-stone').map((mat) => (
                             <button
                               key={mat.id}
                               onClick={() => updateActiveConfig({ doorMaterialId: mat.id, color: undefined })}
