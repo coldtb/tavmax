@@ -203,25 +203,37 @@ export const Customer: React.FC = () => {
 
             <div className="flex flex-col gap-3 mt-2">
               <button
-                onClick={() => handleOpenRenew('24 цагийн эрх (Сунгалт)', 9900)}
+                onClick={() => handleOpenRenew('24 цагийн эрх (Сунгалт)', 4950)}
                 className="w-full flex justify-between items-center p-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-white/5 text-left transition-colors cursor-pointer"
               >
                 <div>
-                  <span className="block text-xs font-bold text-white">24 цагийн эрх</span>
+                  <div className="flex items-center gap-2">
+                    <span className="block text-xs font-bold text-white">24 цагийн эрх</span>
+                    <span className="px-1.5 py-0.5 bg-red-500/10 text-red-500 border border-red-500/20 text-[8px] font-bold uppercase rounded">50% Хямдрал</span>
+                  </div>
                   <span className="text-[10px] text-neutral-500">Бүх боломжууд нээлттэй</span>
                 </div>
-                <span className="text-xs font-bold text-amber-500">9,900 ₮</span>
+                <div className="flex flex-col text-right">
+                  <span className="text-xs font-bold text-amber-500">4,950 ₮</span>
+                  <span className="text-[9px] text-neutral-500 line-through font-medium">9,900 ₮</span>
+                </div>
               </button>
 
               <button
-                onClick={() => handleOpenRenew('1 сарын эрх (Сунгалт)', 29900)}
+                onClick={() => handleOpenRenew('1 сарын эрх (Сунгалт)', 14950)}
                 className="w-full flex justify-between items-center p-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-amber-500/20 text-left transition-colors cursor-pointer"
               >
                 <div>
-                  <span className="block text-xs font-bold text-white">1 сарын эрх</span>
+                  <div className="flex items-center gap-2">
+                    <span className="block text-xs font-bold text-white">1 сарын эрх</span>
+                    <span className="px-1.5 py-0.5 bg-red-500/10 text-red-500 border border-red-500/20 text-[8px] font-bold uppercase rounded">50% Хямдрал</span>
+                  </div>
                   <span className="text-[10px] text-neutral-500">Бүх боломжууд нээлттэй</span>
                 </div>
-                <span className="text-xs font-bold text-amber-500">29,900 ₮</span>
+                <div className="flex flex-col text-right">
+                  <span className="text-xs font-bold text-amber-500">14,950 ₮</span>
+                  <span className="text-[9px] text-neutral-500 line-through font-medium">29,900 ₮</span>
+                </div>
               </button>
             </div>
           </div>

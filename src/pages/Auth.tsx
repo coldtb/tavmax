@@ -38,7 +38,8 @@ export const Auth: React.FC = () => {
   const plans = [
     {
       name: '24 цагийн эрх',
-      price: 9900,
+      price: 4950,
+      originalPrice: 9900,
       desc: 'Богино хугацаанд хурдан зүсэлт гаргах',
       features: [
         'Бүх боломжууд нээлттэй',
@@ -47,13 +48,14 @@ export const Auth: React.FC = () => {
         'PDF тайлан, SVG зураг татах',
       ],
       color: 'border-amber-500/30 bg-amber-500/5 ring-1 ring-amber-500/10',
-      actionText: 'Идэвхжүүлэх (9,900 ₮)',
+      actionText: 'Идэвхжүүлэх (4,950 ₮)',
       highlight: true,
       code: import.meta.env.VITE_CODE_24H || '',
     },
     {
       name: '1 сарын эрх',
-      price: 29900,
+      price: 14950,
+      originalPrice: 29900,
       desc: 'Урт хугацаанд хязгааргүй ашиглах',
       features: [
         'Бүх боломжууд нээлттэй',
@@ -62,7 +64,7 @@ export const Auth: React.FC = () => {
         'PDF тайлан, SVG зураг татах',
       ],
       color: 'border-blue-500/30 bg-blue-500/5',
-      actionText: 'Идэвхжүүлэх (29,900 ₮)',
+      actionText: 'Идэвхжүүлэх (14,950 ₮)',
       code: import.meta.env.VITE_CODE_30D || '',
     },
   ];
@@ -156,6 +158,14 @@ export const Auth: React.FC = () => {
 
       {/* Main SaaS Container */}
       <div className="w-full max-w-5xl bg-white/5 border border-white/10 rounded-3xl p-6 md:p-10 backdrop-blur-xl shadow-2xl glass-dark animate-slide-up flex flex-col gap-8 my-8">
+        
+        {/* Discount Alert Banner */}
+        <div className="bg-gradient-to-r from-red-500/10 via-amber-500/15 to-red-500/10 border border-amber-500/25 rounded-2xl p-4 text-center text-xs text-amber-400 font-bold tracking-wide animate-pulse flex flex-col gap-1 max-w-xl mx-auto w-full">
+          <span className="text-[10px] text-amber-500 font-extrabold uppercase tracking-widest">🔥 АНХНЫ СУНГАЛТЫН 50% УРАМШУУЛАЛ 🔥</span>
+          <p className="text-neutral-200 font-medium text-[11px] leading-relaxed">
+            10 минутын туршилт дуусахаас өмнө эрхээ сунгавал <b className="text-amber-400">50% ХӨНГӨЛӨЛТ</b> автоматаар тооцогдоно.
+          </p>
+        </div>
         
         {/* Header Title */}
         <div className="text-center">
@@ -265,10 +275,10 @@ export const Auth: React.FC = () => {
                   Төлөх дүн ({inactiveSelectedPlan === '24H' ? '24 Цаг' : '1 Сар'}):
                 </span>
                 <div className="flex items-center gap-1.5 font-bold text-white">
-                  <span>{inactiveSelectedPlan === '24H' ? '9,900 ₮' : '29,900 ₮'}</span>
+                  <span>{inactiveSelectedPlan === '24H' ? '4,950 ₮' : '14,950 ₮'}</span>
                   <button 
                     type="button"
-                    onClick={() => handleCopy(inactiveSelectedPlan === '24H' ? '9900' : '29900', 'amount')}
+                    onClick={() => handleCopy(inactiveSelectedPlan === '24H' ? '4950' : '14950', 'amount')}
                     className="p-1 hover:bg-white/5 rounded text-neutral-400 hover:text-white cursor-pointer hover:bg-neutral-800"
                   >
                     {copiedField === 'amount' ? <Check size={10} className="text-emerald-500" /> : <Copy size={10} />}
@@ -328,6 +338,11 @@ export const Auth: React.FC = () => {
                       <span className="text-3xl font-display font-extrabold text-white">
                         {plan.price === 0 ? 'Үнэгүй' : `${plan.price.toLocaleString('mn-MN')} ₮`}
                       </span>
+                      {plan.originalPrice && (
+                        <span className="text-neutral-500 text-xs line-through ml-2">
+                          {plan.originalPrice.toLocaleString('mn-MN')} ₮
+                        </span>
+                      )}
                       {plan.price > 0 && <span className="text-neutral-500 text-xs">{plan.code.includes('24H') ? '/24 цаг' : '/сар'}</span>}
                     </div>
                     <p className="text-neutral-400 text-xs leading-relaxed">{plan.desc}</p>
@@ -575,11 +590,11 @@ export const Auth: React.FC = () => {
                   <span className="text-xs font-bold text-white">
                     {selectedPlan 
                       ? `${selectedPlan.price.toLocaleString('mn-MN')} ₮` 
-                      : (inactiveSelectedPlan === '24H' ? '9,900 ₮' : '29,900 ₮')}
+                      : (inactiveSelectedPlan === '24H' ? '4,950 ₮' : '14,950 ₮')}
                   </span>
                   <button 
                     type="button"
-                    onClick={() => handleCopy(selectedPlan ? selectedPlan.price.toString() : (inactiveSelectedPlan === '24H' ? '9900' : '29900'), 'amount')}
+                    onClick={() => handleCopy(selectedPlan ? selectedPlan.price.toString() : (inactiveSelectedPlan === '24H' ? '4950' : '14950'), 'amount')}
                     className="p-1 hover:bg-white/5 rounded transition-colors text-neutral-400 hover:text-white cursor-pointer hover:bg-neutral-800"
                   >
                     {copiedField === 'amount' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}

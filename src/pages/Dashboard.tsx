@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useProjectStore } from '../store/projectStore';
 import type { Project } from '../data/mockData';
 import { Plus } from 'lucide-react';
@@ -10,6 +10,7 @@ interface DashboardProps {
 
 export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigate }) => {
   const { projects, addProject } = useProjectStore();
+  const [showVideoModal, setShowVideoModal] = useState(false);
 
   const totalProjects = projects.length;
 
@@ -133,6 +134,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigat
               <Plus size={18} />
               Шинэ дизайн эхлүүлэх
             </button>
+            <button
+              onClick={() => setShowVideoModal(true)}
+              className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-sm font-bold transition-all active:scale-[0.98] cursor-pointer border border-white/5"
+            >
+              📹 Видео заавар үзэх
+            </button>
           </div>
         </div>
         
@@ -159,6 +166,37 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigat
         </div>
       </div>
 
+      {/* Video Onboarding Modal */}
+      {showVideoModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="w-full max-w-3xl bg-[#12141c] border border-white/10 rounded-3xl p-5 flex flex-col gap-4 shadow-2xl glass-dark">
+            <div className="flex justify-between items-center border-b border-white/5 pb-2">
+              <h3 className="font-display font-bold text-white text-sm flex items-center gap-2">
+                📹 Систем ашиглах зааварчилгаа бичлэг
+              </h3>
+              <button 
+                onClick={() => setShowVideoModal(false)}
+                className="p-1.5 rounded-lg bg-neutral-800 text-neutral-400 hover:text-white"
+              >
+                ✕ Хаах
+              </button>
+            </div>
+            
+            <div className="relative aspect-video rounded-2xl overflow-hidden bg-black border border-white/5">
+              <video 
+                src="/tavmax_ad.mp4" 
+                controls 
+                autoPlay 
+                className="w-full h-full object-contain"
+              />
+            </div>
+            
+            <div className="text-[11px] text-neutral-400 text-center leading-relaxed">
+              Энэхүү богино зааварчилгааг үзээд 10 минутын туршилтын эрхээ ашиглан өөрийн тавилгыг зураарай.
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
