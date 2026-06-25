@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useImperativeHandle } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
 import type { Project, Material } from '../data/mockData';
 import { useProjectStore, getCabinetSections, getCabinetFrontPanels } from '../store/projectStore';
 import { Box } from 'lucide-react';
@@ -8,6 +9,8 @@ import { Box } from 'lucide-react';
 
 export interface ThreeViewerRef {
   get3DPoint: (clientX: number, clientY: number) => { x: number, y: number, z: number } | null;
+  exportGLTF?: () => void;
+  exportPNG?: () => void;
 }
 
 export interface ThreeViewerProps {
@@ -47,50 +50,184 @@ const getShelfY = (
 }
 
 let cachedWoodTex: THREE.CanvasTexture | null = null;
+let cachedWoodNormalTex: THREE.CanvasTexture | null = null;
 let cachedWoodTexRotated: THREE.CanvasTexture | null = null;
 let cachedMarbleTex: THREE.CanvasTexture | null = null;
+let cachedShadowTexture: THREE.CanvasTexture | null = null;
 
 const createWoodTexture = (): THREE.CanvasTexture => {
   const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 512;
+  canvas.width = 1024;
+  canvas.height = 1024;
   const ctx = canvas.getContext('2d')!;
   
-  // White base for perfect tinting
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, 512, 512);
+  // Base warm light-beige wood color
+  ctx.fillStyle = '#f8f4ed';
+  ctx.fillRect(0, 0, 1024, 1024);
   
-  // Draw organic wood grain lines (Vertical)
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.18)';
-  ctx.lineWidth = 2.0;
+  // Draw soft background wood bands (representing soft grain layers)
+  for (let i = 0; i < 20; i++) {
+    ctx.fillStyle = i % 2 === 0 ? 'rgba(215, 195, 175, 0.15)' : 'rgba(195, 175, 155, 0.08)';
+    const w = 40 + Math.random() * 80;
+    const x = Math.random() * 1024;
+    ctx.fillRect(x, 0, w, 1024);
+  }
   
-  for (let i = 0; i < 70; i++) {
+  // Draw fine wood grain lines (Vertical, with organic waves and knots)
+  ctx.strokeStyle = 'rgba(120, 95, 75, 0.22)';
+  ctx.lineWidth = 1.2;
+  
+  // Let's create a few knots
+  const knots = [
+    { x: 300 + Math.random() * 400, y: 300 + Math.random() * 400, strength: 40, r: 25 },
+    { x: 200 + Math.random() * 600, y: 700 + Math.random() * 200, strength: 50, r: 35 }
+  ];
+  
+  for (let i = 0; i < 120; i++) {
     ctx.beginPath();
-    const startX = Math.random() * 512;
+    const startX = (i / 120) * 1024 + (Math.random() - 0.5) * 15;
     ctx.moveTo(startX, 0);
     
     let currentX = startX;
-    for (let y = 10; y <= 512; y += 10) {
-      currentX += Math.sin(y * 0.04 + startX) * 0.9 + (Math.random() - 0.5) * 0.6;
+    for (let y = 10; y <= 1024; y += 10) {
+      let wave = Math.sin(y * 0.008 + startX * 0.05) * 1.5;
+      
+      // Deflect grain lines around knots
+      knots.forEach(knot => {
+        const dy = y - knot.y;
+        const dx = currentX - knot.x;
+        const distSq = dx * dx + dy * dy;
+        if (distSq < 15000) {
+          const dist = Math.sqrt(distSq);
+          const force = (1 - dist / 120) * knot.strength;
+          currentX += (dx > 0 ? 1 : -1) * force * 0.45;
+        }
+      });
+      
+      currentX += wave + (Math.random() - 0.5) * 0.55;
       ctx.lineTo(currentX, y);
     }
     ctx.stroke();
   }
   
-  // Fine noise fibers (Vertical)
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.03)';
-  for (let i = 0; i < 6000; i++) {
+  // Draw the actual knot centers
+  knots.forEach(knot => {
+    ctx.strokeStyle = 'rgba(95, 70, 50, 0.35)';
+    for (let r = 2; r < knot.r; r += 4) {
+      ctx.lineWidth = 1.0 + (knot.r - r) * 0.05;
+      ctx.beginPath();
+      ctx.ellipse(knot.x, knot.y, r * 0.4, r, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  });
+  
+  // Fine high-frequency fiber noise
+  ctx.fillStyle = 'rgba(100, 80, 60, 0.04)';
+  for (let i = 0; i < 15000; i++) {
+    const rx = Math.random() * 1024;
+    const ry = Math.random() * 1024;
+    ctx.fillRect(rx, ry, 1, Math.random() * 20 + 8);
+  }
+  
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(1.5, 1.5);
+  return texture;
+};
+
+const createWoodNormalMap = (): THREE.CanvasTexture => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d')!;
+  
+  // Flat normal map base color
+  ctx.fillStyle = '#8080ff';
+  ctx.fillRect(0, 0, 512, 512);
+  
+  // Draw high-frequency vertical bump lines
+  for (let i = 0; i < 4000; i++) {
     const rx = Math.random() * 512;
     const ry = Math.random() * 512;
-    ctx.fillRect(rx, ry, 1, Math.random() * 15 + 5);
+    const w = 1 + Math.random() * 2;
+    const h = 5 + Math.random() * 15;
+    
+    const isLeft = Math.random() > 0.5;
+    ctx.fillStyle = isLeft ? 'rgba(110, 128, 255, 0.08)' : 'rgba(146, 128, 255, 0.08)';
+    ctx.fillRect(rx, ry, w, h);
   }
-
+  
   const texture = new THREE.CanvasTexture(canvas);
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.repeat.set(2, 2);
   return texture;
 };
+
+const createStudioEnvironmentMap = (): THREE.CanvasTexture => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d')!;
+  
+  // Fill dark gradient background (simulating a dark photo studio)
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, 256);
+  bgGrad.addColorStop(0, '#050508');
+  bgGrad.addColorStop(0.5, '#0a0a0f');
+  bgGrad.addColorStop(1, '#050508');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, 512, 256);
+  
+  // Left softbox (Large, bright, neutral white)
+  const leftGrad = ctx.createRadialGradient(100, 128, 0, 100, 128, 90);
+  leftGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+  leftGrad.addColorStop(0.3, 'rgba(240, 245, 255, 0.7)');
+  leftGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = leftGrad;
+  ctx.fillRect(0, 0, 220, 256);
+  
+  // Right softbox (Tall, warm amber studio light)
+  const rightGrad = ctx.createRadialGradient(400, 100, 0, 400, 100, 80);
+  rightGrad.addColorStop(0, 'rgba(255, 230, 200, 0.8)');
+  rightGrad.addColorStop(0.4, 'rgba(235, 195, 145, 0.35)');
+  rightGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = rightGrad;
+  ctx.fillRect(280, 0, 232, 256);
+  
+  // Top overhead ring light
+  const topGrad = ctx.createLinearGradient(0, 0, 512, 0);
+  topGrad.addColorStop(0, 'rgba(0,0,0,0)');
+  topGrad.addColorStop(0.5, 'rgba(220, 240, 255, 0.45)');
+  topGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = topGrad;
+  ctx.fillRect(100, 10, 312, 35);
+  
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  return texture;
+};
+
+const getContactShadowTexture = (): THREE.CanvasTexture => {
+  if (cachedShadowTexture) return cachedShadowTexture;
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d')!;
+  
+  // Radial gradient: black in the center, transparent at the edges
+  const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grad.addColorStop(0, 'rgba(0, 0, 0, 0.6)');
+  grad.addColorStop(0.3, 'rgba(0, 0, 0, 0.45)');
+  grad.addColorStop(0.8, 'rgba(0, 0, 0, 0.15)');
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 128, 128);
+  
+  cachedShadowTexture = new THREE.CanvasTexture(canvas);
+  return cachedShadowTexture;
+};
+
 
 const createMarbleTexture = (): THREE.CanvasTexture => {
   const canvas = document.createElement('canvas');
@@ -161,6 +298,13 @@ const getWoodTexture = () => {
     cachedWoodTex = createWoodTexture();
   }
   return cachedWoodTex;
+};
+
+const getWoodNormalTexture = () => {
+  if (!cachedWoodNormalTex) {
+    cachedWoodNormalTex = createWoodNormalMap();
+  }
+  return cachedWoodNormalTex;
 };
 
 const getWoodTextureRotated = () => {
@@ -245,6 +389,55 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
     openDoorsRef.current = openDoors;
   }, [openDoors]);
 
+  const exportGLTF = () => {
+    const scene = sceneRef.current;
+    const furnitureGroup = furnitureGroupRef.current;
+    if (!scene || !furnitureGroup) return;
+
+    const exporter = new GLTFExporter();
+    exporter.parse(
+      furnitureGroup,
+      (gltf) => {
+        const output = JSON.stringify(gltf, null, 2);
+        const blob = new Blob([output], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${project.name || 'cabinet-project'}.gltf`;
+        link.click();
+        URL.revokeObjectURL(url);
+      },
+      (error) => {
+        console.error('Error exporting GLTF:', error);
+        alert('3D загварыг экспортлоход алдаа гарлаа: ' + String(error));
+      },
+      {
+        binary: false,
+        animations: [],
+        includeCustomExtensions: true,
+      }
+    );
+  };
+
+  const exportPNG = () => {
+    const renderer = rendererRef.current;
+    const scene = sceneRef.current;
+    const camera = cameraRef.current;
+    if (!renderer || !scene || !camera) return;
+
+    renderer.render(scene, camera);
+    try {
+      const dataUrl = renderer.domElement.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `${project.name || 'cabinet-screenshot'}.png`;
+      link.click();
+    } catch (e) {
+      console.error('Error exporting PNG:', e);
+      alert('Зураг хадгалахад алдаа гарлаа: ' + String(e));
+    }
+  };
+
   useImperativeHandle(ref, () => ({
     get3DPoint: (clientX: number, clientY: number) => {
       if (!rendererRef.current || !cameraRef.current) return null;
@@ -260,7 +453,9 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
       raycaster.ray.intersectPlane(groundPlane, point);
       
       return { x: point.x, y: point.y, z: point.z };
-    }
+    },
+    exportGLTF,
+    exportPNG
   }));
 
   const selectedModuleId = useProjectStore((s) => s.selectedModuleId);
@@ -557,6 +752,10 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
       scene.fog = new THREE.FogExp2('#23272b', 0.00003); // Soft depth fog
       sceneRef.current = scene;
 
+      // Studio environment map
+      const envTex = createStudioEnvironmentMap();
+      scene.environment = envTex;
+
       // Bounding groups (Initialized early to prevent ReferenceError)
       const furnitureGroup = new THREE.Group();
       scene.add(furnitureGroup);
@@ -598,6 +797,8 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.1;
       containerRef.current.appendChild(renderer.domElement);
       rendererRef.current = renderer;
 
@@ -1728,6 +1929,21 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
         if (mod.rotation) moduleGroup.rotation.y = mod.rotation;
         furnitureGroup.add(moduleGroup);
 
+        // Contact shadow plane for base cabinets (sits near the floor)
+        if (mod.yOffset < 200) {
+          const shadowGeo = new THREE.PlaneGeometry(width + 80, depth + 80);
+          const shadowMat = new THREE.MeshBasicMaterial({
+            map: getContactShadowTexture(),
+            transparent: true,
+            opacity: 0.8,
+            depthWrite: false
+          });
+          const shadowPlane = new THREE.Mesh(shadowGeo, shadowMat);
+          shadowPlane.rotation.x = -Math.PI / 2;
+          shadowPlane.position.set(0, -mod.yOffset + 1.5, 0);
+          moduleGroup.add(shadowPlane);
+        }
+
 
         const config = mod.config;
         const width = Number(config.width) || 0;
@@ -1761,9 +1977,10 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
           return new THREE.MeshStandardMaterial({
             color: new THREE.Color(colorHex),
             map: isWoodMat ? getWoodTexture() : null,
-            roughness: mat.category === 'Acrylic' ? 0.05 : (isWoodMat ? 0.35 : 0.6),
+            normalMap: isWoodMat ? getWoodNormalTexture() : null,
+            normalScale: new THREE.Vector2(0.04, 0.04),
+            roughness: mat.category === 'Acrylic' ? 0.05 : (isWoodMat ? 0.45 : 0.6),
             metalness: mat.category === 'Acrylic' ? 0.1 : 0.0,
-            bumpScale: 0.05,
             polygonOffset: true,
             polygonOffsetFactor: 1,
             polygonOffsetUnits: 1
@@ -1786,6 +2003,8 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
             return new THREE.MeshStandardMaterial({
               map: woodTex,
               color: new THREE.Color('#c07830'), // Rich warm oak color
+              normalMap: getWoodNormalTexture(),
+              normalScale: new THREE.Vector2(0.04, 0.04),
               roughness: 0.45,
               metalness: 0.0,
               polygonOffset: true,
@@ -5010,11 +5229,25 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
       )}
 
       <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center bg-black/60 backdrop-blur-md px-4 py-3 rounded-xl border border-white/10 glass">
-        <div className="flex gap-2">
-          <span className="flex items-center gap-1.5 text-xs text-neutral-400 font-medium">
+        <div className="flex gap-2 items-center">
+          <span className="flex items-center gap-1.5 text-xs text-neutral-400 font-medium mr-2">
             <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse-slow" />
             3D Харах Идэвхтэй
           </span>
+          <button
+            onClick={exportPNG}
+            className="flex items-center gap-1 px-2.5 py-1 bg-neutral-850 hover:bg-neutral-800 text-white font-bold text-[10px] uppercase rounded transition-all cursor-pointer border border-white/5"
+            title="Одоогийн харагдацыг зураг (PNG) болгон хадгалах"
+          >
+            📸 Зураг
+          </button>
+          <button
+            onClick={exportGLTF}
+            className="flex items-center gap-1 px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold text-[10px] uppercase rounded transition-all cursor-pointer shadow-md shadow-amber-500/5"
+            title="3D моделийг GLTF форматаар экспортлох"
+          >
+            📦 3D загвар
+          </button>
         </div>
         <div className="text-xs text-white/70">
           {measureMode
