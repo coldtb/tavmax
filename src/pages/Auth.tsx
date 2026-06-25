@@ -486,6 +486,34 @@ export const Auth: React.FC = () => {
               </div>
             </div>
 
+            {/* Plan Selector */}
+            {!selectedPlan && (
+              <div className="grid grid-cols-2 gap-1.5 p-1 bg-neutral-900/60 border border-white/5 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setInactiveSelectedPlan('24H')}
+                  className={`py-1.5 rounded-lg text-center font-bold text-[10px] transition-all cursor-pointer ${
+                    inactiveSelectedPlan === '24H'
+                      ? 'bg-amber-500 text-neutral-950 shadow-md'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  24 цагийн эрх (9,900 ₮)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInactiveSelectedPlan('30D')}
+                  className={`py-1.5 rounded-lg text-center font-bold text-[10px] transition-all cursor-pointer ${
+                    inactiveSelectedPlan === '30D'
+                      ? 'bg-amber-500 text-neutral-950 shadow-md'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  1 сарын эрх (29,900 ₮)
+                </button>
+              </div>
+            )}
+
             {/* Bank Transfer Instructions Card */}
             <div className="flex flex-col gap-3 bg-neutral-900/60 border border-white/5 p-4 rounded-2xl">
               <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider font-display">Шилжүүлгийн Мэдээлэл</span>
@@ -539,15 +567,19 @@ export const Auth: React.FC = () => {
 
               <div className="flex justify-between items-center py-1.5 border-b border-white/5">
                 <span className="text-xs text-neutral-400">
-                  {selectedPlan ? `${selectedPlan.name} төлбөр:` : 'Сар бэлтгэх төлбөр:'}
+                  {selectedPlan 
+                    ? `${selectedPlan.name} төлбөр:` 
+                    : (inactiveSelectedPlan === '24H' ? '24 цагийн эрхийн төлбөр:' : '1 сарын эрхийн төлбөр:')}
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-white">
-                    {selectedPlan ? `${selectedPlan.price.toLocaleString('mn-MN')} ₮` : '29,900 ₮'}
+                    {selectedPlan 
+                      ? `${selectedPlan.price.toLocaleString('mn-MN')} ₮` 
+                      : (inactiveSelectedPlan === '24H' ? '9,900 ₮' : '29,900 ₮')}
                   </span>
                   <button 
                     type="button"
-                    onClick={() => handleCopy(selectedPlan ? selectedPlan.price.toString() : '29900', 'amount')}
+                    onClick={() => handleCopy(selectedPlan ? selectedPlan.price.toString() : (inactiveSelectedPlan === '24H' ? '9900' : '29900'), 'amount')}
                     className="p-1 hover:bg-white/5 rounded transition-colors text-neutral-400 hover:text-white cursor-pointer hover:bg-neutral-800"
                   >
                     {copiedField === 'amount' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
