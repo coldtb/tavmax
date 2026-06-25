@@ -195,9 +195,9 @@ export const Auth: React.FC = () => {
             <div className="flex items-start gap-2.5">
               <AlertCircle size={18} className="text-amber-400 shrink-0 mt-0.5" />
               <div className="flex flex-col gap-1">
-                <span className="font-bold text-white text-sm">Таны эрх идэвхжээгүй байна!</span>
+                <span className="font-bold text-white text-sm">Туршилтын хугацаа дууссан байна!</span>
                 <p className="text-neutral-300 text-[11px] leading-relaxed">
-                  Таны бүртгэл үүссэн боловч систем ашиглах эрх хараахан идэвхжээгүй байна. Доорх дансаар төлбөрөө шилжүүлсний дараа админ таны эрхийг 5-10 минутанд идэвхжүүлэх болно.
+                  Таны 1 цагийн үнэгүй туршилтын хугацаа дууссан байна. Үргэлжлүүлэн ашиглахын тулд доорх дансаар төлбөрөө шилжүүлж эрхээ сунгана уу. Админ 5-10 минутад баталгаажуулах болно.
                 </p>
               </div>
             </div>
@@ -481,7 +481,7 @@ export const Auth: React.FC = () => {
               <div>
                 <h2 className="font-display font-bold text-xl text-white">Бүртгэл амжилттай үүслээ!</h2>
                 <p className="text-neutral-400 text-xs mt-2 leading-relaxed">
-                  Таны хэрэглэгчийн бүртгэл амжилттай бүртгэгдлээ. Програмын эрхээ идэвхжүүлэхийн тулд доорх зааврын дагуу төлбөрөө шилжүүлнэ үү.
+                  Таны бүртгэл үүслээ. Одоо нэвтрэх хэсэг рүү очиж өөрийн утасны дугаар, нууц үгээр нэвтэрвэл танд <b className="text-amber-400">1 цагийн үнэгүй туршилтын эрх</b> автоматаар олгогдох болно.
                 </p>
               </div>
             </div>
@@ -620,11 +620,11 @@ export const Auth: React.FC = () => {
               onClick={() => {
                 setIsLoginMode(true);
                 setStep(1);
-                setSuccessMsg('Төлбөрөө шилжүүлсний дараа нэвтэрнэ үү. Админ 5-10 минутад баталгаажуулна.');
+                setSuccessMsg('Одоо өөрийн дугаараар нэвтэрч 1 цагийн үнэгүй туршилтын эрхээ ашиглана уу!');
               }}
               className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl active:scale-[0.98] transition-all text-xs cursor-pointer text-center"
             >
-              Төлбөрөө шилжүүлсэн, нэвтрэх хэсэг рүү очих
+              Нэвтрэх хэсэг рүү очих (1 цаг үнэгүй турших)
             </button>
           </div>
         )}

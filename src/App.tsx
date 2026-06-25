@@ -76,6 +76,8 @@ export const App: React.FC = () => {
     return localStorage.getItem('tavmax_sidebar_collapsed') === 'true';
   });
 
+  const [timeLeft, setTimeLeft] = useState<string | null>(null);
+
   useEffect(() => {
     localStorage.setItem('tavmax_sidebar_collapsed', String(sidebarCollapsed));
   }, [sidebarCollapsed]);
@@ -104,6 +106,41 @@ export const App: React.FC = () => {
       syncWithCloud().catch(console.error);
     }
   }, [isLoggedIn, syncWithCloud]);
+
+  // Subcription timer updater
+  useEffect(() => {
+    if (!isLoggedIn || !user?.expiresAt) {
+      setTimeLeft(null);
+      return;
+    }
+
+    const updateTimer = () => {
+      const expiresAt = new Date(user.expiresAt!).getTime();
+      const diff = expiresAt - Date.now();
+      
+      if (diff <= 0) {
+        setTimeLeft('Хугацаа дууссан');
+        logout();
+        return;
+      }
+      
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      if (hours > 0) {
+        setTimeLeft(`Туршилт: ${hours}ц ${mins}м үлдсэн`);
+      } else if (mins > 0) {
+        setTimeLeft(`Туршилт: ${mins}м ${secs}с үлдсэн`);
+      } else {
+        setTimeLeft(`Туршилт: ${secs}с үлдсэн`);
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [isLoggedIn, user?.expiresAt, logout]);
 
   // Authentication gate
   if (!isLoggedIn) {
@@ -156,6 +193,17 @@ export const App: React.FC = () => {
 
         {/* User Session status widget */}
         <div className="flex items-center gap-3.5 text-xs font-semibold text-neutral-300">
+          {timeLeft && (
+            <button
+              onClick={() => handleTabChange('customer')}
+              className="px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/25 text-[10px] font-extrabold text-amber-500 flex items-center gap-1.5 hover:bg-amber-500 hover:text-neutral-950 hover:border-amber-500 transition-all cursor-pointer"
+              title="Эрх сунгах хэсэг рүү очих"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              {timeLeft}
+            </button>
+          )}
+
           {isSupabaseConfigured ? (
             <span className="px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-bold text-emerald-400 flex items-center gap-1 select-none" title="Үүлэн баазад холбогдсон">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />

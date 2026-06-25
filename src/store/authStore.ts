@@ -197,9 +197,39 @@ export const useAuthStore = create<AuthState>()(
                 .eq('id', data.user.id)
                 .maybeSingle();
 
-              const role = profile?.role || metadata.role || 'designer';
-              const subscription = profile?.subscription || metadata.subscription || 'free';
-              const expiresAt = profile?.expires_at || metadata.expiresAt;
+              let role = profile?.role || metadata.role || 'designer';
+              let subscription = profile?.subscription || metadata.subscription || 'free';
+              let expiresAt = profile?.expires_at || metadata.expiresAt;
+
+              // Auto-grant 1 hour free trial for new free accounts
+              if (subscription === 'free' && !expiresAt) {
+                const trialExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString();
+                
+                const { error: updateError } = await supabase
+                  .from('profiles')
+                  .update({
+                    subscription: 'factory',
+                    role: 'factory',
+                    expires_at: trialExpiresAt
+                  })
+                  .eq('id', data.user.id);
+
+                if (!updateError) {
+                  subscription = 'factory';
+                  role = 'factory';
+                  expiresAt = trialExpiresAt;
+                  
+                  await supabase.auth.updateUser({
+                    data: {
+                      role: 'factory',
+                      subscription: 'factory',
+                      expiresAt: trialExpiresAt
+                    }
+                  });
+                } else {
+                  console.error('Failed to auto-activate 1h trial:', updateError.message);
+                }
+              }
 
               const isAdmin = role === 'admin';
               const isPaid = subscription === 'factory' || subscription === 'pro';
@@ -230,27 +260,54 @@ export const useAuthStore = create<AuthState>()(
         } else {
           // Local storage fallback
           const hashedPass = hashString(pass);
-          const user = get().registeredUsers.find((u) => u.phone === phone);
-          if (user && user.passwordHash === hashedPass) {
-            const isAdmin = user.role === 'admin';
-            const isPaid = user.subscription === 'factory' || user.subscription === 'pro';
-            const isExpired = user.expiresAt && new Date(user.expiresAt).getTime() <= Date.now();
+          const userIdx = get().registeredUsers.findIndex((u) => u.phone === phone);
+          if (userIdx !== -1) {
+            const user = get().registeredUsers[userIdx];
+            if (user.passwordHash === hashedPass) {
+              let role = user.role;
+              let subscription = user.subscription;
+              let expiresAt = user.expiresAt;
 
-            if (!isAdmin && (!isPaid || isExpired)) {
-              throw new Error('NOT_ACTIVATED');
-            }
+              // Auto-grant 1 hour trial in offline mode too
+              if (subscription === 'free' && !expiresAt) {
+                const trialExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString();
+                subscription = 'factory';
+                role = 'factory';
+                expiresAt = trialExpiresAt;
 
-            set({
-              isLoggedIn: true,
-              user: {
-                name: user.name,
-                phone: user.phone,
-                role: user.role,
-                subscription: user.subscription,
-                expiresAt: user.expiresAt
+                set((state) => {
+                  const updated = [...state.registeredUsers];
+                  updated[userIdx] = {
+                    ...updated[userIdx],
+                    subscription: 'factory',
+                    role: 'factory',
+                    expiresAt: trialExpiresAt
+                  };
+                  return { registeredUsers: updated };
+                });
               }
-            });
-            return true;
+
+              const isAdmin = role === 'admin';
+              const isPaid = subscription === 'factory' || subscription === 'pro';
+              const isExpired = expiresAt && new Date(expiresAt).getTime() <= Date.now();
+
+              if (!isAdmin && (!isPaid || isExpired)) {
+                throw new Error('NOT_ACTIVATED');
+              }
+
+              set({
+                isLoggedIn: true,
+                user: {
+                  name: user.name,
+                  phone: user.phone,
+                  role,
+                  subscription,
+                  expiresAt
+                }
+              });
+              return true;
+            }
+            return false;
           }
           return false;
         }
