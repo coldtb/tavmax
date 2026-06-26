@@ -6,7 +6,7 @@ export interface UserSession {
   name: string;
   phone: string;
   role: 'factory' | 'customer' | 'admin' | 'designer';
-  subscription: 'free' | 'pro' | 'factory';
+  subscription: 'free' | 'pro' | 'factory' | 'trial';
   expiresAt?: string;
 }
 
@@ -15,7 +15,7 @@ export interface RegisteredUser {
   phone: string;
   passwordHash: string;
   role: 'factory' | 'customer' | 'admin' | 'designer';
-  subscription: 'free' | 'pro' | 'factory';
+  subscription: 'free' | 'pro' | 'factory' | 'trial';
   expiresAt?: string;
 }
 
@@ -104,7 +104,7 @@ export const useAuthStore = create<AuthState>()(
             const expiresAt = profile?.expires_at || metadata.expiresAt;
 
             const isAdmin = role === 'admin';
-            const isPaid = subscription === 'factory' || subscription === 'pro';
+            const isPaid = subscription === 'factory' || subscription === 'pro' || subscription === 'trial';
             const isExpired = expiresAt && new Date(expiresAt).getTime() <= Date.now();
 
             if (!isAdmin && (!isPaid || isExpired)) {
@@ -147,7 +147,7 @@ export const useAuthStore = create<AuthState>()(
             const expiresAt = profile?.expires_at || metadata.expiresAt;
 
             const isAdmin = role === 'admin';
-            const isPaid = subscription === 'factory' || subscription === 'pro';
+            const isPaid = subscription === 'factory' || subscription === 'pro' || subscription === 'trial';
             const isExpired = expiresAt && new Date(expiresAt).getTime() <= Date.now();
 
             if (!isAdmin && (!isPaid || isExpired)) {
@@ -201,38 +201,38 @@ export const useAuthStore = create<AuthState>()(
               let subscription = profile?.subscription || metadata.subscription || 'free';
               let expiresAt = profile?.expires_at || metadata.expiresAt;
 
-              // Auto-grant 10 minutes free trial for new free accounts
+              // Auto-grant 1 hour free trial for new free accounts
               if (subscription === 'free' && !expiresAt) {
-                const trialExpiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+                const trialExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString();
                 
                 const { error: updateError } = await supabase
                   .from('profiles')
                   .update({
-                    subscription: 'factory',
+                    subscription: 'trial',
                     role: 'factory',
                     expires_at: trialExpiresAt
                   })
                   .eq('id', data.user.id);
 
                 if (!updateError) {
-                  subscription = 'factory';
+                  subscription = 'trial';
                   role = 'factory';
                   expiresAt = trialExpiresAt;
                   
                   await supabase.auth.updateUser({
                     data: {
                       role: 'factory',
-                      subscription: 'factory',
+                      subscription: 'trial',
                       expiresAt: trialExpiresAt
                     }
                   });
                 } else {
-                  console.error('Failed to auto-activate 10m trial:', updateError.message);
+                  console.error('Failed to auto-activate 1h trial:', updateError.message);
                 }
               }
 
               const isAdmin = role === 'admin';
-              const isPaid = subscription === 'factory' || subscription === 'pro';
+              const isPaid = subscription === 'factory' || subscription === 'pro' || subscription === 'trial';
               const isExpired = expiresAt && new Date(expiresAt).getTime() <= Date.now();
 
               if (!isAdmin && (!isPaid || isExpired)) {
@@ -268,10 +268,10 @@ export const useAuthStore = create<AuthState>()(
               let subscription = user.subscription;
               let expiresAt = user.expiresAt;
 
-              // Auto-grant 10 minutes trial in offline mode too
+              // Auto-grant 1 hour trial in offline mode too
               if (subscription === 'free' && !expiresAt) {
-                const trialExpiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-                subscription = 'factory';
+                const trialExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString();
+                subscription = 'trial';
                 role = 'factory';
                 expiresAt = trialExpiresAt;
 
@@ -279,7 +279,7 @@ export const useAuthStore = create<AuthState>()(
                   const updated = [...state.registeredUsers];
                   updated[userIdx] = {
                     ...updated[userIdx],
-                    subscription: 'factory',
+                    subscription: 'trial',
                     role: 'factory',
                     expiresAt: trialExpiresAt
                   };
@@ -288,7 +288,7 @@ export const useAuthStore = create<AuthState>()(
               }
 
               const isAdmin = role === 'admin';
-              const isPaid = subscription === 'factory' || subscription === 'pro';
+              const isPaid = subscription === 'factory' || subscription === 'pro' || subscription === 'trial';
               const isExpired = expiresAt && new Date(expiresAt).getTime() <= Date.now();
 
               if (!isAdmin && (!isPaid || isExpired)) {

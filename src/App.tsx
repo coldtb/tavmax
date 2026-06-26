@@ -28,7 +28,8 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  AlertTriangle
 } from 'lucide-react';
 
 // Attach global log helper (DEV only)
@@ -79,6 +80,7 @@ export const App: React.FC = () => {
 
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
   const [showTrialWelcome, setShowTrialWelcome] = useState(false);
+  const [showPdfWarning, setShowPdfWarning] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('tavmax_sidebar_collapsed', String(sidebarCollapsed));
@@ -109,12 +111,21 @@ export const App: React.FC = () => {
     }
   }, [isLoggedIn, syncWithCloud]);
 
+  // PDF Export warning listener
+  useEffect(() => {
+    const handleShowPdfWarning = () => {
+      setShowPdfWarning(true);
+    };
+    window.addEventListener('show-pdf-payment-warning', handleShowPdfWarning);
+    return () => window.removeEventListener('show-pdf-payment-warning', handleShowPdfWarning);
+  }, []);
+
   // Check trial welcome popup
   useEffect(() => {
     if (isLoggedIn && user?.expiresAt) {
       const expiresAt = new Date(user.expiresAt).getTime();
       const diff = expiresAt - Date.now();
-      const isTrial = diff > 0 && diff <= 10 * 60 * 1000 + 30000; // 10 minutes (plus 30s buffer)
+      const isTrial = diff > 0 && diff <= 1 * 60 * 60 * 1000 + 30000; // 1 hour (plus 30s buffer)
       
       if (isTrial && sessionStorage.getItem('tavmax_trial_welcome_shown') !== 'true') {
         setShowTrialWelcome(true);
@@ -390,7 +401,7 @@ export const App: React.FC = () => {
               </div>
               <h3 className="font-display font-bold text-white text-base">Туршилтын эрх идэвхжлээ</h3>
               <p className="text-neutral-300 text-xs leading-relaxed mt-1.5">
-                Танд <b>10 минутын</b> туршилтын эрх олгогдлоо. Та манай вэбсайтыг ашиглаж үзээд таалагдаж байвал эрхээ сунган 24 цаг, 1 сараас сонголтоо хийгээд цааш үргэлжлүүлэх боломжтой.
+                Танд <b>1 цагийн</b> туршилтын эрх олгогдлоо. Та манай вэбсайтыг ашиглаж үзээд таалагдаж байвал эрхээ сунган 24 цаг, 1 сараас сонголтоо хийгээд цааш үргэлжлүүлэх боломжтой.
               </p>
             </div>
             
@@ -403,6 +414,41 @@ export const App: React.FC = () => {
             >
               Ашиглаж эхлэх
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* PDF Payment Warning Modal */}
+      {showPdfWarning && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="w-full max-w-md bg-[#12141c] border border-red-500/30 rounded-3xl p-6 flex flex-col gap-5 shadow-2xl glass-dark animate-scale-in">
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/25 flex items-center justify-center text-red-500">
+                <AlertTriangle size={24} className="animate-pulse" />
+              </div>
+              <h3 className="font-display font-bold text-white text-base">PDF татах эрх хязгаарлагдсан</h3>
+              <p className="text-neutral-300 text-xs leading-relaxed mt-1.5">
+                Уучлаарай, зүсэлтийн PDF тайлан татахын тулд төлбөрөө төлж эрхээ идэвхжүүлнэ үү. Та одоо <b>1 цагийн</b> үнэгүй туршилтын хугацаанд ашиглаж байна.
+              </p>
+            </div>
+            
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  setShowPdfWarning(false);
+                  handleTabChange('customer');
+                }}
+                className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl active:scale-[0.98] transition-all text-xs cursor-pointer text-center"
+              >
+                Эрхээ идэвхжүүлэх (Төлбөр төлөх)
+              </button>
+              <button
+                onClick={() => setShowPdfWarning(false)}
+                className="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-xl active:scale-[0.98] transition-all text-xs cursor-pointer text-center"
+              >
+                Хаах
+              </button>
+            </div>
           </div>
         </div>
       )}

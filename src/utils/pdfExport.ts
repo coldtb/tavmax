@@ -30,6 +30,23 @@ export const exportProjectToPDF = async (
   threeImageDataUrl?: string | null,
   costs?: PDFExportCosts
 ) => {
+  // Check if user is in trial mode and restrict PDF download
+  if (typeof window !== 'undefined') {
+    const authStr = localStorage.getItem('tavmax-auth-storage');
+    if (authStr) {
+      try {
+        const authData = JSON.parse(authStr);
+        const subscription = authData?.state?.user?.subscription;
+        if (subscription === 'trial') {
+          window.dispatchEvent(new CustomEvent('show-pdf-payment-warning'));
+          return; // Block PDF generation
+        }
+      } catch (e) {
+        console.error('Error checking auth state for PDF export:', e);
+      }
+    }
+  }
+
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',

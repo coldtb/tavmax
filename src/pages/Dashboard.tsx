@@ -190,7 +190,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigat
               </div>
               <div className="flex flex-col gap-0.5">
                 <span className="text-xs font-bold text-white leading-tight">Эрхээ сунгаж файлаа татах</span>
-                <span className="text-[10px] text-neutral-400 leading-normal">10 минутын туршилт дуусахад 24 цаг эсвэл 1 сараас сонгон сунгаж CNC DXF/PDF файлаа татаж авна.</span>
+                <span className="text-[10px] text-neutral-400 leading-normal">1 цагийн туршилт дуусахад 24 цаг эсвэл 1 сараас сонгон сунгаж CNC DXF/PDF файлаа татаж авна.</span>
               </div>
             </div>
           </div>
@@ -223,7 +223,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectProject, onNavigat
             </div>
             
             <div className="text-[11px] text-neutral-400 text-center leading-relaxed">
-              Энэхүү богино зааварчилгааг үзээд 10 минутын туршилтын эрхээ ашиглан өөрийн тавилгыг зураарай.
+              Энэхүү богино зааварчилгааг үзээд 1 цагийн туршилтын эрхээ ашиглан өөрийн тавилгыг зураарай.
             </div>
           </div>
         </div>

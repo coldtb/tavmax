@@ -1,5 +1,71 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+
+// Safe Storage Polyfill for mobile browsers/private modes where storage throws errors
+(() => {
+  const testStorage = (type: 'localStorage' | 'sessionStorage') => {
+    try {
+      const storage = window[type];
+      const x = '__storage_test__';
+      storage.setItem(x, x);
+      storage.removeItem(x);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const createMockStorage = (): Storage => {
+    const storage: Record<string, string> = {};
+    const mock: Storage = {
+      length: 0,
+      clear: () => {
+        for (const k in storage) delete storage[k];
+        mock.length = 0;
+      },
+      getItem: (key: string) => (key in storage ? storage[key] : null),
+      key: (index: number) => Object.keys(storage)[index] || null,
+      removeItem: (key: string) => {
+        delete storage[key];
+        mock.length = Object.keys(storage).length;
+      },
+      setItem: (key: string, value: string) => {
+        storage[key] = String(value);
+        mock.length = Object.keys(storage).length;
+      }
+    };
+    return mock;
+  };
+
+  if (typeof window !== 'undefined') {
+    if (!testStorage('localStorage')) {
+      try {
+        Object.defineProperty(window, 'localStorage', {
+          value: createMockStorage(),
+          writable: true,
+          configurable: true
+        });
+        console.warn('localStorage is blocked or threw an error. Using mock memory storage fallback.');
+      } catch (e) {
+        console.error('Failed to polyfill localStorage:', e);
+      }
+    }
+
+    if (!testStorage('sessionStorage')) {
+      try {
+        Object.defineProperty(window, 'sessionStorage', {
+          value: createMockStorage(),
+          writable: true,
+          configurable: true
+        });
+        console.warn('sessionStorage is blocked or threw an error. Using mock memory storage fallback.');
+      } catch (e) {
+        console.error('Failed to polyfill sessionStorage:', e);
+      }
+    }
+  }
+})();
+
 import './index.css'
 import App from './App.tsx'
 

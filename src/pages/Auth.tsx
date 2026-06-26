@@ -38,7 +38,7 @@ export const Auth: React.FC = () => {
   const plans = [
     {
       name: '24 цагийн эрх',
-      price: 4950,
+      price: 5940,
       originalPrice: 9900,
       desc: 'Богино хугацаанд хурдан зүсэлт гаргах',
       features: [
@@ -48,13 +48,13 @@ export const Auth: React.FC = () => {
         'PDF тайлан, SVG зураг татах',
       ],
       color: 'border-amber-500/30 bg-amber-500/5 ring-1 ring-amber-500/10',
-      actionText: 'Идэвхжүүлэх (4,950 ₮)',
+      actionText: 'Идэвхжүүлэх (5,940 ₮)',
       highlight: true,
       code: import.meta.env.VITE_CODE_24H || '',
     },
     {
       name: '1 сарын эрх',
-      price: 14950,
+      price: 17940,
       originalPrice: 29900,
       desc: 'Урт хугацаанд хязгааргүй ашиглах',
       features: [
@@ -64,7 +64,7 @@ export const Auth: React.FC = () => {
         'PDF тайлан, SVG зураг татах',
       ],
       color: 'border-blue-500/30 bg-blue-500/5',
-      actionText: 'Идэвхжүүлэх (14,950 ₮)',
+      actionText: 'Идэвхжүүлэх (17,940 ₮)',
       code: import.meta.env.VITE_CODE_30D || '',
     },
   ];
@@ -151,19 +151,19 @@ export const Auth: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#08090d] flex items-center justify-center p-6 relative overflow-y-auto">
+    <div style={{ minHeight: '100dvh', backgroundColor: '#08090d' }} className="flex items-start md:items-center justify-center p-4 sm:p-6 relative overflow-y-auto">
       {/* Dynamic Background Blurs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-amber-500/5 blur-[150px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/5 blur-[150px] pointer-events-none" />
+      <div className="fixed top-0 left-0 w-[60%] h-[40%] rounded-full bg-amber-500/5 blur-[150px] pointer-events-none" />
+      <div className="fixed bottom-0 right-0 w-[60%] h-[40%] rounded-full bg-blue-500/5 blur-[150px] pointer-events-none" />
 
       {/* Main SaaS Container */}
-      <div className="w-full max-w-5xl bg-white/5 border border-white/10 rounded-3xl p-6 md:p-10 backdrop-blur-xl shadow-2xl glass-dark animate-slide-up flex flex-col gap-8 my-8">
+      <div className="relative w-full max-w-5xl bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-10 backdrop-blur-xl shadow-2xl glass-dark animate-slide-up flex flex-col gap-6 sm:gap-8 my-4 sm:my-8">
         
         {/* Discount Alert Banner */}
-        <div className="bg-gradient-to-r from-red-500/10 via-amber-500/15 to-red-500/10 border border-amber-500/25 rounded-2xl p-4 text-center text-xs text-amber-400 font-bold tracking-wide animate-pulse flex flex-col gap-1 max-w-xl mx-auto w-full">
-          <span className="text-[10px] text-amber-500 font-extrabold uppercase tracking-widest">🔥 АНХНЫ СУНГАЛТЫН 50% УРАМШУУЛАЛ 🔥</span>
+        <div className="bg-gradient-to-r from-red-500/10 via-amber-500/15 to-red-500/10 border border-amber-500/25 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center text-xs text-amber-400 font-bold tracking-wide animate-pulse flex flex-col gap-1 max-w-xl mx-auto w-full">
+          <span className="text-[10px] text-amber-500 font-extrabold uppercase tracking-widest">🔥 АНХНЫ СУНГАЛТЫН 40% УРАМШУУЛАЛ 🔥</span>
           <p className="text-neutral-200 font-medium text-[11px] leading-relaxed">
-            10 минутын туршилт дуусахаас өмнө эрхээ сунгавал <b className="text-amber-400">50% ХӨНГӨЛӨЛТ</b> автоматаар тооцогдоно.
+            1 цагийн туршилт дуусахаас өмнө эрхээ сунгавал <b className="text-amber-400">40% ХӨНГӨЛӨЛТ</b> автоматаар тооцогдоно.
           </p>
         </div>
         
@@ -207,7 +207,7 @@ export const Auth: React.FC = () => {
               <div className="flex flex-col gap-1">
                 <span className="font-bold text-white text-sm">Туршилтын хугацаа дууссан байна!</span>
                 <p className="text-neutral-300 text-[11px] leading-relaxed">
-                  Таны 10 минутын үнэгүй туршилтын хугацаа дууссан байна. Үргэлжлүүлэн ашиглахын тулд доорх дансаар төлбөрөө шилжүүлж эрхээ сунгана уу. Админ 5-10 минутад баталгаажуулах болно.
+                  Таны 1 цагийн үнэгүй туршилтын хугацаа дууссан байна. Үргэлжлүүлэн ашиглахын тулд доорх дансаар төлбөрөө шилжүүлж эрхээ сунгана уу. Админ 5-10 минутад баталгаажуулах болно.
                 </p>
               </div>
             </div>
@@ -275,10 +275,10 @@ export const Auth: React.FC = () => {
                   Төлөх дүн ({inactiveSelectedPlan === '24H' ? '24 Цаг' : '1 Сар'}):
                 </span>
                 <div className="flex items-center gap-1.5 font-bold text-white">
-                  <span>{inactiveSelectedPlan === '24H' ? '4,950 ₮' : '14,950 ₮'}</span>
+                  <span>{inactiveSelectedPlan === '24H' ? '5,940 ₮' : '17,940 ₮'}</span>
                   <button 
                     type="button"
-                    onClick={() => handleCopy(inactiveSelectedPlan === '24H' ? '4950' : '14950', 'amount')}
+                    onClick={() => handleCopy(inactiveSelectedPlan === '24H' ? '5940' : '17940', 'amount')}
                     className="p-1 hover:bg-white/5 rounded text-neutral-400 hover:text-white cursor-pointer hover:bg-neutral-800"
                   >
                     {copiedField === 'amount' ? <Check size={10} className="text-emerald-500" /> : <Copy size={10} />}
@@ -424,11 +424,13 @@ export const Auth: React.FC = () => {
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={16} />
                 <input
                   type="text"
+                  autoComplete="name"
                   placeholder="Бат-Эрдэнэ"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-neutral-900/60 border border-white/10 rounded-xl focus:border-amber-500 outline-none text-white text-xs"
+                  style={{ minHeight: '48px', fontSize: '16px' }}
+                  className="w-full pl-10 pr-4 py-2.5 bg-neutral-900/60 border border-white/10 rounded-xl focus:border-amber-500 outline-none text-white"
                 />
               </div>
             </div>
@@ -439,11 +441,14 @@ export const Auth: React.FC = () => {
                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={16} />
                 <input
                   type="tel"
+                  inputMode="numeric"
+                  autoComplete="tel"
                   placeholder="Утасны дугаар"
                   required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-neutral-900/60 border border-white/10 rounded-xl focus:border-amber-500 outline-none text-white text-xs"
+                  style={{ minHeight: '48px', fontSize: '16px' }}
+                  className="w-full pl-10 pr-4 py-2.5 bg-neutral-900/60 border border-white/10 rounded-xl focus:border-amber-500 outline-none text-white"
                 />
               </div>
             </div>
@@ -454,11 +459,13 @@ export const Auth: React.FC = () => {
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={16} />
                 <input
                   type="password"
+                  autoComplete="new-password"
                   placeholder="Нууц үг"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-neutral-900/60 border border-white/10 rounded-xl focus:border-amber-500 outline-none text-white text-xs"
+                  style={{ minHeight: '48px', fontSize: '16px' }}
+                  className="w-full pl-10 pr-4 py-2.5 bg-neutral-900/60 border border-white/10 rounded-xl focus:border-amber-500 outline-none text-white"
                 />
               </div>
             </div>
@@ -466,7 +473,8 @@ export const Auth: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl active:scale-[0.98] transition-all text-xs cursor-pointer"
+              style={{ minHeight: '52px' }}
+              className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl active:scale-[0.98] transition-all text-sm cursor-pointer"
             >
               {loading ? 'Уншиж байна...' : 'Бүртгэл дуусгах'}
             </button>
@@ -496,7 +504,7 @@ export const Auth: React.FC = () => {
               <div>
                 <h2 className="font-display font-bold text-xl text-white">Бүртгэл амжилттай үүслээ!</h2>
                 <p className="text-neutral-400 text-xs mt-2 leading-relaxed">
-                  Таны бүртгэл үүслээ. Одоо нэвтрэх хэсэг рүү очиж өөрийн утасны дугаар, нууц үгээр нэвтэрвэл танд <b className="text-amber-400">10 минутын үнэгүй туршилтын эрх</b> автоматаар олгогдох болно.
+                  Таны бүртгэл үүслээ. Одоо нэвтрэх хэсэг рүү очиж өөрийн утасны дугаар, нууц үгээр нэвтэрвэл танд <b className="text-amber-400">1 цагийн үнэгүй туршилтын эрх</b> автоматаар олгогдох болно.
                 </p>
               </div>
             </div>
@@ -590,11 +598,11 @@ export const Auth: React.FC = () => {
                   <span className="text-xs font-bold text-white">
                     {selectedPlan 
                       ? `${selectedPlan.price.toLocaleString('mn-MN')} ₮` 
-                      : (inactiveSelectedPlan === '24H' ? '4,950 ₮' : '14,950 ₮')}
+                      : (inactiveSelectedPlan === '24H' ? '5,940 ₮' : '17,940 ₮')}
                   </span>
                   <button 
                     type="button"
-                    onClick={() => handleCopy(selectedPlan ? selectedPlan.price.toString() : (inactiveSelectedPlan === '24H' ? '4950' : '14950'), 'amount')}
+                    onClick={() => handleCopy(selectedPlan ? selectedPlan.price.toString() : (inactiveSelectedPlan === '24H' ? '5940' : '17940'), 'amount')}
                     className="p-1 hover:bg-white/5 rounded transition-colors text-neutral-400 hover:text-white cursor-pointer hover:bg-neutral-800"
                   >
                     {copiedField === 'amount' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
@@ -635,11 +643,11 @@ export const Auth: React.FC = () => {
               onClick={() => {
                 setIsLoginMode(true);
                 setStep(1);
-                setSuccessMsg('Одоо өөрийн дугаараар нэвтэрч 10 минутын үнэгүй туршилтын эрхээ ашиглана уу!');
+                setSuccessMsg('Одоо өөрийн дугаараар нэвтэрч 1 цагийн үнэгүй туршилтын эрхээ ашиглана уу!');
               }}
               className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl active:scale-[0.98] transition-all text-xs cursor-pointer text-center"
             >
-              Нэвтрэх хэсэг рүү очих (10 минут үнэгүй турших)
+              Нэвтрэх хэсэг рүү очих (1 цаг үнэгүй турших)
             </button>
           </div>
         )}
@@ -665,10 +673,13 @@ export const Auth: React.FC = () => {
                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={16} />
                 <input
                   type="tel"
+                  inputMode="numeric"
+                  autoComplete="tel"
                   placeholder="Бүртгэлтэй утасны дугаар"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-neutral-900/60 border border-white/10 rounded-xl focus:border-amber-500 outline-none text-white text-xs"
+                  style={{ minHeight: '48px', fontSize: '16px' }}
+                  className="w-full pl-10 pr-4 py-3 bg-neutral-900/60 border border-white/10 rounded-xl focus:border-amber-500 outline-none text-white"
                 />
               </div>
             </div>
@@ -679,10 +690,12 @@ export const Auth: React.FC = () => {
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={16} />
                 <input
                   type="password"
+                  autoComplete="current-password"
                   placeholder="Нууц үг"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-neutral-900/60 border border-white/10 rounded-xl focus:border-amber-500 outline-none text-white text-xs"
+                  style={{ minHeight: '48px', fontSize: '16px' }}
+                  className="w-full pl-10 pr-4 py-3 bg-neutral-900/60 border border-white/10 rounded-xl focus:border-amber-500 outline-none text-white"
                 />
               </div>
             </div>
@@ -690,7 +703,8 @@ export const Auth: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl active:scale-[0.98] transition-all text-xs cursor-pointer shadow-lg"
+              style={{ minHeight: '52px' }}
+              className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl active:scale-[0.98] transition-all text-sm cursor-pointer shadow-lg shadow-amber-500/20"
             >
               {loading ? 'Нэвтэрч байна...' : 'Нэвтрэх'}
             </button>
@@ -703,7 +717,8 @@ export const Auth: React.FC = () => {
                   setStep(2);
                   setActivationCode('');
                 }}
-                className="text-amber-500 hover:underline text-xs font-bold"
+                style={{ minHeight: '44px' }}
+                className="text-amber-500 hover:underline text-sm font-bold"
               >
                 Бүртгүүлэх (Шинэ бүртгэл үүсгэх)
               </button>
