@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { MessageCircle, X, ChevronLeft, Send, User, Phone, Star, ThumbsUp } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import { useChatStore } from "../store/chatStore";
@@ -11,72 +11,72 @@ interface FAQNode {
 
 const FAQ_TREE: Record<string, FAQNode> = {
   "3d-editor": {
-    title: "3D Zasvarlagch ashiglakh",
+    title: "3D Засварлагч ашиглах",
     children: {
       "add-cabinet": {
-        title: "Shuugee khervhen nemekh ve?",
-        content: "**Shuugee shineer nemekh zaavar:**\n\n1. Zuun taliin tsesnees **Zagvar** tab ruu orno.\n2. Belen shuugeenuudiin jagsaaltaas songooj, **Nemekh** tovchluuren deer daraa.\n3. Esvel shuugeeg 3D delgets ruu shuud **chirj oruulakh** boolomjtoi.\n4. Nemegdsen shuugeeg zoohod khulaanaar chirj bairshlyyg oorcholno."
+        title: "Шүүгээ хэрхэн нэмэх вэ?",
+        content: "**Шүүгээ шинээр нэмэх заавар:**\n\n1. Зүүн талын цэснээс **Загвар** таб руу орно.\n2. Бэлэн шүүгээнүүдийн жагсаалтаас сонгож, **Нэмэх** товчлуур дээр дарна.\n3. Эсвэл шүүгээг 3D дэлгэц рүү шууд **чирч оруулах** боломжтой.\n4. Нэмэгдсэн шүүгээг зөөхдөө хулганаар чирж байршлыг өөрчилнө."
       },
       "edit-size": {
-        title: "Khemjeeg khervhen oorcholokh ve?",
-        content: "**Shuugeeii khemjees oorcholokh:**\n\n1. 3D delgets deerkh shuugeenii deer **davkhar tovshikh** uildel khiyno.\n2. Gar utas deer **Tokhirgoo** tab neegdene.\n3. Delgetsiin doodnoos Properties Panel-aas orgonn, onders, guniyg shuud oorcholokh boolomjtoi."
+        title: "Хэмжээг хэрхэн өөрчлөх вэ?",
+        content: "**Шүүгээний хэмжээс өөрчлөх:**\n\n1. 3D дэлгэц дээрх шүүгээн дээр **давхар товших** үйлдэл хийнэ.\n2. Баруун талд **Тохиргоо** таб нээгдэнэ.\n3. Дэлгэцийн баруун талын Properties Panel-аас өргөн, өндөр, гүнийг шууд өөрчлөх боломжтой."
       },
       "navigation": {
-        title: "3D orchnyg khervhen udirdakh ve?",
-        content: "**3D Viewport-iin udirdlaga:**\n\n* **Erguulex**: Khulaany zuun tovchiyg daran chirne.\n* **Zookh**: Khulaany baruun tovchiyg daran chirne.\n* **Oirtuurakh**: Khulaany dund duguiyg ashiglana."
+        title: "3D орчныг хэрхэн удирдах вэ?",
+        content: "**3D Viewport-ийн удирдлага:**\n\n* **Эргүүлэх**: Хулганы зүүн товчийг даран чирнэ.\n* **Зөөх**: Хулганы баруун товчийг даран чирнэ.\n* **Ойртуулах**: Хулганы дунд дугуйг ашиглана."
       },
       "save-layout": {
-        title: "Tosliyg khervhen khadgalakh ve?",
-        content: "**Tosl khadgalakh zaavar:**\n\n* Tany khiysen buh oorchooltool uulen serverter automataaar khadgalagddaa.\n* Deediyes **Khadgalakh** tovchiyg darsnaaar snapshot boloon khadgaldag."
+        title: "Төслийг хэрхэн хадгалах вэ?",
+        content: "**Төсөл хадгалах заавар:**\n\n* Таны хийсэн бүх өөрчлөлтүүд үүлэн серверт автоматаар хадгалагддаг.\n* Дээд хэсгээс **Хадгалах** товчийг дарснаар хувилбар болон хадгалагддаг."
       }
     }
   },
   "materials": {
-    title: "Materialiin san udirdakh",
+    title: "Материалын сан удирдах",
     children: {
       "add-material": {
-        title: "Shine ongo, une khervhen nemekh ve?",
-        content: "**Material shineer burtgelekh:**\n\n1. Undsen tsesnees **Material** khuudas ruu orno.\n2. **Shine material nemekh** tovchiyg daraa.\n3. Materialiin ner, zuzaan, une, ongooyg oruulaaad **Khadgalakh** darna."
+        title: "Шинэ өнгө, үнэ хэрхэн нэмэх вэ?",
+        content: "**Материал шинээр бүртгэх:**\n\n1. Үндсэн цэснээс **Материал** хуудас руу орно.\n2. **Шинэ материал нэмэх** товчийг дарна.\n3. Материалын нэр, зузаан, үнэ, өнгийг оруулаад **Хадгалах** дарна."
       },
       "edit-cabinet-material": {
-        title: "Shuugeeii materialyg khervhen solikhi ve?",
-        content: "**Shuugeeii material oorcholokh:**\n\n1. Shuugeeg songood tokhirgoonii baruun tsonkh ruu orno.\n2. **Nuur / Ongo** kheseg ruu shiljne.\n3. Endees ikhbienii material, khaalganiii material-yg songoj oorcholno."
+        title: "Шүүгээний материалыг хэрхэн солих вэ?",
+        content: "**Шүүгээний материал өөрчлөх:**\n\n1. Шүүгээг сонгоод тохиргооны баруун цонх руу орно.\n2. **Нүүр / Өнгө** хэсэг рүү шилжинэ.\n3. Эндээс их биений материал, хаалганы материалыг сонгож өөрчилнө."
       }
     }
   },
   "nesting": {
-    title: "Zuuselt onovchlol (Nesting)",
+    title: "Зүсэлт оновчлол (Nesting)",
     children: {
       "sheet-size": {
-        title: "Khavtangiin khemjee solikhi",
-        content: "**Khavtangiin khemjee tokhiruulakh:**\n\n1. **Zuuselt onovchlol** khuudas ruu shiljne.\n2. Zuun taliin khesgeees tokhiroh standart khemjeeyg songono.\n3. Algoritm shuud shinchelne."
+        title: "Хавтангийн хэмжээ солих",
+        content: "**Хавтангийн хэмжээ тохируулах:**\n\n1. **Зүсэлт оновчлол** хуудас руу шилжинэ.\n2. Зүүн талын хэсгээс тохирох стандарт хэмжээг сонгоно.\n3. Алгоритм шууд шинэчилнэ."
       },
       "kerf": {
-        title: "Khorooony ir (Kerf) tokhiruulakh",
-        content: "**Khorooony iriin zai tokhiruulakh:**\n\n* Kerf ni khavtan zuusekh ued uuseh urtesiin iriin zuzaan yum (ikhevchleng 4mm).\n* Algoritm iriin zuzaan zaiyg kheseg buriin dundad avtomataaar avch tootsdog."
+        title: "Хөрөөний ир (Kerf) тохируулах",
+        content: "**Хөрөөний ирний зай тохируулах:**\n\n* Kerf нь хавтан зүсэх үед үүсэх үртэсний ирний зузаан юм (ихэвчлэн 4мм).\n* Алгоритм ирний зузаан зайг хэсэг бүрийн дундаас автоматаар авч тооцдог."
       },
       "svg-cnc": {
-        title: "SVG CNC zurgiin fail tatakh",
-        content: "**CNC zuuseltiiin zurag tatakh:**\n\n* Tootsoolol khiigdesnii daraa **SVG CNC Tatakh** tovchluур baіrlana.\n* Tuhain khavtan deerkh zuuseltiiin zurgiyg vektoorop (SVG) tataj avakh boolomjtoi."
+        title: "SVG CNC зургийн файл татах",
+        content: "**CNC зүсэлтийн зураг татах:**\n\n* Тооцоолол хийгдсэний дараа **SVG CNC Татах** товчлуур байрлана.\n* Тухайн хавтан дээрх зүсэлтийн зургийг вектор (SVG) хэлбэрээр татаж авах боломжтой."
       }
     }
   },
   "pricing": {
-    title: "Erkh sungalt & Tölbör",
+    title: "Эрх сунгалт & Төлбөр",
     children: {
       "prices": {
-        title: "Erkh sungakh une tarif",
-        content: "**TavMax Platformiin litsenziin une tarif:**\n\n* **24 tsagiin erkh**: 5,940 T\n* **30 khonogoiin erkh**: 17,940 T\n\n*Erkh sungagdsnaar buh boolomj burenguu needne.*"
+        title: "Эрх сунгах үнэ тариф",
+        content: "**TavMax Платформын лицензийн үнэ тариф:**\n\n* **24 цагийн эрх**: 5,940 ₮\n* **30 хоногийн эрх**: 17,940 ₮\n\n*Эрх сунгагдсанаар бүх боломж бүрэн нээгдэнэ.*"
       },
       "how-to-pay": {
-        title: "Erkhee khervhen idévkhzhuulex ve?",
-        content: "**Litsenz idévkhzhuulex alkhamууd:**\n\n1. **Minii Erkh & Tölbör** tsonkhond shiljne.\n2. Güilgeenii ütga deer ooriiin utasny dugaaraa bichne.\n3. Tölbör orsnii daraa admin erkh idévkhzhuulne."
+        title: "Эрхээ хэрхэн идэвхжүүлэх вэ?",
+        content: "**Лиценз идэвхжүүлэх алхмууд:**\n\n1. **Миний Эрх & Төлбөр** цонхонд шилжинэ.\n2. Гүйлгээний утга дээр өөрийн утасны дугаараа бичнэ.\n3. Төлбөр орсон даруйд админ эрхийг идэвхжүүлнэ."
       }
     }
   },
   "contact-admin": {
-    title: "Admintai kholbogdokh",
-    content: "Ta sistem ashiglakh, erkh sungalt, tölbör baталgaazhuurakh boloon tekhnikiiin asuudlaaar manai admintai shuud chatlaaj tuslamzh avakh boolomztoi."
+    title: "Админтай холбогдох",
+    content: "Та систем ашиглах, эрх сунгалт, төлбөр баталгаажуулах болон техникийн асуудлаар манай админтай шууд чаталж тусламж авах боломжтой."
   }
 };
 
@@ -131,7 +131,7 @@ export const SupportChat: React.FC = () => {
   };
 
   const getCurrentNode = (): { title: string; children?: Record<string, FAQNode>; content?: string } => {
-    let node: any = { title: "TavMax Tuslaakh", children: FAQ_TREE };
+    let node: any = { title: "TavMax Туслах", children: FAQ_TREE };
     for (const key of currentPath) {
       if (node && node.children && node.children[key]) {
         node = node.children[key];
@@ -205,8 +205,8 @@ export const SupportChat: React.FC = () => {
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatName.trim()) { setFormError('Nereet oruulna uu.'); return; }
-    if (!chatPhone.trim() || chatPhone.trim().length < 8) { setFormError('Utasny dugaaraa zov oruulna uu.'); return; }
+    if (!chatName.trim()) { setFormError('Нэрээ оруулна уу.'); return; }
+    if (!chatPhone.trim() || chatPhone.trim().length < 8) { setFormError('Утасны дугаараа зөв оруулна уу.'); return; }
     localStorage.setItem('tavmax_chat_name', chatName.trim());
     localStorage.setItem('tavmax_chat_phone', chatPhone.trim());
     setFormError('');
@@ -217,7 +217,7 @@ export const SupportChat: React.FC = () => {
     e.preventDefault();
     if (!inputText.trim()) return;
     const phone = chatPhone || (isLoggedIn && user ? user.phone : '');
-    const name = chatName || (isLoggedIn && user ? user.name : 'Zochin');
+    const name = chatName || (isLoggedIn && user ? user.name : 'Зочин');
     if (!phone) return;
     const success = await sendMessage(phone, name, inputText.trim(), false);
     if (success) setInputText('');
@@ -225,31 +225,25 @@ export const SupportChat: React.FC = () => {
 
   const handleFeedbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!feedbackCategory) { setFeedbackError('Anglilalyg songono uu.'); return; }
-    if (!feedbackText.trim()) { setFeedbackError('Sanal khuseltee bichne uu.'); return; }
+    if (!feedbackCategory) { setFeedbackError('Ангиллыг сонгоно уу.'); return; }
+    if (!feedbackText.trim()) { setFeedbackError('Санал хүсэлтээ бичнэ үү.'); return; }
     setFeedbackLoading(true);
     setFeedbackError('');
-    const phone = chatPhone || (isLoggedIn && user ? user.phone : 'Anonім');
-    const name = chatName || (isLoggedIn && user ? user.name : 'Zochin');
-    const stars = feedbackRating > 0 ? Array(feedbackRating).fill('*').join('') + Array(5 - feedbackRating).fill('o').join('') : 'unelgui';
-    const msg = '[SANAL KHUSELT] ' + feedbackCategory + ' | ' + stars + '\n' + feedbackText.trim();
+    const phone = chatPhone || (isLoggedIn && user ? user.phone : 'Анон');
+    const name = chatName || (isLoggedIn && user ? user.name : 'Зочин');
+    const stars = feedbackRating > 0 ? Array(feedbackRating).fill('*').join('') + Array(5 - feedbackRating).fill('o').join('') : 'үнэлгээгүй';
+    const msg = '[САНАЛ ХҮСЭЛТ] ' + feedbackCategory + ' | ' + stars + '\n' + feedbackText.trim();
     try {
       await sendMessage(phone, name, msg, false);
       setChatMode('feedback-done');
     } catch {
-      setFeedbackError('Ilgeekhed aldaa garslaa. Dakhin oroldono uu.');
+      setFeedbackError('Илгээхэд алдаа гарлаа. Дахин оролдоно уу.');
     } finally {
       setFeedbackLoading(false);
     }
   };
 
-  const starLabels = ['', 'Mash muu', 'Muu', 'Dundazh', 'Sain', 'Mash sain'];
-  const categories = [
-    { key: 'Khuselt', emoji: '1F4A1' },
-    { key: 'Aldaa', emoji: '1F41B' },
-    { key: 'Shinechlel', emoji: '2728' },
-    { key: 'Ontslog', emoji: '1F4AC' },
-  ];
+  const starLabels = ['', 'Маш муу', 'Муу', 'Дундаж', 'Сайн', 'Маш сайн'];
 
   return (
     <div className="fixed bottom-6 right-6 z-[99999] flex flex-col items-end select-none font-sans">
@@ -265,13 +259,13 @@ export const SupportChat: React.FC = () => {
               )}
               <div className="flex flex-col">
                 <span className="text-xs font-bold text-white">
-                  {chatMode === 'chat' ? 'Admintai kholbogdokh'
-                    : (chatMode === 'feedback' || chatMode === 'feedback-done') ? 'Sanal Khuselt'
-                    : 'TavMax Tuslaakh'}
+                  {chatMode === 'chat' ? 'Админтай холбогдох'
+                    : (chatMode === 'feedback' || chatMode === 'feedback-done') ? 'Санал хүсэлт'
+                    : 'TavMax Туслах'}
                 </span>
                 <span className="text-[9px] text-emerald-400 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Ashiglakhad belen
+                  Ашиглахад бэлэн
                 </span>
               </div>
             </div>
@@ -284,26 +278,26 @@ export const SupportChat: React.FC = () => {
           {chatMode === 'form' && (
             <form onSubmit={handleFormSubmit} className="flex-1 flex flex-col justify-center p-6 gap-4">
               <div className="text-center mb-2">
-                <h4 className="text-sm font-bold text-white mb-1">Admintai kholbogdokh</h4>
-                <p className="text-[10px] text-neutral-400">Neriig boloon utasny dugaaraa oruulaaad chatlaakh boolomztoi.</p>
+                <h4 className="text-sm font-bold text-white mb-1">Админтай холбогдох</h4>
+                <p className="text-[10px] text-neutral-400">Нэр болон утасны дугаараа оруулаад чатлах боломжтой.</p>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-neutral-400 font-semibold uppercase">Tany ner</label>
+                <label className="text-[10px] text-neutral-400 font-semibold uppercase">Таны нэр</label>
                 <div className="relative">
                   <User size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
-                  <input type="text" required placeholder="Nereet oruulna uu..." value={chatName} onChange={(e) => setChatName(e.target.value)} style={{ fontSize: '16px' }} className="w-full bg-neutral-900/60 border border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs text-white outline-none focus:border-amber-500 transition-colors" />
+                  <input type="text" required placeholder="Нэрээ орууна уу..." value={chatName} onChange={(e) => setChatName(e.target.value)} style={{ fontSize: '16px' }} className="w-full bg-neutral-900/60 border border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs text-white outline-none focus:border-amber-500 transition-colors" />
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-neutral-400 font-semibold uppercase">Utasny dugaar</label>
+                <label className="text-[10px] text-neutral-400 font-semibold uppercase">Утасны дугаар</label>
                 <div className="relative">
                   <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
-                  <input type="tel" required maxLength={8} placeholder="Utasny dugaar..." value={chatPhone} onChange={(e) => setChatPhone(e.target.value.replace(/\D/g, ''))} style={{ fontSize: '16px' }} className="w-full bg-neutral-900/60 border border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs text-white outline-none focus:border-amber-500 transition-colors font-mono" />
+                  <input type="tel" required maxLength={8} placeholder="Утасны дугаар..." value={chatPhone} onChange={(e) => setChatPhone(e.target.value.replace(/\D/g, ''))} style={{ fontSize: '16px' }} className="w-full bg-neutral-900/60 border border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs text-white outline-none focus:border-amber-500 transition-colors font-mono" />
                 </div>
               </div>
               {formError && <p className="text-[10px] text-red-400 text-center font-medium">{formError}</p>}
-              <button type="submit" className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-lg mt-2">Chatlaakh</button>
-              <button type="button" onClick={() => setChatMode('faq')} className="w-full py-2 bg-neutral-900 text-neutral-400 text-[10px] font-bold rounded-xl border border-white/5 transition-all cursor-pointer text-center">&larr; Butsakh</button>
+              <button type="submit" className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-lg mt-2">Чатлах</button>
+              <button type="button" onClick={() => setChatMode('faq')} className="w-full py-2 bg-neutral-900 text-neutral-400 text-[10px] font-bold rounded-xl border border-white/5 transition-all cursor-pointer text-center">&larr; Буцах</button>
             </form>
           )}
 
@@ -314,27 +308,27 @@ export const SupportChat: React.FC = () => {
                 {messages.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
                     <MessageCircle size={24} className="text-amber-500/30 mb-2" />
-                    <span className="text-[10px] text-neutral-500 leading-normal">Chat ekhelleh. Asuukh zuiliee bichij adminas tuslamz avna uu.</span>
+                    <span className="text-[10px] text-neutral-500 leading-normal">Чат эхлэх. Асуух зүйлээ бичиж админаас тусламж авна уу.</span>
                   </div>
                 ) : (
                   messages.map((msg) => {
-                    const isMe = !msg.is_from_admin;
-                    const timeText = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    return (
-                      <div key={msg.id} className={`flex gap-2 items-start ${isMe ? 'justify-end' : 'justify-start'}`}>
-                        {!isMe && (<div className="w-6 h-6 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0 font-bold text-[9px]">TM</div>)}
-                        <div className={`flex flex-col max-w-[75%] gap-0.5 ${isMe ? 'items-end' : 'items-start'}`}>
-                          <div className={`px-3 py-2 rounded-2xl text-[11px] leading-normal whitespace-pre-wrap shadow-sm border ${isMe ? 'bg-amber-500 text-neutral-950 border-amber-400 font-medium rounded-tr-none' : 'bg-[#1c1d24] text-neutral-200 border-white/5 rounded-tl-none'}`}>{msg.message}</div>
-                          <span className="text-[8px] text-neutral-500 px-1 font-medium">{timeText}</span>
-                        </div>
-                      </div>
-                    );
+                     const isMe = !msg.is_from_admin;
+                     const timeText = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                     return (
+                       <div key={msg.id} className={`flex gap-2 items-start ${isMe ? 'justify-end' : 'justify-start'}`}>
+                         {!isMe && (<div className="w-6 h-6 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0 font-bold text-[9px]">TM</div>)}
+                         <div className={`flex flex-col max-w-[75%] gap-0.5 ${isMe ? 'items-end' : 'items-start'}`}>
+                           <div className={`px-3 py-2 rounded-2xl text-[11px] leading-normal whitespace-pre-wrap shadow-sm border ${isMe ? 'bg-amber-500 text-neutral-950 border-amber-400 font-medium rounded-tr-none' : 'bg-[#1c1d24] text-neutral-200 border-white/5 rounded-tl-none'}`}>{msg.message}</div>
+                           <span className="text-[8px] text-neutral-500 px-1 font-medium">{timeText}</span>
+                         </div>
+                       </div>
+                     );
                   })
                 )}
                 <div ref={messagesEndRef} />
               </div>
               <form onSubmit={handleSendMessage} className="p-3 bg-[#12141c] border-t border-white/5 flex gap-2 items-center shrink-0">
-                <input type="text" placeholder="Asuultaa bichne uu..." value={inputText} onChange={(e) => setInputText(e.target.value)} style={{ fontSize: '16px' }} className="flex-1 bg-neutral-900 border border-white/10 rounded-xl py-2 px-3.5 text-xs text-white outline-none focus:border-amber-500 transition-colors" />
+                <input type="text" placeholder="Асуултаа бичнэ үү..." value={inputText} onChange={(e) => setInputText(e.target.value)} style={{ fontSize: '16px' }} className="flex-1 bg-neutral-900 border border-white/10 rounded-xl py-2 px-3.5 text-xs text-white outline-none focus:border-amber-500 transition-colors" />
                 <button type="submit" className="p-2 bg-amber-500 hover:bg-amber-600 text-neutral-950 rounded-xl transition-all cursor-pointer"><Send size={14} /></button>
               </form>
             </div>
@@ -346,13 +340,13 @@ export const SupportChat: React.FC = () => {
               <div className="flex gap-2.5 items-start">
                 <div className="w-7 h-7 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0 font-bold text-[10px]">TM</div>
                 <div className="bg-[#1c1d24] text-neutral-200 text-xs px-3 py-2.5 rounded-2xl rounded-tl-none border border-white/5 leading-relaxed">
-                  Tany sanal khuselt bidend mash chukhаl baina! Sistemийг saijruulakhad tusalna uu.
+                  Таны санал хүсэлт бидэнд маш чухал байна! Системийг сайжруулахад тусална уу.
                 </div>
               </div>
 
               {/* Stars */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider">Sistemiin unelgee (zaavalgui)</label>
+                <label className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider">Системийн үнэлгээ (заавал биш)</label>
                 <div className="flex gap-2 items-center">
                   {[1,2,3,4,5].map((star) => (
                     <button key={star} type="button"
@@ -370,13 +364,13 @@ export const SupportChat: React.FC = () => {
 
               {/* Category */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider">Angilal <span className="text-red-400">*</span></label>
+                <label className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider">Ангилал <span className="text-red-400">*</span></label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {[
-                    { label: 'Khuselt', icon: '💡' },
-                    { label: 'Aldaa', icon: '🐛' },
-                    { label: 'Shinechlel', icon: '✨' },
-                    { label: 'Ontslog', icon: '💬' },
+                    { label: 'Хүсэлт', icon: '💡' },
+                    { label: 'Алдаа', icon: '🐛' },
+                    { label: 'Шинэчлэл', icon: '✨' },
+                    { label: 'Онцлог', icon: '💬' },
                   ].map(({ label, icon }) => (
                     <button key={label} type="button" onClick={() => setFeedbackCategory(label)}
                       className={`py-2 px-2 rounded-xl text-[11px] font-bold border transition-all cursor-pointer flex items-center gap-1.5 justify-center ${feedbackCategory === label ? 'bg-amber-500 border-amber-500 text-neutral-950 shadow-lg' : 'bg-neutral-900/60 border-white/10 text-neutral-400 hover:border-amber-500/40 hover:text-white'}`}
@@ -389,10 +383,10 @@ export const SupportChat: React.FC = () => {
 
               {/* Text */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider">Tany sanal <span className="text-red-400">*</span></label>
+                <label className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider">Таны санал <span className="text-red-400">*</span></label>
                 <textarea
                   rows={4}
-                  placeholder="Delgerenguui sanal khuseltee end bichne uu..."
+                  placeholder="Дэлгэрэнгүй санал хүсэлтээ энд бичнэ үү..."
                   value={feedbackText}
                   onChange={(e) => setFeedbackText(e.target.value)}
                   className="w-full bg-neutral-900/60 border border-white/10 rounded-xl py-2.5 px-3 text-xs text-white outline-none focus:border-amber-500 transition-colors resize-none leading-relaxed"
@@ -404,9 +398,9 @@ export const SupportChat: React.FC = () => {
 
               <button type="submit" disabled={feedbackLoading} className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-neutral-950 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-lg flex items-center justify-center gap-2">
                 <Send size={13} />
-                {feedbackLoading ? 'Ilgeej baina...' : 'Sanal ilgeekh'}
+                {feedbackLoading ? 'Илгээж байна...' : 'Санал илгээх'}
               </button>
-              <button type="button" onClick={handleBack} className="w-full py-1.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-400 text-[10px] font-bold rounded-xl border border-white/5 transition-all cursor-pointer">&larr; Butsakh</button>
+              <button type="button" onClick={handleBack} className="w-full py-1.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-400 text-[10px] font-bold rounded-xl border border-white/5 transition-all cursor-pointer">&larr; Буцах</button>
             </form>
           )}
 
@@ -417,13 +411,13 @@ export const SupportChat: React.FC = () => {
                 <ThumbsUp size={30} className="text-emerald-400" />
               </div>
               <div className="flex flex-col gap-2">
-                <h4 className="text-sm font-bold text-white">Bayarlalaa!</h4>
+                <h4 className="text-sm font-bold text-white">Баярлалаа!</h4>
                 <p className="text-[11px] text-neutral-400 leading-relaxed max-w-[240px] mx-auto">
-                  Tany sanal khuselt amjilttai khuleen avgdlaa. Bid tany sanalийг ankhaaralttai kharj sistemiig saijruulakhad ashiglana.
+                  Таны санал хүсэлт амжилттай хүлээн авагдлаа. Бид таны саналыг анхааралтай үзэж системийг сайжруулахад ашиглах болно.
                 </p>
               </div>
               <button type="button" onClick={handleHome} className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 text-xs font-bold rounded-xl transition-all cursor-pointer">
-                Ekhlelruu ochikh
+                Эхлэл рүү очих
               </button>
             </div>
           )}
@@ -435,7 +429,7 @@ export const SupportChat: React.FC = () => {
                 <div className="w-7 h-7 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0 font-bold text-[10px]">TM</div>
                 <div className="flex-1 flex flex-col gap-1.5">
                   <div className="bg-[#1c1d24] text-neutral-200 text-xs px-3 py-2.5 rounded-2xl rounded-tl-none border border-white/5 leading-normal">
-                    Sain baina uu! Tand sistem ashiglakh, tavilga zurakh boloon zuuseltiiin tootsootoi kholbootoi yamar tuslamzh kheregтei baina? Sedvee songono uu.
+                    Сайн байна уу! Танд систем ашиглах, тавилга зурах болон зүсэлтийн тооцоотой холбоотой ямар тусламж хэрэгтэй байна? Сэдвээ сонгоно уу.
                   </div>
                 </div>
               </div>
@@ -464,12 +458,12 @@ export const SupportChat: React.FC = () => {
                     </div>
                     {currentPath[0] === "contact-admin" && (
                       <button onClick={handleStartChatClick} className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 text-xs font-bold rounded-xl transition-all cursor-pointer text-center flex items-center justify-center gap-1.5 shadow">
-                        Admintai chatlaakh
+                        Админтай чатлах
                       </button>
                     )}
                     <div className="flex gap-2">
-                      <button onClick={handleBack} className="flex-1 py-1.5 bg-neutral-800 text-neutral-350 text-[10px] font-bold rounded-lg border border-white/5 transition-all cursor-pointer text-center">&larr; Butsakh</button>
-                      <button onClick={handleHome} className="flex-1 py-1.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 text-[10px] font-bold rounded-lg transition-all cursor-pointer text-center">Ekhlelruu</button>
+                      <button onClick={handleBack} className="flex-1 py-1.5 bg-neutral-800 text-neutral-350 text-[10px] font-bold rounded-lg border border-white/5 transition-all cursor-pointer text-center">&larr; Буцах</button>
+                      <button onClick={handleHome} className="flex-1 py-1.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 text-[10px] font-bold rounded-lg transition-all cursor-pointer text-center">Эхлэл рүү</button>
                     </div>
                   </div>
                 </div>
@@ -490,7 +484,7 @@ export const SupportChat: React.FC = () => {
                     <button onClick={() => setChatMode('feedback')}
                       className="w-full text-left px-3.5 py-2.5 bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/15 hover:border-emerald-500/40 rounded-xl text-neutral-300 hover:text-emerald-300 text-xs font-semibold transition-all cursor-pointer flex justify-between items-center group shadow-md"
                     >
-                      <span>Sanal khuselt uldekh</span>
+                      <span>Санал хүсэлт үлдээх</span>
                       <span className="text-neutral-500 group-hover:text-emerald-400 text-[10px] transition-colors">&rarr;</span>
                     </button>
                   )}
@@ -504,12 +498,12 @@ export const SupportChat: React.FC = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-12 h-12 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-neutral-950 flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer relative z-50 group border border-amber-600"
-        title="Tuslamzh avakh"
+        title="Тусламж авах"
       >
         {isOpen ? <X size={20} /> : <MessageCircle size={20} />}
         {!isOpen && (
           <span className="absolute right-14 bg-neutral-900/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-lg border border-white/10 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity uppercase tracking-wider whitespace-nowrap">
-            Tuslamzh avakh uu?
+            Тусламж авах уу?
           </span>
         )}
       </button>
