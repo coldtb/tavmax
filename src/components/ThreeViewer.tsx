@@ -984,6 +984,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
             draggedShelfMesh = hitObj;
             draggedShelfIndex = hitObj.userData.shelfIndex;
             parentModuleGroup = group;
+            if (controlsRef.current) controlsRef.current.enabled = false; // Disable controls immediately to prevent camera drift
 
             if (group) {
               setSelectedModuleId(group.name); // Select this module in store
@@ -1010,6 +1011,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
             draggedPartitionMesh = hitObj;
             draggedPartitionIndex = hitObj.userData.partitionIndex;
             parentModuleGroup = group;
+            if (controlsRef.current) controlsRef.current.enabled = false; // Disable controls immediately to prevent camera drift
 
             if (group) {
               setSelectedModuleId(group.name); // Select this module in store
@@ -1035,6 +1037,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
             activeDragType = 'module';
             draggedGroup = group;
             setSelectedModuleId(group.name); // Select this module in store
+            if (controlsRef.current) controlsRef.current.enabled = false; // Disable controls immediately to prevent camera drift
 
             // Glow drag effect
             group.traverse((child) => {
@@ -1066,14 +1069,38 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
           const dist = Math.hypot(event.clientX - dragStartX, event.clientY - dragStartY);
           if (dist >= 6) {
             dragThresholdPassed = true;
-            if (controlsRef.current) controlsRef.current.enabled = false; // Disable camera orbiting only when dragging starts
+            if (controlsRef.current) controlsRef.current.enabled = false; // Ensure camera orbiting is disabled
             
-            if (activeDragType === 'module') {
+            // Re-calculate projection coordinates at the moment drag starts to prevent visual jump
+            const rect = rendererRef.current.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(mouse, cameraRef.current);
+
+            if (activeDragType === 'module' && draggedGroup) {
               isDragging = true;
-            } else if (activeDragType === 'shelf') {
+              const worldPos = new THREE.Vector3();
+              draggedGroup.getWorldPosition(worldPos);
+              dragPlane.setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 1, 0), worldPos);
+              if (raycaster.ray.intersectPlane(dragPlane, dragIntersection)) {
+                dragOffset.copy(draggedGroup.position).sub(dragIntersection);
+              }
+            } else if (activeDragType === 'shelf' && draggedShelfMesh && parentModuleGroup) {
               isDraggingShelf = true;
-            } else if (activeDragType === 'partition') {
+              const camDir = new THREE.Vector3();
+              cameraRef.current.getWorldDirection(camDir);
+              const planeNormal = new THREE.Vector3(camDir.x, 0, camDir.z).normalize();
+              const worldPos = new THREE.Vector3();
+              draggedShelfMesh.getWorldPosition(worldPos);
+              dragPlane.setFromNormalAndCoplanarPoint(planeNormal, worldPos);
+            } else if (activeDragType === 'partition' && draggedPartitionMesh && parentModuleGroup) {
               isDraggingPartition = true;
+              const camDir = new THREE.Vector3();
+              cameraRef.current.getWorldDirection(camDir);
+              const planeNormal = new THREE.Vector3(camDir.x, 0, camDir.z).normalize();
+              const worldPos = new THREE.Vector3();
+              draggedPartitionMesh.getWorldPosition(worldPos);
+              dragPlane.setFromNormalAndCoplanarPoint(planeNormal, worldPos);
             }
           } else {
             return; // drag threshold not passed yet
