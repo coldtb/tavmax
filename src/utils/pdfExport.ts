@@ -2,6 +2,7 @@ import { jsPDF } from 'jspdf';
 import type { Project, Material } from '../data/mockData';
 import { DEFAULT_MATERIALS } from '../data/mockData';
 import type { NestedSheet } from './nesting';
+import { calculateTotalKitchenLength } from '../store/projectStore';
 
 const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
   let binary = '';
@@ -180,7 +181,12 @@ export const exportProjectToPDF = async (
   doc.setFont(fontName, 'bold');
   doc.text('Тавилгын Хэмжээс:', 20, y);
   doc.setFont(fontName, 'normal');
-  doc.text(`Өргөн: ${project.config.width}мм | Өндөр: ${project.config.height}мм | Гүн: ${project.config.depth}мм`, 70, y);
+  const totalLength = calculateTotalKitchenLength(project.modules || []);
+  if (totalLength > 0) {
+    doc.text(`Өргөн: ${project.config.width}мм | Өндөр: ${project.config.height}мм | Гүн: ${project.config.depth}мм | Нийт урт: ${totalLength.toFixed(2)} м.урт`, 70, y);
+  } else {
+    doc.text(`Өргөн: ${project.config.width}мм | Өндөр: ${project.config.height}мм | Гүн: ${project.config.depth}мм`, 70, y);
+  }
 
   y += 10;
   doc.setFont(fontName, 'bold');

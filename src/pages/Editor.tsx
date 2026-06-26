@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { useProjectStore, getCabinetSections } from '../store/projectStore';
+import { useProjectStore, getCabinetSections, calculateTotalKitchenLength } from '../store/projectStore';
 import { ThreeViewer, type ThreeViewerRef } from '../components/ThreeViewer';
 import { exportProjectToPDF } from '../utils/pdfExport';
 import { runNestingOptimizer } from '../utils/nesting';
@@ -4453,6 +4453,17 @@ return (
               <span className="text-[10px] text-neutral-400 font-bold leading-none">{activeProject.name}</span>
               <span className="text-[8px] text-neutral-500 font-medium">Захиалагч: {activeProject.customerName || 'Захиалагчгүй'}</span>
             </div>
+            {(() => {
+              const totalLength = calculateTotalKitchenLength(activeProject.modules || []);
+              if (totalLength > 0) {
+                return (
+                  <div className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
+                    <span>📏 НИЙТ УРТ: {totalLength.toFixed(2)} м.урт</span>
+                  </div>
+                );
+              }
+              return null;
+            })()}
             <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[8px] font-bold ${
               activeProject.isCloudSynced ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
             }`}>

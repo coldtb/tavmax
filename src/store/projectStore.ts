@@ -2983,3 +2983,40 @@ useProjectStore.subscribe((state, prevState) => {
     debouncedCloudSaveProject(state.activeProject);
   }
 });
+
+export const calculateTotalKitchenLength = (modules: CabinetModule[] = []): number => {
+  let totalW = 0;
+  modules.forEach((mod) => {
+    if (mod.type === 'kitchen_island') return;
+    
+    const isUpper = mod.type === 'kitchen_upper' || 
+                    mod.type === 'corner_upper' || 
+                    mod.type === 'hood' || 
+                    mod.type === 'built_in_hood' || 
+                    mod.type === 'microwave';
+    if (isUpper) return;
+    
+    const isKitchenBase = [
+      'kitchen_lower',
+      'sink',
+      'cooktop',
+      'dishwasher',
+      'oven',
+      'fridge',
+      'vitrine',
+      'cabinet',
+      'corner_lower',
+      'custom'
+    ].includes(mod.type);
+    
+    if (!isKitchenBase) return;
+    
+    const w = Number(mod.config.width) || 0;
+    if (mod.type === 'corner_lower') {
+      totalW += w * 2;
+    } else {
+      totalW += w;
+    }
+  });
+  return totalW / 1000; // convert mm to meters
+};

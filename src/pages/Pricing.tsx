@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useProjectStore } from '../store/projectStore';
+import { useProjectStore, calculateTotalKitchenLength } from '../store/projectStore';
 import { exportProjectToPDF } from '../utils/pdfExport';
 import { generatePartsDXF } from '../utils/dxfExport';
 import { Calculator, Percent, Coins, Printer, Download, Plus, Trash2, ArrowUpRight } from 'lucide-react';
@@ -151,6 +151,10 @@ export const Pricing: React.FC = () => {
       total,
     };
   }, [activeProject, profitMargin, laborCost, deliveryCost, installCost, hasVat, materials]);
+
+  const totalLength = useMemo(() => {
+    return calculateTotalKitchenLength(activeProject?.modules || []);
+  }, [activeProject]);
 
   // Group parts with duplicate dimensions, material, and edge banding
   const groupedParts = useMemo(() => {
@@ -502,6 +506,7 @@ export const Pricing: React.FC = () => {
             </div>
             
             <div className="text-left sm:text-right text-[10px] text-neutral-400 border-t sm:border-t-0 sm:border-l border-white/10 pt-3 sm:pt-0 sm:pl-6 w-full sm:w-auto flex flex-col gap-1">
+              {totalLength > 0 && <div className="text-amber-500 font-semibold">Нийт урт: {totalLength.toFixed(2)} м.урт</div>}
               <div>Нийт зардал: {Math.round(calculations.subtotal).toLocaleString('mn-MN')} ₮</div>
               <div>Цэвэр ашиг: {Math.round(calculations.profit).toLocaleString('mn-MN')} ₮</div>
             </div>
