@@ -468,41 +468,182 @@ const calculateDynamicParts = (type: Project['furnitureType'], config: Furniture
       const edge = '2mm';
 
       const isStone = config.countertopType === 'stone';
-      const ctMatId = isStone ? 'mat-ct-stone' : 'mat-ct-wood';
+      // Use body material (18mm DSP) if wood countertop to allow nesting on standard sheets
+      const ctMatId = isStone ? 'mat-ct-stone' : materialId;
 
       // 1. Countertop (width = depth, height = width)
-      parts.push({
-        id: 'p-ki-countertop',
-        name: isStone ? 'Чулуун тавцан (Арал)' : 'Модон тавцан (Арал)',
-        width: depth,
-        height: width,
-        quantity: 1,
-        materialId: ctMatId,
-        edgeBanding: 'all-sides',
-        category: 'Дээд тавиур'
-      });
+      if (isStone) {
+        // Stone countertop: single layer, exact size, do not double
+        parts.push({
+          id: 'p-ki-countertop',
+          name: 'Чулуун тавцан (Арал)',
+          width: depth,
+          height: width,
+          quantity: 1,
+          materialId: ctMatId,
+          edgeBanding: 'all-sides',
+          category: 'Дээд тавиур'
+        });
+      } else {
+        // Wood countertop: doubled (36mm) by using 10cm bottom frame
+        // Top layer (full size)
+        parts.push({
+          id: 'p-ki-countertop-top',
+          name: 'Арал - Модон тавцан (Дээд)',
+          width: depth,
+          height: width,
+          quantity: 1,
+          materialId: ctMatId,
+          edgeBanding: 'all-sides',
+          category: 'Дээд тавиур'
+        });
+        // Bottom frame (lengthwise border)
+        parts.push({
+          id: 'p-ki-countertop-frame-l',
+          name: 'Арал - Модон тавцан (Доод хүрээ урт)',
+          width: 100,
+          height: width,
+          quantity: 2,
+          materialId: ctMatId,
+          edgeBanding: 'all-sides',
+          category: 'Дээд тавиур'
+        });
+        // Bottom frame (widthwise border, fitting between)
+        const frameW = depth - 200;
+        if (frameW > 0) {
+          parts.push({
+            id: 'p-ki-countertop-frame-w',
+            name: 'Арал - Модон тавцан (Доод хүрээ богино)',
+            width: 100,
+            height: frameW,
+            quantity: 2,
+            materialId: ctMatId,
+            edgeBanding: 'all-sides',
+            category: 'Дээд тавиур'
+          });
+        }
+      }
 
       // 2. Waterfall side panels (width = depth, height = baseHeight - ctT)
-      parts.push({
-        id: 'p-ki-side-l',
-        name: isStone ? 'Чулуун хажуу хана (Зүүн)' : 'Модон хажуу хана (Зүүн)',
-        width: depth,
-        height: baseHeight - ctT,
-        quantity: 1,
-        materialId: ctMatId,
-        edgeBanding: 'all-sides',
-        category: 'Хажуу хана'
-      });
-      parts.push({
-        id: 'p-ki-side-r',
-        name: isStone ? 'Чулуун хажуу хана (Баруун)' : 'Модон хажуу хана (Баруун)',
-        width: depth,
-        height: baseHeight - ctT,
-        quantity: 1,
-        materialId: ctMatId,
-        edgeBanding: 'all-sides',
-        category: 'Хажуу хана'
-      });
+      if (isStone) {
+        // Stone side panels: single layer, exact size, do not double
+        parts.push({
+          id: 'p-ki-side-l',
+          name: 'Чулуун хажуу хана (Зүүн)',
+          width: depth,
+          height: baseHeight - ctT,
+          quantity: 1,
+          materialId: ctMatId,
+          edgeBanding: 'all-sides',
+          category: 'Хажуу хана'
+        });
+        parts.push({
+          id: 'p-ki-side-r',
+          name: 'Чулуун хажуу хана (Баруун)',
+          width: depth,
+          height: baseHeight - ctT,
+          quantity: 1,
+          materialId: ctMatId,
+          edgeBanding: 'all-sides',
+          category: 'Хажуу хана'
+        });
+
+        // Also add the two full inner side panels of body material (18mm DSP) to make a full box inside!
+        parts.push({
+          id: 'p-ki-inner-side-l',
+          name: 'Шүүгээний хажуу хана (Дотор зүүн)',
+          width: depth,
+          height: baseHeight - ctT,
+          quantity: 1,
+          materialId,
+          edgeBanding: edge,
+          category: 'Хажуу хана'
+        });
+        parts.push({
+          id: 'p-ki-inner-side-r',
+          name: 'Шүүгээний хажуу хана (Дотор баруун)',
+          width: depth,
+          height: baseHeight - ctT,
+          quantity: 1,
+          materialId,
+          edgeBanding: edge,
+          category: 'Хажуу хана'
+        });
+      } else {
+        // Wood side panels: doubled (36mm) by using 10cm inner frame
+        // Left side outer (full size)
+        parts.push({
+          id: 'p-ki-side-l-out',
+          name: 'Арал - Модон хажуу (Зүүн гадна)',
+          width: depth,
+          height: baseHeight - ctT,
+          quantity: 1,
+          materialId: ctMatId,
+          edgeBanding: 'all-sides',
+          category: 'Хажуу хана'
+        });
+        // Left side inner frame (verticals)
+        parts.push({
+          id: 'p-ki-side-l-frame-v',
+          name: 'Арал - Модон хажуу (Зүүн хүрээ босоо)',
+          width: 100,
+          height: baseHeight - ctT,
+          quantity: 2,
+          materialId: ctMatId,
+          edgeBanding: 'all-sides',
+          category: 'Хажуу хана'
+        });
+        // Left side inner frame (horizontals)
+        const frameSideH = depth - 200;
+        if (frameSideH > 0) {
+          parts.push({
+            id: 'p-ki-side-l-frame-h',
+            name: 'Арал - Модон хажуу (Зүүн хүрээ хэвтээ)',
+            width: 100,
+            height: frameSideH,
+            quantity: 2,
+            materialId: ctMatId,
+            edgeBanding: 'all-sides',
+            category: 'Хажуу хана'
+          });
+        }
+
+        // Right side outer (full size)
+        parts.push({
+          id: 'p-ki-side-r-out',
+          name: 'Арал - Модон хажуу (Баруун гадна)',
+          width: depth,
+          height: baseHeight - ctT,
+          quantity: 1,
+          materialId: ctMatId,
+          edgeBanding: 'all-sides',
+          category: 'Хажуу хана'
+        });
+        // Right side inner frame (verticals)
+        parts.push({
+          id: 'p-ki-side-r-frame-v',
+          name: 'Арал - Модон хажуу (Баруун хүрээ босоо)',
+          width: 100,
+          height: baseHeight - ctT,
+          quantity: 2,
+          materialId: ctMatId,
+          edgeBanding: 'all-sides',
+          category: 'Хажуу хана'
+        });
+        // Right side inner frame (horizontals)
+        if (frameSideH > 0) {
+          parts.push({
+            id: 'p-ki-side-r-frame-h',
+            name: 'Арал - Модон хажуу (Баруун хүрээ хэвтээ)',
+            width: 100,
+            height: frameSideH,
+            quantity: 2,
+            materialId: ctMatId,
+            edgeBanding: 'all-sides',
+            category: 'Хажуу хана'
+          });
+        }
+      }
 
       // 3. Bottom panel
       parts.push({
