@@ -2869,7 +2869,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
           const localBodyHeight = isIsland ? height : bodyHeight;
           const ctT = config.countertopThickness ?? 40;
           const effectiveBodyHeight = isIsland ? (height - ctT) : bodyHeight;
-          const localDoorZ = halfD + 9;
+          const localDoorZ = isIsland ? (halfD - 9) : (halfD + 9);
           const innerW = isIsland ? (width - 2 * ctT) : (width - 36);
 
           if (!isIsland) {
