@@ -92,6 +92,12 @@ export const Editor: React.FC = () => {
     return val ? Number(val) : 2700;
   });
   const [roomConfigExpanded, setRoomConfigExpanded] = useState(false);
+  const [showMobileTip, setShowMobileTip] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const isSmallScreen = window.innerWidth < 1024;
+    const dismissed = localStorage.getItem('tavmax-mobile-tip-dismissed');
+    return isSmallScreen && !dismissed;
+  });
   useEffect(() => {
     localStorage.setItem('tavmax-show-room', String(showRoom));
   }, [showRoom]);
@@ -3348,7 +3354,27 @@ export const Editor: React.FC = () => {
 return (
   <>
     {isMobile ? (
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-12">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 pb-12">
+        {showMobileTip && (
+          <div className="col-span-1 bg-gradient-to-r from-amber-500/20 via-amber-600/10 to-neutral-900/40 border border-amber-500/20 rounded-xl p-3.5 flex gap-3 items-start relative select-none animate-fadeIn">
+            <span className="text-base shrink-0">💡</span>
+            <div className="flex-1 pr-6">
+              <div className="text-[10px] text-amber-400 font-bold uppercase tracking-wider mb-0.5">Төхөөрөмжийн зөвлөмж</div>
+              <p className="text-[10px] text-neutral-300 leading-normal font-medium">
+                Суурин компьютер (PC), нөүтбүүк эсвэл таблет ашиглавал 3D зураг зурах, хэмжээс тааруулах болон загварчлахад илүү хялбар, нарийвчлалтай байх болно.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                localStorage.setItem('tavmax-mobile-tip-dismissed', 'true');
+                setShowMobileTip(false);
+              }}
+              className="absolute top-2.5 right-2.5 p-1 rounded-md hover:bg-white/10 text-neutral-400 hover:text-white transition-all cursor-pointer"
+            >
+              <X size={10} />
+            </button>
+          </div>
+        )}
       {/* Mobile Tab Switcher */}
       <div className="lg:hidden col-span-1 flex gap-1 bg-[#12141c] p-1 rounded-xl border border-white/5 shrink-0 select-none">
         <button
