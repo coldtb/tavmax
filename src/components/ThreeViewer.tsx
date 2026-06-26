@@ -2869,7 +2869,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
           const localBodyHeight = isIsland ? height : bodyHeight;
           const ctT = config.countertopThickness ?? 40;
           const effectiveBodyHeight = isIsland ? (height - ctT) : bodyHeight;
-          const localDoorZ = isIsland ? -halfD + 9 : halfD + 9;
+          const localDoorZ = halfD + 9;
           const innerW = isIsland ? (width - 2 * ctT) : (width - 36);
 
           if (!isIsland) {
@@ -2889,7 +2889,7 @@ export const ThreeViewer = React.forwardRef<ThreeViewerRef, ThreeViewerProps>(({
             addBoard(width - 2*ctT, 18, 100, 0, height - ctT - 9, halfD - 18 - 50, bodyMat, 'Дээд холбоос хавтан (Урд)', 'Дээд тавиур');
             addBoard(width - 2*ctT, 18, 100, 0, height - ctT - 9, -halfD + 18 + 50, bodyMat, 'Дээд холбоос хавтан (Ар)', 'Дээд тавиур');
             // Back panel made of body material (thickness 18)
-            addBoard(width - 2*ctT, effectiveBodyHeight, 18, 0, effectiveBodyHeight / 2, halfD - 9, bodyMat, 'Ар хаалт хавтан (Бие)', 'Ар тал');
+            addBoard(width - 2*ctT, effectiveBodyHeight, 18, 0, effectiveBodyHeight / 2, -halfD + 9, bodyMat, 'Ар хаалт хавтан (Бие)', 'Ар тал');
           } else {
             addBoard(18, localBodyHeight, depth, -halfW + 9, localLegHeight + localBodyHeight / 2, 0, bodyMat, 'Гал тогооны хажуу хана (Зүүн)', 'Хажуу хана');
             addBoard(18, localBodyHeight, depth, halfW - 9, localLegHeight + localBodyHeight / 2, 0, bodyMat, 'Гал тогооны хажуу хана (Баруун)', 'Хажуу хана');
