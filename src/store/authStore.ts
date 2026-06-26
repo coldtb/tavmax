@@ -99,9 +99,30 @@ export const useAuthStore = create<AuthState>()(
               .eq('id', session.user.id)
               .maybeSingle();
 
-            const role = profile?.role || metadata.role || 'designer';
-            const subscription = profile?.subscription || metadata.subscription || 'free';
-            const expiresAt = profile?.expires_at || metadata.expiresAt;
+            let role = profile?.role || metadata.role || 'designer';
+            let subscription = profile?.subscription || metadata.subscription || 'free';
+            let expiresAt = profile?.expires_at || metadata.expiresAt;
+
+            // Auto-grant 1 hour free trial for new free accounts (same as login)
+            if (subscription === 'free' && !expiresAt) {
+              const trialExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString();
+              const { error: updateError } = await supabase
+                .from('profiles')
+                .update({
+                  subscription: 'trial',
+                  role: 'factory',
+                  expires_at: trialExpiresAt
+                })
+                .eq('id', session.user.id);
+              if (!updateError) {
+                subscription = 'trial';
+                role = 'factory';
+                expiresAt = trialExpiresAt;
+                await supabase.auth.updateUser({
+                  data: { role: 'factory', subscription: 'trial', expiresAt: trialExpiresAt }
+                });
+              }
+            }
 
             const isAdmin = role === 'admin';
             const isPaid = subscription === 'factory' || subscription === 'pro' || subscription === 'trial';
@@ -142,9 +163,30 @@ export const useAuthStore = create<AuthState>()(
               .eq('id', session.user.id)
               .maybeSingle();
 
-            const role = profile?.role || metadata.role || 'designer';
-            const subscription = profile?.subscription || metadata.subscription || 'free';
-            const expiresAt = profile?.expires_at || metadata.expiresAt;
+            let role = profile?.role || metadata.role || 'designer';
+            let subscription = profile?.subscription || metadata.subscription || 'free';
+            let expiresAt = profile?.expires_at || metadata.expiresAt;
+
+            // Auto-grant 1 hour free trial for new free accounts (same as login)
+            if (subscription === 'free' && !expiresAt) {
+              const trialExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString();
+              const { error: updateError } = await supabase
+                .from('profiles')
+                .update({
+                  subscription: 'trial',
+                  role: 'factory',
+                  expires_at: trialExpiresAt
+                })
+                .eq('id', session.user.id);
+              if (!updateError) {
+                subscription = 'trial';
+                role = 'factory';
+                expiresAt = trialExpiresAt;
+                await supabase.auth.updateUser({
+                  data: { role: 'factory', subscription: 'trial', expiresAt: trialExpiresAt }
+                });
+              }
+            }
 
             const isAdmin = role === 'admin';
             const isPaid = subscription === 'factory' || subscription === 'pro' || subscription === 'trial';
